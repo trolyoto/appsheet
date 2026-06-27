@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Báo Cáo Công Nợ Khách Hàng</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    background: #dce8f5;
+    min-height: 100vh;
+    padding: 20px 12px;
+    color: #1a2332;
+  }
+
+  /* ── NÚT IN (ngoài trang) ── */
+  .top-bar {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+  .print-btn {
+    background: #1e3a6e;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 11px 28px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: inherit;
+    letter-spacing: 0.02em;
+  }
+  .print-btn:hover { background: #152d57; }
+
+  /* ── TRANG BÁO CÁO ── */
+  .page {
+    max-width: 1120px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #b8cfe8;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: #1e3a6e;
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .logo-box {
+    background: #fff;
+    border-radius: 8px;
+    padding: 8px 14px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 160px;
+    min-height: 64px;
+  }
+  .logo-box img {
+    max-height: 52px;
+    max-width: 150px;
+    object-fit: contain;
+  }
+  .logo-text {
+    text-align: center;
+  }
+  .logo-text .brand {
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+  .logo-text .brand span { color: #f59e0b; }
+  .logo-text .sub {
+    font-size: 10px;
+    color: rgba(255,255,255,0.65);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 3px;
+  }
+  .header-info {
+    flex: 1;
+    text-align: center;
+  }
+  .header-info .title {
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .header-info .meta {
+    font-size: 13px;
+    color: rgba(255,255,255,0.85);
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .header-info .meta strong { color: #fff; font-weight: 700; }
+
+  /* ── TỔNG KẾT ── */
+  .summary-strip {
+    background: #f0f6ff;
+    border-bottom: 2px solid #c8daf0;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    divide-color: #c8daf0;
+  }
+  .sum-item {
+    padding: 14px 16px;
+    text-align: center;
+    border-right: 1px solid #c8daf0;
+  }
+  .sum-item:last-child { border-right: none; }
+  .sum-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #5a7aa8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+  .sum-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e3a6e;
+  }
+  .sum-value.danger { color: #c0392b; }
+
+  /* ── SECTION HEADER ── */
+  .section-hd {
+    background: #1e3a6e;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 7px 16px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .sub-section-hd {
+    background: #eaf1fb;
+    color: #1e3a6e;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 6px 16px;
+    border-bottom: 1px solid #c8daf0;
+  }
+
+  /* ── BỘ LỌC ── */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    background: #eaf1fb;
+    border-bottom: 1px solid #c8daf0;
+    flex-wrap: wrap;
+  }
+  .filter-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e3a6e;
+    white-space: nowrap;
+  }
+  .combo-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 220px;
+    max-width: 420px;
+  }
+  .combo-wrap input {
+    width: 100%;
+    background: #fff;
+    border: 1.5px solid #a0bde0;
+    border-radius: 7px;
+    padding: 8px 36px 8px 12px;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #1a2332;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .combo-wrap input:focus { border-color: #2d5299; }
+  .combo-wrap input::placeholder { color: #9ab3d0; }
+  .combo-wrap .combo-icon {
+    position: absolute;
+    right: 11px; top: 50%;
+    transform: translateY(-50%);
+    color: #5a7aa8;
+    pointer-events: none;
+    font-size: 14px;
+  }
+  .combo-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0; right: 0;
+    background: #fff;
+    border: 1.5px solid #a0bde0;
+    border-radius: 8px;
+    max-height: 220px;
+    overflow-y: auto;
+    z-index: 999;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+  }
+  .combo-dropdown.open { display: block; }
+  .combo-option {
+    padding: 9px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    color: #1a2332;
+    border-bottom: 1px solid #eef2f7;
+    transition: background 0.1s;
+  }
+  .combo-option:last-child { border-bottom: none; }
+  .combo-option:hover, .combo-option.active { background: #e4effe; color: #1e3a6e; font-weight: 600; }
+  .combo-option.no-result { color: #9ab3d0; font-style: italic; cursor: default; }
+  .combo-option.no-result:hover { background: #fff; }
+  .reset-btn {
+    background: #fff;
+    border: 1.5px solid #a0bde0;
+    border-radius: 7px;
+    padding: 7px 14px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #c0392b;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .reset-btn:hover { background: #fef0f0; border-color: #e08080; }
+  .filter-count {
+    font-size: 12px;
+    color: #5a7aa8;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  /* ── BẢNG ── */
+  .table-wrap { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead tr { background: #2d5299; }
+  thead th {
+    color: #fff;
+    font-weight: 600;
+    font-size: 12px;
+    padding: 10px 12px;
+    text-align: center;
+    white-space: nowrap;
+    border-right: 1px solid rgba(255,255,255,0.12);
+  }
+  thead th:last-child { border-right: none; }
+  thead th.left { text-align: left; }
+
+  tbody tr { border-bottom: 1px solid #dde8f5; }
+  tbody tr:nth-child(even) { background: #f3f8ff; }
+  tbody tr:hover { background: #e4effe; }
+  tbody tr:last-child { border-bottom: none; }
+
+  td {
+    padding: 9px 12px;
+    text-align: center;
+    color: #1a2332;
+    vertical-align: middle;
+  }
+  td.left { text-align: left; }
+  td.num { font-variant-numeric: tabular-nums; }
+
+  /* ── BADGE ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 11px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+  .badge.tm { background: #d4edda; color: #1a6630; border: 1px solid #a8d5b5; }
+  .badge.ck { background: #d0e8ff; color: #1a4a8a; border: 1px solid #9ec6f0; }
+
+  /* ── FOOTER CHỮ KÝ ── */
+  .footer-row {
+    display: flex;
+    justify-content: space-around;
+    padding: 28px 40px 24px;
+    border-top: 2px solid #dde8f5;
+    background: #f8fbff;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .sign-block { text-align: center; min-width: 150px; }
+  .sign-label {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #5a7aa8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 44px;
+  }
+  .sign-name {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #1a2332;
+    border-top: 1.5px solid #1e3a6e;
+    padding-top: 6px;
+  }
+
+  /* ── IN ── */
+  @media print {
+    @page { size: A4 landscape; margin: 10mm 8mm; }
+    body { background: #fff; padding: 0; margin: 0; }
+    .top-bar, .filter-bar { display: none !important; }
+    .page { border: none; border-radius: 0; overflow: visible; box-shadow: none; max-width: 100%; }
+    .table-wrap { overflow: visible; }
+    table { width: 100%; table-layout: fixed; font-size: 9px; page-break-inside: auto; }
+    table thead th, table td {
+      min-width: 0 !important;
+      padding: 5px 4px;
+      white-space: normal;
+      word-break: break-word;
+      font-size: 9px;
+    }
+    thead th { font-size: 8.5px; }
+    tr { page-break-inside: avoid; }
+    .summary-strip { font-size: 10px; }
+    .sum-value { font-size: 12px; }
+    .header-info .title { font-size: 16px; }
+    .badge { font-size: 8px; padding: 1px 5px; }
+    /* Phân bố độ rộng cột khi in */
+    table th:nth-child(1), table td:nth-child(1) { width: 4%; }
+    table th:nth-child(2), table td:nth-child(2) { width: 18%; }
+    table th:nth-child(3), table td:nth-child(3) { width: 13%; }
+    table th:nth-child(4), table td:nth-child(4) { width: 9%; }
+    table th:nth-child(5), table td:nth-child(5) { width: 9%; }
+    table th:nth-child(6), table td:nth-child(6) { width: 7%; }
+    table th:nth-child(7), table td:nth-child(7) { width: 9%; }
+    table th:nth-child(8), table td:nth-child(8) { width: 8%; }
+    table th:nth-child(9), table td:nth-child(9) { width: 9%; }
+    table th:nth-child(10), table td:nth-child(10) { width: 7%; }
+    table th:nth-child(11), table td:nth-child(11) { width: 7%; }
+  }
+  @media (max-width: 640px) {
+    .summary-strip { grid-template-columns: repeat(2, 1fr); }
+    .header { flex-direction: column; text-align: center; }
+    .header-info .meta { gap: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <button class="print-btn" onclick="window.print()">🖨️ In báo cáo</button>
+</div>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-box">
+      <img src="https://i.ibb.co/JwHMkPXc/logo-PHILONG1.jpg" alt="Phi Long Auto" />
+    </div>
+    <div class="header-info">
+      <div class="title">Báo Cáo Công Nợ NCC</div>
+      <div class="meta">
+        <span>Chi nhánh: <strong id="chi-nhanh-header">——</strong></span>
+        <span>Ngày: <strong id="meta-ngay">——</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TỔNG KẾT -->
+  <div class="summary-strip">
+    <div class="sum-item">
+      <div class="sum-label">Tổng thành tiền</div>
+      <div class="sum-value" id="sum-doanhthu">——</div>
+    </div>
+    <div class="sum-item">
+      <div class="sum-label">Tổng thực chi</div>
+      <div class="sum-value" id="sum-thucthu">——</div>
+    </div>
+    <div class="sum-item">
+      <div class="sum-label">Còn nợ theo nhập xuất</div>
+      <div class="sum-value danger" id="sum-connodh">——</div>
+    </div>
+    <div class="sum-item">
+      <div class="sum-label">Nợ cũ</div>
+      <div class="sum-value danger" id="sum-nocu">——</div>
+    </div>
+    <div class="sum-item">
+      <div class="sum-label">Nợ lũy kế</div>
+      <div class="sum-value danger" id="sum-noluyk">——</div>
+    </div>
+  </div>
+
+  <!-- BỘ LỌC KHÁCH HÀNG -->
+  <div class="filter-bar">
+    <label class="filter-label">🔍 Lọc NCC:</label>
+    <div class="combo-wrap" id="combo-wrap">
+      <input type="text" id="kh-input" placeholder="Gõ tên hoặc chọn từ danh sách..." autocomplete="off"
+        oninput="onComboInput()" onfocus="openDropdown()" />
+      <span class="combo-icon">▾</span>
+      <div class="combo-dropdown" id="combo-dropdown"></div>
+    </div>
+    <button class="reset-btn" onclick="resetFilter()">✕ Bỏ lọc</button>
+    <span class="filter-count" id="filter-count"></span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:40px">TT</th>
+          <th class="left" style="min-width:180px">NCC</th>
+          <th style="min-width:140px">Số phiếu</th>
+          <th style="min-width:110px">Thành tiền</th>
+          <th style="min-width:110px">Thực chi</th>
+          <th style="min-width:85px">Hình thức</th>
+          <th style="min-width:110px">Còn nợ</th>
+          <th style="min-width:100px">Nợ cũ</th>
+          <th style="min-width:110px">Nợ lũy kế</th>
+          <th style="min-width:90px">Chi nhánh</th>
+          <th style="min-width:110px">Ghi chú</th>
+        </tr>
+      </thead>
+      <tbody id="table-body">
+        <tr>
+          <td colspan="11" style="text-align:center;padding:36px;color:#7a9cbf;font-style:italic;">
+            Đang chờ dữ liệu từ AppSheet...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- CHỮ KÝ -->
+  <div class="footer-row">
+    <div class="sign-block">
+      <div class="sign-label">Người lập báo cáo</div>
+      <div class="sign-name">................................</div>
+    </div>
+    <div class="sign-block">
+      <div class="sign-label">Quản lý Chi nhánh</div>
+      <div class="sign-name">................................</div>
+    </div>
+    <div class="sign-block">
+      <div class="sign-label">Giám đốc</div>
+      <div class="sign-name">................................</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ----------------------------------------------------------------
+  // AppSheet truyền qua URL:
+  //   ?ngay=04/06/26&chinhanh=CN1,CN2
+  //   &customers=KH1_b_KH2_b_KH3   ← danh sách KH (tuỳ chọn)
+  //   &data=KH_a_DH_a_DT_a_TT_a_HT_a_ConNo_a_NoCu_a_NoLuyk_a_ChiNhanh_a_GhiChu_b_...
+  // ----------------------------------------------------------------
+
+  let allRows = [];
+  let khList  = [];
+  let activeKH = '';   // KH đang được chọn (rỗng = tất cả)
+
+  function fmt(n) {
+    const num = parseFloat(n);
+    if (isNaN(num)) return '—';
+    return num.toLocaleString('vi-VN') + ' đ';
+  }
+  function parseNum(s) {
+    if (!s) return 0;
+    return parseFloat(s.toString().replace(/[^\d.-]/g, '')) || 0;
+  }
+  function esc(s) {
+    return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function badge(ht) {
+    const v = (ht || '').trim().toUpperCase();
+    const cls = v === 'CK' ? 'ck' : 'tm';
+    return `<span class="badge ${cls}">${esc(ht) || 'TM'}</span>`;
+  }
+
+  // ── RENDER ──
+  function renderRows(rows) {
+    const tbody = document.getElementById('table-body');
+    if (!rows.length) {
+      tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:36px;color:#7a9cbf;font-style:italic;">Không có dữ liệu phù hợp.</td></tr>`;
+      updateSummary([]);
+      return;
+    }
+    tbody.innerHTML = rows.map((r, idx) => `<tr>
+      <td style="color:#5a7aa8;font-weight:600">${idx + 1}</td>
+      <td class="left" style="font-weight:500">${esc(r.kh) || '<span style="color:#bbb">—</span>'}</td>
+      <td style="font-size:12px;color:#3a5a8a">${esc(r.dh) || '—'}</td>
+      <td class="num">${fmt(r.doanhthu)}</td>
+      <td class="num">${fmt(r.thucthu)}</td>
+      <td>${badge(r.hinhthu)}</td>
+      <td class="num" style="color:${r.connodh > 0 ? '#c0392b' : '#1a6630'};font-weight:600">${fmt(r.connodh)}</td>
+      <td class="num">${fmt(r.nocu)}</td>
+      <td class="num" style="font-weight:700;color:${r.noluyk > 0 ? '#c0392b' : '#1a6630'}">${fmt(r.noluyk)}</td>
+      <td style="font-weight:600;color:#1e3a6e">${esc(r.cn_name)}</td>
+      <td style="color:#666;font-size:12px">${esc(r.ghichu)}</td>
+    </tr>`).join('');
+    updateSummary(rows);
+  }
+
+  function updateSummary(rows) {
+    let s = {dt:0,tt:0,cn:0,nc:0,nl:0};
+    rows.forEach(r => { s.dt+=r.doanhthu; s.tt+=r.thucthu; s.cn+=r.connodh; s.nc+=r.nocu; s.nl+=r.noluyk; });
+    document.getElementById('sum-doanhthu').textContent = fmt(s.dt);
+    document.getElementById('sum-thucthu').textContent  = fmt(s.tt);
+    document.getElementById('sum-connodh').textContent  = fmt(s.cn);
+    document.getElementById('sum-nocu').textContent     = fmt(s.nc);
+    document.getElementById('sum-noluyk').textContent   = fmt(s.nl);
+  }
+
+  function applyFilter() {
+    const filtered = activeKH ? allRows.filter(r => r.kh === activeKH) : allRows;
+    renderRows(filtered);
+    const count = document.getElementById('filter-count');
+    count.textContent = activeKH ? `${filtered.length} dòng` : '';
+  }
+
+  // ── COMBO DROPDOWN ──
+  function buildDropdown(query) {
+    const dd = document.getElementById('combo-dropdown');
+    const q  = (query || '').trim().toLowerCase();
+    const matches = q
+      ? khList.filter(k => k.toLowerCase().includes(q))
+      : khList;
+
+    if (!matches.length) {
+      dd.innerHTML = `<div class="combo-option no-result">Không tìm thấy kết quả</div>`;
+    } else {
+      dd.innerHTML = (q ? '' : `<div class="combo-option" data-val="" onclick="selectKH(this)">— Tất cả —</div>`)
+        + matches.map(k =>
+          `<div class="combo-option${k===activeKH?' active':''}" data-val="${esc(k)}" onclick="selectKH(this)">${esc(k)}</div>`
+        ).join('');
+    }
+  }
+
+  function openDropdown() {
+    buildDropdown(document.getElementById('kh-input').value);
+    document.getElementById('combo-dropdown').classList.add('open');
+  }
+
+  function onComboInput() {
+    activeKH = '';          // gõ mới → bỏ filter cũ
+    buildDropdown(document.getElementById('kh-input').value);
+    document.getElementById('combo-dropdown').classList.add('open');
+    applyFilter();          // lọc theo text gõ vào trực tiếp
+  }
+
+  // Override applyFilter để cũng lọc theo text input khi chưa chọn hẳn
+  function applyFilter() {
+    const input = document.getElementById('kh-input').value.trim().toLowerCase();
+    let filtered;
+    if (activeKH) {
+      filtered = allRows.filter(r => r.kh === activeKH);
+    } else if (input) {
+      filtered = allRows.filter(r => r.kh.toLowerCase().includes(input));
+    } else {
+      filtered = allRows;
+    }
+    renderRows(filtered);
+    const count = document.getElementById('filter-count');
+    count.textContent = (activeKH || input) ? `${filtered.length} dòng` : '';
+  }
+
+  function selectKH(el) {
+    const val = el.dataset.val;
+    activeKH  = val;
+    document.getElementById('kh-input').value = val || '';
+    document.getElementById('combo-dropdown').classList.remove('open');
+    applyFilter();
+  }
+
+  function resetFilter() {
+    activeKH = '';
+    document.getElementById('kh-input').value = '';
+    document.getElementById('combo-dropdown').classList.remove('open');
+    applyFilter();
+  }
+
+  // Đóng dropdown khi click ra ngoài
+  document.addEventListener('click', e => {
+    if (!document.getElementById('combo-wrap').contains(e.target)) {
+      document.getElementById('combo-dropdown').classList.remove('open');
+    }
+  });
+
+  // ── LOAD TỪ URL ──
+  function loadFromURL() {
+    const params = new URLSearchParams(window.location.search);
+
+    const ngay = params.get('ngay');
+    const chinhanh = params.get('chinhanh');
+    if (ngay) document.getElementById('meta-ngay').textContent = ngay;
+    if (chinhanh) document.getElementById('chi-nhanh-header').textContent = chinhanh;
+
+    const raw = params.get('data');
+    const tbody = document.getElementById('table-body');
+
+    if (!raw || raw.trim() === '') {
+      tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:36px;color:#7a9cbf;font-style:italic;">
+        Chưa có dữ liệu — AppSheet chưa truyền tham số <code>data</code>.</td></tr>`;
+      return;
+    }
+
+    const rowStrings = raw.split('_b_').filter(r => r.trim() !== '');
+    if (!rowStrings.length) {
+      tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:36px;color:#7a9cbf;font-style:italic;">Dữ liệu trống.</td></tr>`;
+      return;
+    }
+
+    allRows = rowStrings.map(rowStr => {
+      const c = rowStr.split('_a_');
+      return {
+        kh: c[0]||'', dh: c[1]||'',
+        doanhthu: parseNum(c[2]), thucthu: parseNum(c[3]),
+        hinhthu:  c[4]||'',
+        connodh:  parseNum(c[5]), nocu: parseNum(c[6]), noluyk: parseNum(c[7]),
+        cn_name:  c[8]||'', ghichu: c[9]||'',
+      };
+    });
+
+    // Danh sách KH cho dropdown
+    const custParam = params.get('customers');
+    if (custParam && custParam.trim()) {
+      khList = custParam.split('_b_').map(s => s.trim()).filter(Boolean);
+    } else {
+      const seen = new Set();
+      allRows.forEach(r => { if (r.kh && !seen.has(r.kh)) { seen.add(r.kh); khList.push(r.kh); } });
+    }
+
+    renderRows(allRows);
+  }
+
+  loadFromURL();
+</script>
+</body>
+</html>
