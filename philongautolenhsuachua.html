@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light only">
+<title>Lệnh Sửa Chữa Chung - Phi Long Auto</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap');
+
+  :root {
+    --blue: #1a3a8f;
+    --yellow: #f5c500;
+    --yellow-light: #fffbe6;
+    --red: #d32f2f;
+    --border: #999;
+    --text: #1a1a1a;
+    --gray: #555;
+    --green: #4CAF50;
+    --green-light: #c8e6c9;
+    --peach: #ffcc99;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Be Vietnam Pro', Arial, sans-serif;
+    background: #e8eaf0;
+    color: var(--text);
+    font-size: 12px;
+    line-height: 1.3;
+  }
+
+  /* ── THANH ĐIỀU CHỈNH CỠ CHỮ ── */
+  #font-ctrl {
+    position: fixed;
+    bottom: 84px;
+    right: 28px;
+    z-index: 9999;
+    background: #fff;
+    border: 1.5px solid #bbb;
+    border-radius: 50px;
+    padding: 7px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.15);
+    font-family: 'Be Vietnam Pro', Arial, sans-serif;
+    font-size: 13px;
+    color: #333;
+  }
+  #font-ctrl button {
+    width: 28px; height: 28px;
+    border: 1.5px solid #bbb; border-radius: 50%;
+    background: #f5f6fa;
+    font-size: 17px; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--blue); line-height: 1;
+    transition: background 0.15s; padding: 0;
+  }
+  #font-ctrl button:hover { background: #e0e4f4; }
+  #font-size-label { min-width: 36px; text-align: center; font-weight: 700; color: var(--blue); font-size: 13px; }
+
+  #btn-print {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    z-index: 9999;
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: 13px 28px;
+    font-family: 'Be Vietnam Pro', Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 18px rgba(26,58,143,0.35);
+    transition: background 0.18s, box-shadow 0.18s, transform 0.12s;
+  }
+  #btn-print:hover { background: #2650c0; transform: translateY(-2px); }
+
+  /* ── WRAPPER SCALE ── */
+  #scale-root { transform-origin: top center; }
+
+  .page-wrapper {
+    max-width: 210mm;
+    margin: 0 auto;
+    background: #fff;
+    padding: 6mm 8mm 6mm 8mm;
+    min-height: 297mm;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.13);
+  }
+
+  /* ── HEADER ── */
+  .header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    padding-bottom: 4px;
+  }
+  .logo-block { flex: 0 0 auto; }
+  .logo-svg { display: block; height: 60px; width: auto; }
+
+  .qc-box {
+    border: 1.5px solid var(--border);
+    padding: 4px 8px;
+    min-width: 140px;
+    font-size: 10px;
+  }
+  .qc-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .qc-label { font-size: 10px; color: var(--gray); }
+  .qc-cell {
+    width: 22px; height: 14px;
+    border: 1px solid var(--border);
+    display: inline-block;
+  }
+  .qc-cell.yellow { background: var(--yellow); }
+  .qc-cell.green  { background: #4CAF50; }
+  .qc-cell.peach  { background: #ffcc99; }
+
+  /* ── TITLE ── */
+  .doc-title {
+    text-align: center;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text);
+    margin: 4px 0 6px 0;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── META ROW ── */
+  .meta-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--border);
+    padding: 3px 8px;
+    margin-bottom: 0;
+    font-size: 11px;
+  }
+  .meta-top .item { display: flex; gap: 4px; align-items: center; }
+  .meta-top .lbl { color: var(--gray); white-space: nowrap; }
+  .meta-top .val { font-weight: 700; }
+
+  /* ── INFO TABLE ── */
+  .info-section {
+    border: 1px solid var(--border);
+    border-top: none;
+    margin-bottom: 0;
+  }
+  .info-row {
+    display: grid;
+    border-bottom: 1px solid var(--border);
+    min-height: 22px;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-row.cols-2 { grid-template-columns: 1fr 1fr; }
+  .info-row.cols-3 { grid-template-columns: 1.5fr 0.75fr 0.75fr; }
+  .info-row.cols-4 { grid-template-columns: 1fr 0.8fr 0.6fr 0.8fr; }
+
+  .info-cell {
+    padding: 3px 6px;
+    font-size: 11px;
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    align-items: center;
+    gap: 2px;
+    border-right: 1px solid var(--border);
+  }
+  .info-cell:last-child { border-right: none; }
+  .info-cell .lbl { color: var(--gray); white-space: nowrap; font-size: 10.5px; }
+  .info-cell .val { font-weight: 600; }
+
+  .bien-so-large {
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--text);
+  }
+
+  /* ── YÊU CẦU ── */
+  .yeucau-row {
+    border: 1px solid var(--border);
+    border-top: none;
+    padding: 4px 6px;
+    font-size: 11px;
+    font-weight: 700;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    gap: 8px;
+  }
+  .yeucau-left {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .yeucau-label { font-weight: 700; white-space: nowrap; }
+  .yeucau-input {
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 3px 6px;
+    font-family: 'Be Vietnam Pro', Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text);
+    background: #fafafa;
+    resize: vertical;
+    min-height: 30px;
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .yeucau-input:focus { border-color: var(--blue); background: #fff; }
+
+  .legend-box {
+    font-size: 9.5px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3px;
+    align-items: start;
+    padding-top: 1px;
+  }
+  .legend-item {
+    display: grid;
+    grid-template-columns: 16px 1fr;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+  .legend-dot {
+    width: 14px; height: 12px;
+    border: 1px solid #aaa;
+    flex-shrink: 0;
+  }
+  .legend-dot.yellow { background: var(--yellow); }
+  .legend-dot.green  { background: #4CAF50; }
+  .legend-dot.peach  { background: #ffcc99; }
+
+  /* ── SECTION HEADERS ── */
+  .section-header {
+    background: #f5f6fa;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 6px;
+    border: 1px solid var(--border);
+    border-top: none;
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+    color: var(--text);
+  }
+
+  /* ── SERVICES TABLE ── */
+  .tbl {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid var(--border);
+    border-top: none;
+    font-size: 10.5px;
+    margin-bottom: 0;
+  }
+  .tbl th {
+    background: var(--yellow);
+    color: var(--text);
+    font-weight: 700;
+    padding: 4px 4px;
+    border: 1px solid #c9a800;
+    text-align: center;
+    font-size: 10px;
+    vertical-align: middle;
+  }
+  .tbl td {
+    border: 1px solid var(--border);
+    padding: 2px 4px;
+    vertical-align: middle;
+    height: 20px;
+  }
+  .tbl .col-stt   { width: 28px; text-align: center; }
+  .tbl .col-ma    { width: 55px; text-align: center; }
+  .tbl .col-ten   { text-align: left; }
+  .tbl .col-ktv   { width: 65px; text-align: center; font-weight: 700; }
+  .tbl .col-bd    { width: 52px; text-align: center; }
+  .tbl .col-kt    { width: 52px; text-align: center; }
+  .tbl .col-ban   { width: 32px; text-align: center; }
+  .tbl .col-ghichu{ width: 60px; text-align: center; }
+  .tbl .col-dv    { width: 32px; text-align: center; }
+  .tbl .col-sl-can{ width: 40px; text-align: center; }
+  .tbl .col-sl-nhan{ width: 40px; text-align: center; }
+  .tbl .row-alt   { background: #f8f8f8; }
+
+  /* ── PHÁT SINH ── */
+  .phatsinh-section {
+    border: 1px solid var(--border);
+    border-top: none;
+    margin-bottom: 6px;
+  }
+  .phatsinh-header {
+    display: flex;
+    justify-content: space-between;
+    background: #f5f6fa;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 3px 6px;
+    border-bottom: 1px solid var(--border);
+    text-transform: uppercase;
+  }
+  .phatsinh-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10.5px;
+  }
+  .phatsinh-table th {
+    background: var(--yellow);
+    font-weight: 700;
+    padding: 3px 6px;
+    border: 1px solid #c9a800;
+    text-align: center;
+    font-size: 10px;
+  }
+  .phatsinh-table td {
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    height: 20px;
+  }
+
+  /* ── SIGNATURES ── */
+  .sig-section {
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--border);
+    margin-top: 0;
+  }
+  .sig-gate {
+    flex: 0 0 auto;
+    width: 130px;
+    border-right: 1px solid var(--border);
+    padding: 4px;
+    text-align: center;
+    font-size: 9.5px;
+  }
+  .sig-gate .gate-label { font-weight: 700; font-size: 10px; margin-bottom: 2px; }
+  .sig-gate .note { font-size: 9px; font-style: italic; color: var(--gray); }
+  .sig-gate .date-line { margin-top: 28px; font-size: 9.5px; color: var(--gray); }
+  .sig-middle {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 4px;
+    font-size: 9.5px;
+    color: var(--gray);
+    font-style: italic;
+    border-right: 1px solid var(--border);
+  }
+  .sig-right {
+    flex: 0 0 auto;
+    width: 160px;
+    padding: 4px 8px;
+    text-align: center;
+    font-size: 10.5px;
+  }
+  .sig-right .title { font-weight: 700; font-size: 11px; margin-bottom: 28px; }
+  .sig-right .name {
+    font-weight: 700;
+    font-size: 11px;
+    color: var(--red);
+    border-top: 1px solid var(--border);
+    padding-top: 4px;
+  }
+
+  .tbl-time-header { text-align: center; }
+
+  /* ══ PRINT ══ */
+  @media print {
+    #btn-print  { display: none !important; }
+    #font-ctrl  { display: none !important; }
+    html, *, *::before, *::after {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      forced-color-adjust: none !important;
+    }
+    @page { size: A4 portrait; margin: 6mm; }
+    html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
+    #scale-root { transform: none !important; width: 100% !important; }
+    .page-wrapper { margin: 0 !important; padding: 4mm 6mm !important; box-shadow: none !important; max-width: 100% !important; min-height: auto !important; }
+    .tbl th, .phatsinh-table th { background-color: #f5c500 !important; }
+    .section-header, .phatsinh-header { background-color: #f5f6fa !important; }
+    .yeucau-input { border: none; background: transparent; resize: none; }
+  }
+
+  @media (max-width: 600px) {
+    #btn-print { bottom: 16px; right: 16px; padding: 11px 20px; }
+    #font-ctrl { bottom: 72px; right: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── ĐIỀU CHỈNH CỠ CHỮ ── -->
+<div id="font-ctrl">
+  <button id="btn-decrease" title="Giảm cỡ chữ">−</button>
+  <span id="font-size-label">100%</span>
+  <button id="btn-increase" title="Tăng cỡ chữ">+</button>
+</div>
+
+<button id="btn-print" onclick="window.print()">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="6 9 6 2 18 2 18 9"/>
+    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+    <rect x="6" y="14" width="12" height="8"/>
+  </svg>
+  In phiếu
+</button>
+
+<!-- ── WRAPPER SCALE ── -->
+<div id="scale-root">
+
+<div class="page-wrapper">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-block" id="logo-block"></div>
+    <div class="qc-box">
+      <div style="font-size:9.5px;color:#777;">
+        <div class="qc-row">
+          <span class="qc-label">Cấp QC:</span>
+          <span style="font-weight:700;font-size:10px;">1</span><span class="qc-cell yellow"></span>
+          <span style="font-weight:700;font-size:10px;">2</span><span class="qc-cell green"></span>
+          <span style="font-weight:700;font-size:10px;">3</span><span class="qc-cell peach"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TITLE -->
+  <div class="doc-title">LỆNH SỬA CHỮA CHUNG</div>
+
+  <!-- META TOP ROW -->
+  <div class="meta-top">
+    <div class="item"><span class="lbl">Số phiếu:</span><span class="val" id="el-sophieu"></span></div>
+    <div class="item"><span class="lbl">Ngày:</span><span class="val" id="el-ngay"></span></div>
+    <div class="item"><span class="lbl">Bản:</span><span class="val" id="el-ban"></span></div>
+  </div>
+
+  <!-- INFO SECTION -->
+  <div class="info-section">
+
+    <div class="info-row cols-2">
+      <div class="info-cell"><span class="lbl">Tên KH:</span><span class="val" id="el-kh"></span></div>
+      <div class="info-cell"><span class="lbl">Biển số:</span><span class="val bien-so-large" id="el-bs"></span></div>
+    </div>
+
+    <div class="info-row cols-2">
+      <div class="info-cell"><span class="lbl">Công ty:</span><span class="val" id="el-cty"></span></div>
+      <div class="info-cell"><span class="lbl">Loại xe:</span><span class="val" id="el-loai"></span></div>
+    </div>
+
+    <div class="info-row cols-2">
+      <div class="info-cell"><span class="lbl">Địa chỉ:</span><span class="val" id="el-dc"></span></div>
+      <div class="info-cell"><span class="lbl">Số vin/khung:</span><span class="val" id="el-vin"></span></div>
+    </div>
+
+    <div class="info-row cols-3">
+      <div class="info-cell"><span class="lbl">Điện thoại:</span><span class="val" id="el-dt"></span></div>
+      <div class="info-cell"><span class="lbl">Fax:</span><span class="val" id="el-fax"></span></div>
+      <div class="info-cell"><span class="lbl">Mã màu:</span><span class="val" id="el-mau"></span></div>
+    </div>
+
+    <div class="info-row cols-2">
+      <div class="info-cell"><span class="lbl">Người mang xe:</span><span class="val" id="el-nguoimx"></span></div>
+      <div class="info-cell"><span class="lbl">Điện thoại:</span><span class="val" id="el-dientho"></span></div>
+    </div>
+
+    <div class="info-row cols-2">
+      <div class="info-cell"><span class="lbl">TG KH tới:</span><span class="val" id="el-tgkh"></span></div>
+      <div class="info-cell"><span class="lbl">Dự kiến giao xe:</span><span class="val" id="el-giao"></span></div>
+    </div>
+
+    <div class="info-row cols-2">
+      <div class="info-cell"><span class="lbl">Dự kiến BĐ:</span><span class="val" id="el-batdau"></span></div>
+      <div class="info-cell"><span class="lbl">Dự kiến KT:</span><span class="val" id="el-ketthuc"></span></div>
+    </div>
+
+  </div>
+
+  <!-- YÊU CẦU -->
+  <div class="yeucau-row">
+    <div class="yeucau-left">
+      <span class="yeucau-label">Yêu cầu khách hàng:</span>
+      <textarea class="yeucau-input" id="el-yeucau" rows="2" placeholder="Nhập yêu cầu của khách hàng..."></textarea>
+    </div>
+    <div class="legend-box">
+      <div class="legend-item"><div class="legend-dot yellow"></div><span>KH chờ</span></div>
+      <div class="legend-item"><div class="legend-dot green"></div><span>Yêu cầu rửa xe</span></div>
+      <div class="legend-item"><div class="legend-dot peach"></div><span>KH lấy PT cũ</span></div>
+    </div>
+  </div>
+
+  <!-- CÔNG VIỆC CẦN THỰC HIỆN -->
+  <div class="section-header">CÔNG VIỆC CẦN THỰC HIỆN</div>
+  <table class="tbl" id="tbl-congviec">
+    <thead>
+      <tr>
+        <th class="col-stt" rowspan="2">STT</th>
+        <th class="col-ma" rowspan="2">Mã C/V</th>
+        <th class="col-ten" rowspan="2">TÊN CÔNG VIỆC</th>
+        <th class="col-ktv" rowspan="2">KTV</th>
+        <th colspan="2" class="tbl-time-header">THỜI GIAN SỬA CHỮA</th>
+        <th class="col-ban" rowspan="2">BẢN</th>
+        <th class="col-ghichu" rowspan="2">GHI CHÚ</th>
+      </tr>
+      <tr>
+        <th class="col-bd">BĐ</th>
+        <th class="col-kt">KT</th>
+      </tr>
+    </thead>
+    <tbody id="tbody-congviec"></tbody>
+  </table>
+
+  <!-- PHỤ TÙNG / VẬT TƯ -->
+  <div class="section-header" style="border-top:1px solid var(--border);">PHỤ TÙNG / VẬT TƯ</div>
+  <table class="tbl" id="tbl-phutung">
+    <thead>
+      <tr>
+        <th class="col-stt" rowspan="2">STT</th>
+        <th class="col-ma" rowspan="2">Mã PT/VT</th>
+        <th class="col-ten" rowspan="2">TÊN PT / VT</th>
+        <th class="col-dv" rowspan="2">ĐV</th>
+        <th colspan="2" class="tbl-time-header">SỐ LƯỢNG</th>
+        <th class="col-ban" rowspan="2">BẢN</th>
+        <th class="col-ghichu" rowspan="2">GHI CHÚ</th>
+      </tr>
+      <tr>
+        <th class="col-sl-can">CẦN</th>
+        <th class="col-sl-nhan">NHẬN</th>
+      </tr>
+    </thead>
+    <tbody id="tbody-phutung"></tbody>
+  </table>
+
+  <!-- PHÁT SINH / TỔNG CHI PHÍ -->
+  <div class="phatsinh-section">
+    <div class="phatsinh-header">
+      <span>CÔNG VIỆC PHÁT SINH / CẦN LÀM SỚM</span>
+      <span>TỔNG CHI PHÍ &nbsp;&nbsp;&nbsp; <span id="el-tongchiphi" style="font-weight:700;"></span></span>
+    </div>
+    <table class="phatsinh-table">
+      <thead>
+        <tr>
+          <th style="width:28px;">STT</th>
+          <th>Tên công việc / Tình trạng</th>
+          <th>Phát sinh</th>
+          <th>Làm sớm</th>
+          <th>Phương án xử lý</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-phatsinh"></tbody>
+    </table>
+  </div>
+
+  <!-- CHỮ KÝ -->
+  <div class="sig-section">
+    <div class="sig-gate">
+      <div class="gate-label">Q_GATE 1</div>
+      <div class="note">(Ký &amp; ghi rõ họ tên)</div>
+      <div class="date-line">Ngày..../.......giờ......&nbsp;</div>
+    </div>
+    <div class="sig-gate">
+      <div class="gate-label">Q_GATE 2</div>
+      <div class="note">(Ký &amp; ghi rõ họ tên)</div>
+      <div class="date-line">Ngày..../.......giờ......&nbsp;</div>
+    </div>
+    <div class="sig-middle">
+      <span id="el-phieusudung">Phiếu sử dụng khi TMSS lỗi</span>
+    </div>
+    <div class="sig-right">
+      <div class="title">CỐ VẤN DỊCH VỤ</div>
+      <div class="name" id="el-cvdv"></div>
+    </div>
+  </div>
+
+</div><!-- end page-wrapper -->
+</div><!-- end scale-root -->
+
+<script>
+/* ── SCALE TOÀN BỘ TRANG ── */
+(function () {
+  var STEP = 0.05, MIN = 0.6, MAX = 2.0;
+  var scale = parseFloat(localStorage.getItem('phi-long-font-scale') || '1');
+  var root  = document.getElementById('scale-root');
+  var label = document.getElementById('font-size-label');
+
+  function apply(s) {
+    scale = Math.min(MAX, Math.max(MIN, Math.round(s * 100) / 100));
+    root.style.transformOrigin = 'top center';
+    root.style.transform = scale === 1 ? '' : 'scale(' + scale + ')';
+    root.style.zoom = scale;
+    label.textContent = Math.round(scale * 100) + '%';
+    root.style.marginBottom = scale !== 1 ? (-(1 - scale) * root.offsetHeight) + 'px' : '';
+    try { localStorage.setItem('phi-long-font-scale', scale); } catch(e) {}
+  }
+
+  apply(scale);
+  document.getElementById('btn-increase').addEventListener('click', function () { apply(scale + STEP); });
+  document.getElementById('btn-decrease').addEventListener('click', function () { apply(scale - STEP); });
+})();
+
+/* ── ĐIỀN DỮ LIỆU TỪ URL ── */
+(function () {
+  var p = new URLSearchParams(window.location.search);
+
+  (function() {
+    var block = document.getElementById('logo-block');
+    if (!block) return;
+    var logoUrl = (p.get('logo') || '').trim();
+    if (logoUrl) {
+      var img = document.createElement('img');
+      img.src = logoUrl; img.alt = 'Logo';
+      img.style.cssText = 'height:60px;width:auto;display:block;object-fit:contain;';
+      block.appendChild(img);
+    } else {
+      block.innerHTML = '<svg class="logo-svg" viewBox="0 0 260 65" xmlns="http://www.w3.org/2000/svg">'
+        + '<text x="2" y="42" font-family="\'Be Vietnam Pro\',Arial Black,sans-serif" font-size="46" font-weight="900" font-style="italic" fill="#1a3a8f" letter-spacing="-1">PHI LONG</text>'
+        + '<text x="4" y="56" font-family="\'Be Vietnam Pro\',Arial,sans-serif" font-size="11" font-weight="700" font-style="italic" fill="#1a3a8f" letter-spacing="0.3">LỐP XE + BẢO DƯỠNG NHANH</text>'
+        + '<rect x="192" y="45" width="64" height="14" rx="2" fill="#f5a623"/>'
+        + '<text x="224" y="55.5" font-family="\'Be Vietnam Pro\',Arial,sans-serif" font-size="10.5" font-weight="900" font-style="italic" fill="#1a3a8f" text-anchor="middle" letter-spacing="0.3">AUTO.COM</text>'
+        + '</svg>';
+    }
+  })();
+
+  function get(key) { return p.has(key) ? p.get(key) : ''; }
+  function set(id, key) { var el = document.getElementById(id); if (el) el.textContent = get(key); }
+  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  set('el-sophieu','sophieu'); set('el-ngay','ngay'); set('el-ban','ban');
+  set('el-kh','kh'); set('el-cty','cty'); set('el-dc','dc'); set('el-dt','dt');
+  set('el-fax','fax'); set('el-nguoimx','nguoimx'); set('el-dientho','dientho');
+  set('el-bs','bs'); set('el-loai','loai'); set('el-vin','vin'); set('el-mau','mau');
+  set('el-ngaygx','ngaygx'); set('el-tgkh','tgkh'); set('el-giao','giao');
+  set('el-batdau','batdau'); set('el-ketthuc','ketthuc');
+  set('el-tongchiphi','tongchiphi'); set('el-cvdv','cvdv');
+
+  var yeucauEl = document.getElementById('el-yeucau');
+  if (yeucauEl && p.has('yeucau')) yeucauEl.value = p.get('yeucau');
+
+  // ── CÔNG VIỆC TABLE ──
+  var rawCv = get('data_cv'), tbodyCv = document.getElementById('tbody-congviec');
+  var cvRows = rawCv ? rawCv.split('|') : [];
+  cvRows.forEach(function(row, i) {
+    if (!row.trim()) return;
+    var cols = row.split('__'), tr = document.createElement('tr');
+    if (i % 2 === 1) tr.className = 'row-alt';
+    tr.innerHTML = '<td class="col-stt">'+(i+1)+'</td><td class="col-ma">'+esc(cols[0]||'')+'</td>'
+      +'<td class="col-ten">'+esc(cols[1]||'')+'</td><td class="col-ktv">'+esc(cols[2]||'')+'</td>'
+      +'<td class="col-bd">'+esc(cols[3]||'')+'</td><td class="col-kt">'+esc(cols[4]||'')+'</td>'
+      +'<td class="col-ban"></td><td class="col-ghichu"></td>';
+    tbodyCv.appendChild(tr);
+  });
+  var cvCount = cvRows.filter(function(r){return r.trim();}).length;
+  for (var i = 0; i < Math.max(5 - cvCount, 0); i++) {
+    var tr = document.createElement('tr');
+    if ((cvCount+i)%2===1) tr.className='row-alt';
+    tr.innerHTML='<td class="col-stt"></td><td class="col-ma"></td><td class="col-ten">&nbsp;</td>'
+      +'<td class="col-ktv"></td><td class="col-bd"></td><td class="col-kt"></td>'
+      +'<td class="col-ban"></td><td class="col-ghichu"></td>';
+    tbodyCv.appendChild(tr);
+  }
+
+  // ── PHỤ TÙNG TABLE ──
+  var rawPt = get('data_pt'), tbodyPt = document.getElementById('tbody-phutung');
+  var ptRows = rawPt ? rawPt.split('|') : [];
+  ptRows.forEach(function(row, i) {
+    if (!row.trim()) return;
+    var cols = row.split('__'), tr = document.createElement('tr');
+    if (i%2===1) tr.className='row-alt';
+    tr.innerHTML='<td class="col-stt">'+(i+1)+'</td><td class="col-ma">'+esc(cols[0]||'')+'</td>'
+      +'<td class="col-ten">'+esc(cols[1]||'')+'</td><td class="col-dv">'+esc(cols[2]||'')+'</td>'
+      +'<td class="col-sl-can">'+esc(cols[3]||'')+'</td><td class="col-sl-nhan">'+esc(cols[4]||'')+'</td>'
+      +'<td class="col-ban"></td><td class="col-ghichu"></td>';
+    tbodyPt.appendChild(tr);
+  });
+  var ptCount = ptRows.filter(function(r){return r.trim();}).length;
+  for (var j = 0; j < Math.max(5 - ptCount, 0); j++) {
+    var tr = document.createElement('tr');
+    if ((ptCount+j)%2===1) tr.className='row-alt';
+    tr.innerHTML='<td class="col-stt"></td><td class="col-ma"></td><td class="col-ten">&nbsp;</td>'
+      +'<td class="col-dv"></td><td class="col-sl-can"></td><td class="col-sl-nhan"></td>'
+      +'<td class="col-ban"></td><td class="col-ghichu"></td>';
+    tbodyPt.appendChild(tr);
+  }
+
+  // ── PHÁT SINH TABLE ──
+  var rawPs = get('data_ps'), tbodyPs = document.getElementById('tbody-phatsinh');
+  var psRows = rawPs ? rawPs.split('|') : [];
+  psRows.forEach(function(row, i) {
+    if (!row.trim()) return;
+    var cols = row.split('__'), tr = document.createElement('tr');
+    tr.innerHTML='<td style="text-align:center;">'+(i+1)+'</td>'
+      +'<td>'+esc(cols[0]||'')+'</td><td>'+esc(cols[1]||'')+'</td>'
+      +'<td>'+esc(cols[2]||'')+'</td><td>'+esc(cols[3]||'')+'</td>';
+    tbodyPs.appendChild(tr);
+  });
+  var psCount = psRows.filter(function(r){return r.trim();}).length;
+  for (var k = 0; k < Math.max(2 - psCount, 0); k++) {
+    var tr = document.createElement('tr');
+    tr.innerHTML='<td style="text-align:center;height:20px;">'+(psCount+k+1)+'</td>'
+      +'<td>&nbsp;</td><td></td><td></td><td></td>';
+    tbodyPs.appendChild(tr);
+  }
+
+})();
+</script>
+</body>
+</html>
