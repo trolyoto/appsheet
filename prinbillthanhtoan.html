@@ -69,8 +69,12 @@
             margin-bottom: 8px;
         }
         
-        .header h1 { font-size: 24px; color: #333; margin-bottom: 2px; }
-        .header p  { color: #666; font-size: 14px; }
+        .header img {
+            max-width: 100%;
+            max-height: 90px;
+            display: block;
+            margin: 0 auto;
+        }
 
         /* ===== DÒNG LOẠI PHIẾU ===== */
         .loai-phieu {
@@ -269,9 +273,7 @@
     
     <div class="invoice">
         <div class="header">
-            <h1 id="tenShop">QUÁN CAFE ABC</h1>
-            <p id="diaChi">123 Đường Trần Hưng Đạo, Quận 1, TP.HCM</p>
-            <p id="dienThoai">ĐT: 0123 456 789</p>
+            <img id="logoShop" src="https://i.ibb.co/JwHMkPXc/logo-PHILONG1.jpg" alt="Logo">
         </div>
 
         <!-- DÒNG LOẠI PHIẾU (ẩn mặc định, hiện khi có param loaiphieu) -->
@@ -362,14 +364,11 @@
         
         const urlParams = new URLSearchParams(window.location.search);
         
-        const tenShop          = urlParams.get('tenshop');
-        const diaChi           = urlParams.get('diachi');
         const soPhieu          = urlParams.get('sophieu');
         const thoiGian         = urlParams.get('thoigian');
         const ban              = urlParams.get('ban');
         const data             = urlParams.get('data');
         const thuNgan          = urlParams.get('thungan');
-        const dienThoai        = urlParams.get('dienthoai');
         const footerText       = urlParams.get('footer');
         const chietKhau        = urlParams.get('chietkhau');
         const thanhToan        = urlParams.get('thanhtoan');
@@ -382,15 +381,14 @@
         const qrcodeText       = urlParams.get('qrcodetext');
         const showQrcode       = urlParams.get('showqrcode');
         const loaiPhieu        = urlParams.get('loaiphieu');   // ← THAM SỐ MỚI
+        const logoUrl          = urlParams.get('logo');         // ← cho phép đổi logo qua URL nếu cần
         
-        if (tenShop)    document.getElementById('tenShop').textContent    = decodeURIComponent(tenShop);
-        if (diaChi)     document.getElementById('diaChi').textContent     = decodeURIComponent(diaChi);
         if (soPhieu)    document.getElementById('soPhieu').textContent    = decodeURIComponent(soPhieu);
         if (thoiGian)   document.getElementById('thoiGian').textContent   = decodeURIComponent(thoiGian);
         if (ban)        document.getElementById('ban').textContent        = decodeURIComponent(ban);
         if (thuNgan)    document.getElementById('thuNgan').textContent    = decodeURIComponent(thuNgan);
-        if (dienThoai)  document.getElementById('dienThoai').textContent  = `ĐT: ${decodeURIComponent(dienThoai)}`;
         if (footerText) document.getElementById('footerText').textContent = decodeURIComponent(footerText);
+        if (logoUrl)    document.getElementById('logoShop').src           = decodeURIComponent(logoUrl);
 
         // ===== LOẠI PHIẾU =====
         // Truyền qua URL: ?loaiphieu=PHIẾU TẠM TÍNH  hoặc  ?loaiphieu=H%C3%93A%20%C4%90%C6%A0N
