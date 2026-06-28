@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phi Long Auto - Mau Bao Gia</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Arial,sans-serif;font-size:13px;background:#f0f0f0}
+.nav{display:flex;gap:10px;justify-content:center;padding:18px;background:#222;flex-wrap:wrap}
+.nav button{padding:10px 22px;font-size:13px;cursor:pointer;border:none;border-radius:5px;background:#555;color:#fff;font-family:Arial,sans-serif}
+.nav button.on{background:#c0392b}
+.nav button:hover{background:#c0392b}
+.pg{display:none;max-width:920px;margin:18px auto;background:#fff;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.pg.on{display:block}
+.hdr{width:100%;border-collapse:collapse;margin-bottom:6px}
+.hdr .logo{width:155px;vertical-align:middle;text-align:center}
+.logo-bx{border:3px solid #000;padding:6px;display:inline-block;text-align:center}
+.logo-bx .br{font-size:24px;font-weight:900;color:#00368c;letter-spacing:2px}
+.logo-bx .sb{font-size:7px;color:#666;margin-top:2px}
+.hdr .inf{padding-left:10px}
+.cn{font-size:17px;font-weight:bold}
+.cn span{font-size:21px}
+.tg{font-size:11px;font-weight:bold;margin:2px 0}
+.ct{font-size:11px}
+.ttl{text-align:center;font-size:22px;font-weight:bold;padding:7px 0;border-top:2px solid #000;border-bottom:2px solid #000;margin:7px 0}
+.ir{width:100%;border-collapse:collapse;margin-bottom:8px}
+.ir td{padding:3px 4px;font-size:12px}
+.cv{display:flex;margin-bottom:8px}
+.cb{flex:1;border:2px solid #000;padding:8px;font-size:12px}
+.vb{flex:1;border:2px solid #000;border-left:none;padding:8px;font-size:12px}
+.vb table{width:100%}
+.vb td{padding:2px;font-size:12px}
+.ma{display:flex;gap:0;margin-bottom:8px;align-items:flex-start}
+.iw{flex:1}
+.it{width:100%;border-collapse:collapse}
+.it th,.it td{border:1px solid #000;padding:4px;text-align:center;font-size:12px}
+.it th{background:#f0f0f0;font-weight:bold}
+.it .nm{text-align:left}
+.it .sh td{background:#90ee90;font-weight:bold;text-align:left}
+.it .tr td{font-weight:bold}
+.sb2{border-collapse:collapse;margin-left:8px}
+.sb2 td{border:1px solid #000;padding:4px 6px;font-size:12px}
+.sb2 .lb{text-align:right;font-weight:bold;background:#f9f9f9;white-space:nowrap}
+.wt{font-size:11px;margin:8px 0;line-height:1.7}
+.fb{background:#00368c;color:#fff;text-align:center;padding:5px;font-weight:bold;font-size:11px;margin:10px 0}
+.st{width:100%;border-collapse:collapse}
+.st td{text-align:center;padding:5px;font-size:12px;width:50%}
+.sh2{font-weight:bold;margin-bottom:2px}
+.ss{font-style:italic;margin-bottom:40px}
+.nt{margin-top:10px;font-size:11px;line-height:1.8}
+.ntl{font-weight:bold;color:#c00}
+.ni{font-style:italic}
+input[type=text],input[type=number]{border:none;border-bottom:1px solid #aaa;width:100%;font-size:12px;background:transparent;padding:1px 2px}
+input[type=text]:focus,input[type=number]:focus{outline:none;border-bottom:2px solid #0066cc}
+@media print{
+  .nav,.nop{display:none!important}
+  .pg{display:block!important;box-shadow:none;margin:0;page-break-after:always}
+  .pg:last-of-type{page-break-after:auto}
+  body{background:#fff}
+}
+</style>
+</head>
+<body>
+
+<div class="nav nop">
+  <button class="on" onclick="sf(0,this)">&#128203; Phieu Bao Gia LOP</button>
+  <button onclick="sf(1,this)">&#128295; Phieu Bao Gia GAM SUA CHUA</button>
+  <button onclick="window.print()">&#128424; In / Xuat PDF (ca 2 mau)</button>
+</div>
+
+<!-- MAU 1: PHIEU BAO GIA LOP XE -->
+<div class="pg on" id="p0">
+  <table class="hdr">
+    <tr>
+      <td class="logo">
+        <div class="logo-bx">
+          <div class="br">PHI LONG</div>
+          <div class="sb">TYRE PLUS &middot; CAR SERVICE &middot; AUTOMOBILE</div>
+        </div>
+      </td>
+      <td class="inf">
+        <div class="cn">CONG TY TNHH TMDV O TO <span>PHI LONG</span></div>
+        <div class="tg">HE THONG LOP XE - SUA CHUA - CHAM SOC O TO CAO CAP</div>
+        <div class="ct">www.philongauto.com &nbsp;&nbsp;&nbsp; Email: info@philongauto.com</div>
+        <div class="ct">0975 76 7777 - 0975 76 7778 &nbsp;&nbsp;&nbsp; CSKH: 0981 096 777 - PKD: 0866 478 777</div>
+      </td>
+    </tr>
+  </table>
+
+  <div class="ttl">PHIEU BAO GIA</div>
+
+  <table class="ir">
+    <tr>
+      <td style="width:50%"><b>Co van dich vu:</b> <input type="text" style="width:55%;display:inline-block" placeholder="Ho ten co van"></td>
+      <td><b>CONG TY TNHH TMDV O TO PHI LONG</b></td>
+    </tr>
+    <tr>
+      <td><b>Dien Thoai:</b> <input type="text" style="width:57%;display:inline-block" placeholder="So dien thoai"></td>
+      <td><b>Ma so thue</b> &nbsp; (Tax code) 3702997768</td>
+    </tr>
+    <tr>
+      <td><b>Chi Nhanh:</b> <input type="text" style="width:60%;display:inline-block" placeholder="Ten chi nhanh"></td>
+      <td><b>So tai khoan:</b> &nbsp; NH ACB so tai khoan 22 22 22 77 68</td>
+    </tr>
+  </table>
+
+  <div class="cv">
+    <div class="cb">
+      <div><b>Ten khach hang:</b> <input type="text" style="width:54%;display:inline-block" placeholder="Ho ten"></div>
+      <div style="margin-top:4px"><b>Don vi:</b> <input type="text" style="width:70%;display:inline-block"></div>
+      <div style="margin-top:4px"><b>Dien thoai:</b> <input type="text" style="width:64%;display:inline-block"></div>
+      <div style="margin-top:4px"><b>Dia chi:</b> <input type="text" style="width:70%;display:inline-block"></div>
+    </div>
+    <div class="vb">
+      <table>
+        <tr><td><b>Bien so:</b></td><td><input type="text"></td><td><b>Dung tich:</b></td><td><input type="text"></td></tr>
+        <tr><td><b>Loai xe:</b></td><td><input type="text"></td><td><b>So km:</b></td><td><input type="text"></td></tr>
+        <tr><td><b>Kieu xe:</b></td><td><input type="text"></td><td><b>Mau Xe:</b></td><td><input type="text"></td></tr>
+        <tr><td><b>Nam SX:</b></td><td><input type="text"></td><td><b>khac....</b></td><td><input type="text"></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="ma">
+    <div class="iw">
+      <table class="it">
+        <thead>
+          <tr><th style="width:36px">STT</th><th>Ten vat tu / dich vu</th><th style="width:44px">Dvt</th><th style="width:36px">SL</th><th style="width:90px">Don gia</th><th style="width:90px">Thanh tien</th><th style="width:54px">% Thue</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td class="nm"><input type="text" placeholder="Ten hang hoa / dich vu"></td><td>Cai</td><td><input type="number" placeholder="0"></td><td><input type="number" placeholder="0"></td><td>-</td><td><input type="text"></td></tr>
+          <tr><td>2</td><td class="nm"><input type="text"></td><td>Cai</td><td><input type="number" placeholder="0"></td><td><input type="number" placeholder="0"></td><td>-</td><td><input type="text"></td></tr>
+          <tr><td>3</td><td class="nm"><input type="text"></td><td>Cai</td><td><input type="number" placeholder="0"></td><td><input type="number" placeholder="0"></td><td>-</td><td><input type="text"></td></tr>
+          <tr><td>4</td><td class="nm"><input type="text"></td><td>Cai</td><td><input type="number" placeholder="0"></td><td><input type="number" placeholder="0"></td><td>-</td><td><input type="text"></td></tr>
+          <tr><td>5</td><td class="nm"><input type="text"></td><td>Cai</td><td><input type="number" placeholder="0"></td><td><input type="number" placeholder="0"></td><td>-</td><td><input type="text"></td></tr>
+          <tr class="tr"><td colspan="4" style="text-align:right"><b>Tong</b></td><td>-</td><td>-</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <table class="sb2">
+      <tr><td class="lb">Cong:</td><td><input type="text" placeholder="-"></td></tr>
+      <tr><td class="lb">Thue VAT:</td><td><input type="text" placeholder="-"></td></tr>
+      <tr><td class="lb">Tong cong:</td><td><input type="text" placeholder="-"></td></tr>
+      <tr><td class="lb">Trong do:</td><td></td></tr>
+      <tr><td class="lb">Khach hang TT:</td><td><input type="text" placeholder="-"></td></tr>
+      <tr><td class="lb">Bao hiem TT:</td><td><input type="text" placeholder="-"></td></tr>
+    </table>
+  </div>
+
+  <div class="wt">
+    <b>1. Bao hanh:</b><br>
+    + Lop xe: bao hanh 30% gai, phu, dop, ovan do loi san xuat.<br>
+    &nbsp;&#8226; Bao hanh loi phu, dop do NSX, dieu kien vo con tren 70% gai hoac 1 nam (tuy dieu kien nao den truoc)<br>
+    &nbsp;&#8226; Vo co lo va, thung, vo no &#9744;Khong bao hanh<br>
+    &nbsp;&#8226; Vo co tac dong ngoai luc &#9744;Khong bao hanh
+  </div>
+
+  <div class="fb">PHI LONG: GIAI PHAP TOAN DIEN VE O TO - NANG TAM TRAI NGHIEM LAI + AN TOAN TRON HANH TRINH.</div>
+
+  <table class="st">
+    <tr>
+      <td>
+        <div class="sh2">CO VAN DICH VU</div>
+        <div class="ss">(Ky, ho ten)</div>
+      </td>
+      <td>
+        <div style="font-style:italic;margin-bottom:4px">Ngay&nbsp;<input type="text" style="width:26px;display:inline-block">&nbsp;thang&nbsp;<input type="text" style="width:26px;display:inline-block">&nbsp;nam&nbsp;<input type="text" style="width:46px;display:inline-block"></div>
+        <div class="sh2">KHACH HANG</div>
+        <div class="ss">(Ky, ho ten)</div>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<!-- MAU 2: PHIEU BAO GIA GAM SUA CHUA -->
+<div class="pg" id="p1">
+  <table class="hdr">
+    <tr>
+      <td class="logo">
+        <div class="logo-bx">
+          <div class="br">PHI LONG</div>
+          <div class="sb">TYRE PLUS &middot; CAR SERVICE &middot; AUTOMOBILE</div>
+        </div>
+      </td>
+      <td class="inf">
+        <div class="cn">CONG TY TNHH TMDV O TO <span>PHI LONG</span></div>
+        <div class="tg">HE THONG LOP XE - SUA CHUA - CHAM SOC O TO CAO CAP</div>
+        <div class="ct">www.philongauto.com &nbsp;&nbsp;&nbsp; Email: info@philongauto.com</div>
+        <div class="ct">0975 76 7777 - 0975 76 7778 &nbsp;&nbsp;&nbsp; CSKH: 0981 096 777 - PKD: 0866 478 777</div>
+      </td>
+    </tr>
+  </table>
+
+  <div class="ttl">PHIEU BAO GIA SUA CHUA</div>
+
+  <table class="ir">
+    <tr>
+      <td style="width:50%"><b>Co van dich vu:</b> <input type="text" style="width:55%;display:inline-block" placeholder="Ho ten co van"></td>
+      <td><b>CONG TY TNHH TMDV O TO PHI LONG</b></td>
+    </tr>
+    <tr>
+      <td><b>Dien Thoai:</b> <input type="text" style="width:57%;display:inline-block" placeholder="So dien thoai"></td>
+      <td><b>Ma so thue</b> &nbsp; (Tax code) 3702997768</td>
+    </tr>
+    <tr>
+      <td><b>Chi Nhanh:</b> <input type="text" style="width:60%;display:inline-block" placeholder="Ten chi nhanh"></td>
+      <td><b>So tai khoan:</b> &nbsp; NH ACB so tai khoan 22 22 22 77 68</td>
+    </tr>
+  </table>
+
+  <div class="cv">
+    <div class="cb">
+      <div><b>Ten khach hang:</b> <input type="text" style="width:54%;display:inline-block" placeholder="Ho ten"></div>
+      <div style="margin-top:4px"><b>Don vi:</b> <input type="text" style="width:70%;display:inline-block"></div>
+      <div style="margin-top:4px"><b>Dien thoai:</b> <input type="text" style="width:64%;display:inline-block"></div>
+      <div style="margin-top:4px"><b>Dia chi:</b> <input type="text" style="width:70%;display:inline-block"></div>
+    </div>
+    <div class="vb">
+      <table>
+        <tr><td><b>Bien so:</b></td><td><input type="text"></td><td><b>Dung tich:</b></td><td><input type="text"></td></tr>
+        <tr><td><b>Loai xe:</b></td><td><input type="text"></td><td><b>So km:</b></td><td><input type="text"></td></tr>
+        <tr><td><b>Kieu xe:</b></td><td><input type="text"></td><td><b>Mau Xe:</b></td><td><input type="text"></td></tr>
+        <tr><td><b>Nam SX:</b></td><td><input type="text"></td><td><b>khac....</b></td><td><input type="text"></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="ma">
+    <div class="iw">
+      <table class="it">
+        <thead>
+          <tr><th style="width:36px">STT</th><th>Ten vat tu / dich vu</th><th style="width:36px">SL</th><th style="width:90px">Don gia</th><th style="width:90px">Thanh tien</th><th style="width:54px">% Thue</th></tr>
+        </thead>
+        <tbody>
+          <tr class="sh"><td colspan="6">I / PHAN GAM TRUOC ( Chay bong benh )</td></tr>
+          <tr><td>1</td><td class="nm"><input type="text" value="Cao su A lon"></td><td><input type="number" value="2"></td><td><input type="number" value="280000"></td><td><input type="number" value="560000"></td><td><input type="text"></td></tr>
+          <tr><td>2</td><td class="nm"><input type="text" value="Cao su A nho"></td><td><input type="number" value="2"></td><td><input type="number" value="240000"></td><td><input type="number" value="480000"></td><td><input type="text"></td></tr>
+          <tr><td>3</td><td class="nm"><input type="text" value="Cao su cung"></td><td><input type="number" value="2"></td><td><input type="number" value="220000"></td><td><input type="number" value="440000"></td><td><input type="text"></td></tr>
+          <tr><td>4</td><td class="nm"><input type="text" value="Ep cao su"></td><td><input type="number" value="1"></td><td><input type="number" value="400000"></td><td><input type="number" value="400000"></td><td><input type="text"></td></tr>
+          <tr><td>5</td><td class="nm"><input type="text" value="Cong Tho lam gam"></td><td><input type="number" value="1"></td><td><input type="number" value="600000"></td><td><input type="number" value="600000"></td><td><input type="text"></td></tr>
+          <tr><td>6</td><td class="nm"><input type="text" value="Can lai"></td><td><input type="number" value="1"></td><td><input type="number" value="500000"></td><td><input type="number" value="500000"></td><td><input type="text"></td></tr>
+          <tr class="tr"><td colspan="3" style="text-align:right"><b>Tong</b></td><td colspan="2" style="text-align:center"><b>2.980.000</b></td><td></td></tr>
+          <tr class="sh"><td colspan="6">II / PHAN GAM SAU - Kiem tra</td></tr>
+          <tr><td>1</td><td class="nm"><input type="text" value="Cao su thanh giang doc lon"></td><td><input type="number" value="2"></td><td><input type="number" value="450000"></td><td><input type="number" value="900000"></td><td><input type="text"></td></tr>
+          <tr><td>2</td><td class="nm"><input type="text" value="Cao su may o"></td><td><input type="number" value="4"></td><td><input type="number" value="280000"></td><td><input type="number" value="1120000"></td><td><input type="text"></td></tr>
+          <tr><td>3</td><td class="nm"><input type="text" value="Cay rotuyn ngang"></td><td><input type="number" value="2"></td><td><input type="number" value="650000"></td><td><input type="number" value="1300000"></td><td><input type="text"></td></tr>
+          <tr><td>4</td><td class="nm"><input type="text" value="Cong Tho"></td><td><input type="number" value="1"></td><td><input type="number" value="400000"></td><td><input type="number" value="400000"></td><td><input type="text"></td></tr>
+          <tr class="tr"><td colspan="3" style="text-align:right"><b>Tong</b></td><td colspan="2" style="text-align:center"><b>3.720.000</b></td><td></td></tr>
+          <tr class="tr" style="background:#fffde7"><td colspan="3" style="text-align:right"><b>Tong cong (2 hang muc)</b></td><td colspan="2" style="text-align:center"><b>6.700.000</b></td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <table class="sb2">
+      <tr><td class="lb">Cong:</td><td><input type="text" placeholder="-"></td></tr>
+      <tr><td class="lb">Thue VAT:</td><td><input type="text" placeholder="-"></td></tr>
+      <tr><td class="lb">Tong cong:</td><td><input type="text" placeholder="-"></td></tr>
+      <tr><td class="lb">Trong do:</td><td></td></tr>
+      <tr><td class="lb">Khach hang TT:</td><td><input type="text" placeholder="-"></td></tr>
+      <tr><td class="lb">Bao hiem TT:</td><td><input type="text" placeholder="-"></td></tr>
+    </table>
+  </div>
+
+  <div class="wt">
+    <b>1. Bao hanh:</b><br>
+    + Phu tung thay the moi bao hanh 06 thang hoac 6.000km tuy theo dieu kien nao den truoc.<br>
+    + Khong bao hanh doi voi cac truong hop hu hong do tac dong ben ngoai hoac cac chi tiet hao mon trong qua trinh su dung.<br>
+    2. Phu thu 25% gia tri tien doi voi vat tu - phu tung quy khach mang den.<br>
+    3. Nhung phat sinh (neu co) se thong bao sau khi kiem tra cu the.
+  </div>
+
+  <div class="fb">PHI LONG: GIAI PHAP TOAN DIEN VE O TO - NANG TAM TRAI NGHIEM LAI + AN TOAN TRON HANH TRINH.</div>
+
+  <table class="st">
+    <tr>
+      <td>
+        <div class="sh2">CO VAN DICH VU</div>
+        <div class="ss">(Ky, ho ten)</div>
+      </td>
+      <td>
+        <div style="font-style:italic;margin-bottom:4px">Ngay&nbsp;<input type="text" style="width:26px;display:inline-block">&nbsp;thang&nbsp;<input type="text" style="width:26px;display:inline-block">&nbsp;nam&nbsp;<input type="text" style="width:46px;display:inline-block"></div>
+        <div class="sh2">KHACH HANG</div>
+        <div class="ss">(Ky, ho ten)</div>
+      </td>
+    </tr>
+  </table>
+
+  <div class="nt">
+    <p class="ntl">Luu y:</p>
+    <p class="ni">1/ Nhot - nuoc mat - nuoc kinh ...vv mat hang co nuoc tinh * VAT 10%</p>
+    <p class="ni">2/ Lop - ac quy - phu tung ...vv mat hang kho tinh * VAT 8%</p>
+    <p class="ni"><b>3/ Nhung hoa don sua chua chua co VAT nen khi lam bao gia cho khach phai bao</b></p>
+  </div>
+</div>
+
+<script>
+function sf(i,b){
+  document.querySelectorAll('.pg').forEach(function(e,n){e.classList.toggle('on',n===i);});
+  document.querySelectorAll('.nav button').forEach(function(e,n){e.classList.toggle('on',n===i);});
+}
+</script>
+</body>
+</html>
