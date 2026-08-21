@@ -727,6 +727,7 @@ function napVao(d){
   (d.nc||[]).forEach(v=>{ const x=[...document.querySelectorAll('.nc')].find(y=>y.dataset.v===v);
                           if(x) x.checked=true; });
   tinh(); dongBoSoPhieu();
+  ghiVaoURL(thuThap());
 }
 function lamMoi(im){
   document.querySelectorAll('input.ln, input.cell').forEach(e=>{
@@ -736,7 +737,12 @@ function lamMoi(im){
     e.checked=false; e.removeAttribute('checked');
   });
   tinh();
-  if(!im){ localStorage.removeItem('PL_NHAP'); soPhieuMoi(); bao('🗑️ Đã tạo phiếu mới.'); }
+  if(!im){
+    localStorage.removeItem('PL_NHAP');
+    xoaKhoiURL();
+    soPhieuMoi();
+    bao('🗑️ Đã tạo phiếu mới.');
+  }
 }
 function dongBoSoPhieu(){
   document.getElementById('sp2').textContent = 'No. ' + (document.getElementById('sophieu').value||'____________');
@@ -748,6 +754,7 @@ function kho(){ try{ return JSON.parse(localStorage.getItem('PL_PHIEU')||'{}'); 
 function luu(){
   const d=thuThap();
   if(!d.t.bs){ bao('⚠️ Nhập biển số xe trước khi lưu.'); return; }
+  ghiVaoURL(d);
   const k=(d.t.bs).toUpperCase().trim()+' · '+(d.t.ngay||new Date().toLocaleDateString('vi-VN'));
   const K=kho(); K[k]=d; localStorage.setItem('PL_PHIEU', JSON.stringify(K));
   localStorage.removeItem('PL_NHAP');
@@ -761,8 +768,14 @@ function moDS(){
   if(i>=0&&i<ks.length){ napVao(K[ks[i]]); bao('📂 Đã mở: '+ks[i]); }
 }
 let hen;
-function tuLuu(){ clearTimeout(hen); hen=setTimeout(()=>{
-  try{ localStorage.setItem('PL_NHAP', JSON.stringify(thuThap())); }catch(e){} },800); }
+function tuLuu(){
+  clearTimeout(hen);
+  hen=setTimeout(()=>{
+    const d=thuThap();
+    try{ localStorage.setItem('PL_NHAP', JSON.stringify(d)); }catch(e){}
+    ghiVaoURL(d);
+  },400);
+}
 
 /* ---------- xuất file PDF khổ A4 ---------- */
 /* ============ XUẤT FILE PDF THẬT (không cần hộp in) ============
@@ -976,12 +989,54 @@ function guiSheet(){
     .catch(()=> bao('⚠️ Gửi thất bại — kiểm tra mạng hoặc link Apps Script.'));
 }
 
+/* ---------- tự động lưu dữ liệu vào URL ---------- */
+const URL_DATA_KEY='phieu';
+
+function maHoaURL(data){
+  const bytes=new TextEncoder().encode(JSON.stringify(data));
+  let binary='';
+  bytes.forEach(byte=>binary+=String.fromCharCode(byte));
+  return btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+
+function giaiMaURL(value){
+  try{
+    const base64=value.replace(/-/g,'+').replace(/_/g,'/');
+    const padded=base64+'='.repeat((4-base64.length%4)%4);
+    const binary=atob(padded);
+    const bytes=Uint8Array.from(binary,ch=>ch.charCodeAt(0));
+    return JSON.parse(new TextDecoder().decode(bytes));
+  }catch(e){ return null; }
+}
+
+function docTuURL(){
+  const value=new URLSearchParams(location.hash.slice(1)).get(URL_DATA_KEY);
+  return value?giaiMaURL(value):null;
+}
+
+function ghiVaoURL(data){
+  try{
+    history.replaceState(null,'','#'+URL_DATA_KEY+'='+maHoaURL(data));
+  }catch(e){}
+}
+
+function xoaKhoiURL(){
+  try{ history.replaceState(null,'',location.pathname+location.search); }
+  catch(e){ location.hash=''; }
+}
+
 /* ---------- khởi động ---------- */
 (function(){
-  let d=null; try{ d=JSON.parse(localStorage.getItem('PL_NHAP')||'null'); }catch(e){}
-  if(d && d.t && (d.t.bs||d.t.kh) &&
-     confirm('Có bản nhập dở của xe '+(d.t.bs||d.t.kh)+'. Mở lại?')) napVao(d);
-  else { localStorage.removeItem('PL_NHAP'); soPhieuMoi(); }
+  const tuURL=docTuURL();
+  if(tuURL && tuURL.t){
+    napVao(tuURL);
+    bao('Đã khôi phục phiếu từ URL.');
+  }else{
+    let d=null; try{ d=JSON.parse(localStorage.getItem('PL_NHAP')||'null'); }catch(e){}
+    if(d && d.t && (d.t.bs||d.t.kh) &&
+       confirm('Có bản nhập dở của xe '+(d.t.bs||d.t.kh)+'. Mở lại?')) napVao(d);
+    else { localStorage.removeItem('PL_NHAP'); soPhieuMoi(); }
+  }
   tinh();
 })();
 </script>
