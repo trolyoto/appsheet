@@ -83,6 +83,13 @@ table{border-collapse:collapse;width:100%} td{vertical-align:top}
   .o{width:15px;height:15px;border-width:1.5px} .tron{width:16px;height:16px}
   .tick td.c{width:20px} .tick.gam td.c{width:18px}
 }
+
+/* Nút thêm dòng cho các bảng báo giá */
+.quote-actions{display:flex;justify-content:flex-end;gap:6px;margin:4px 0 2px}
+.btn-add-row{background:#0a7a3d;color:#fff;border:0;border-radius:4px;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer}
+.btn-add-row:hover{background:#075b2e}
+@media print{.quote-actions{display:none!important}}
+
 </style>
 /* Chế độ hai file: mỗi file chỉ in một phần A4 riêng biệt. */
 @media print{
@@ -113,6 +120,7 @@ table{border-collapse:collapse;width:100%} td{vertical-align:top}
 <div style="border-bottom:2px solid var(--xanh);margin:4px 0 7px"></div>
 <div class="thanh">HẠNG MỤC SỬA CHỮA  |  Dự kiến hoàn thành:
   <input class="ln" id="eta1" style="width:150px;color:#fff;border-bottom-color:#fff"/></div>
+<div class="quote-actions noprint"><button class="btn-add-row" type="button" onclick="addQuoteRow('p')">+ Thêm dòng sửa chữa</button></div>
 <table class="dv" data-n="6" data-pre="p"><tr><th style="width:5%">STT</th><th style="width:19%">HẠNG MỤC</th><th style="width:26%">DIỄN GIẢI</th><th style="width:6%">SL</th><th style="width:12%">ĐƠN GIÁ</th><th style="width:12%">THÀNH TIỀN</th><th style="width:8%">KHO</th><th style="width:12%">XÁC NHẬN</th></tr><tr><td class="stt">01</td><td><input class="cell" id="phm0"/></td><td><input class="cell" id="pdg0"/></td><td><input class="cell num sl" id="psl0" inputmode="numeric"/></td><td><input class="cell num don" id="pdn0" inputmode="numeric"/></td><td><input class="cell num tt" id="ptt0" readonly=""/></td><td><input class="cell" id="pkh0"/></td><td><input class="cell" id="pxn0"/></td></tr><tr><td class="stt">02</td><td><input class="cell" id="phm1"/></td><td><input class="cell" id="pdg1"/></td><td><input class="cell num sl" id="psl1" inputmode="numeric"/></td><td><input class="cell num don" id="pdn1" inputmode="numeric"/></td><td><input class="cell num tt" id="ptt1" readonly=""/></td><td><input class="cell" id="pkh1"/></td><td><input class="cell" id="pxn1"/></td></tr><tr><td class="stt">03</td><td><input class="cell" id="phm2"/></td><td><input class="cell" id="pdg2"/></td><td><input class="cell num sl" id="psl2" inputmode="numeric"/></td><td><input class="cell num don" id="pdn2" inputmode="numeric"/></td><td><input class="cell num tt" id="ptt2" readonly=""/></td><td><input class="cell" id="pkh2"/></td><td><input class="cell" id="pxn2"/></td></tr><tr><td class="stt">04</td><td><input class="cell" id="phm3"/></td><td><input class="cell" id="pdg3"/></td><td><input class="cell num sl" id="psl3" inputmode="numeric"/></td><td><input class="cell num don" id="pdn3" inputmode="numeric"/></td><td><input class="cell num tt" id="ptt3" readonly=""/></td><td><input class="cell" id="pkh3"/></td><td><input class="cell" id="pxn3"/></td></tr><tr><td class="stt">05</td><td><input class="cell" id="phm4"/></td><td><input class="cell" id="pdg4"/></td><td><input class="cell num sl" id="psl4" inputmode="numeric"/></td><td><input class="cell num don" id="pdn4" inputmode="numeric"/></td><td><input class="cell num tt" id="ptt4" readonly=""/></td><td><input class="cell" id="pkh4"/></td><td><input class="cell" id="pxn4"/></td></tr><tr><td class="stt">06</td><td><input class="cell" id="phm5"/></td><td><input class="cell" id="pdg5"/></td><td><input class="cell num sl" id="psl5" inputmode="numeric"/></td><td><input class="cell num don" id="pdn5" inputmode="numeric"/></td><td><input class="cell num tt" id="ptt5" readonly=""/></td><td><input class="cell" id="pkh5"/></td><td><input class="cell" id="pxn5"/></td></tr><tr class="tong"><td colspan="5">TỔNG TIỀN:</td><td><input class="cell num" id="ptong" readonly=""/></td><td></td><td></td></tr></table>
 <div class="ghi" style="margin-top:6px">
  Thông tin cá nhân quý khách đăng ký trên phiếu kiểm tra này (họ tên, số điện thoại, biển số xe…)
@@ -128,6 +136,7 @@ table{border-collapse:collapse;width:100%} td{vertical-align:top}
 <input class="ln" id="dx1" style="width:100%" type="text"/><input class="ln" id="dx2" style="width:100%" type="text"/><input class="ln" id="dx3" style="width:100%" type="text"/></div>
 <div class="thanh" style="margin-top:9px">HẠNG MỤC SỬA CHỮA PHÁT SINH  |  Dự kiến hoàn thành:
   <input class="ln" id="eta2" style="width:150px;color:#fff;border-bottom-color:#fff"/></div>
+<div class="quote-actions noprint"><button class="btn-add-row" type="button" onclick="addQuoteRow('q')">+ Thêm dòng phát sinh</button></div>
 <table class="dv" data-n="10" data-pre="q"><tr><th style="width:5%">STT</th><th style="width:19%">HẠNG MỤC</th><th style="width:26%">DIỄN GIẢI</th><th style="width:6%">SL</th><th style="width:12%">ĐƠN GIÁ</th><th style="width:12%">THÀNH TIỀN</th><th style="width:8%">KHO</th><th style="width:12%">XÁC NHẬN</th></tr><tr><td class="stt">01</td><td><input class="cell" id="qhm0"/></td><td><input class="cell" id="qdg0"/></td><td><input class="cell num sl" id="qsl0" inputmode="numeric"/></td><td><input class="cell num don" id="qdn0" inputmode="numeric"/></td><td><input class="cell num tt" id="qtt0" readonly=""/></td><td><input class="cell" id="qkh0"/></td><td><input class="cell" id="qxn0"/></td></tr><tr><td class="stt">02</td><td><input class="cell" id="qhm1"/></td><td><input class="cell" id="qdg1"/></td><td><input class="cell num sl" id="qsl1" inputmode="numeric"/></td><td><input class="cell num don" id="qdn1" inputmode="numeric"/></td><td><input class="cell num tt" id="qtt1" readonly=""/></td><td><input class="cell" id="qkh1"/></td><td><input class="cell" id="qxn1"/></td></tr><tr><td class="stt">03</td><td><input class="cell" id="qhm2"/></td><td><input class="cell" id="qdg2"/></td><td><input class="cell num sl" id="qsl2" inputmode="numeric"/></td><td><input class="cell num don" id="qdn2" inputmode="numeric"/></td><td><input class="cell num tt" id="qtt2" readonly=""/></td><td><input class="cell" id="qkh2"/></td><td><input class="cell" id="qxn2"/></td></tr><tr><td class="stt">04</td><td><input class="cell" id="qhm3"/></td><td><input class="cell" id="qdg3"/></td><td><input class="cell num sl" id="qsl3" inputmode="numeric"/></td><td><input class="cell num don" id="qdn3" inputmode="numeric"/></td><td><input class="cell num tt" id="qtt3" readonly=""/></td><td><input class="cell" id="qkh3"/></td><td><input class="cell" id="qxn3"/></td></tr><tr><td class="stt">05</td><td><input class="cell" id="qhm4"/></td><td><input class="cell" id="qdg4"/></td><td><input class="cell num sl" id="qsl4" inputmode="numeric"/></td><td><input class="cell num don" id="qdn4" inputmode="numeric"/></td><td><input class="cell num tt" id="qtt4" readonly=""/></td><td><input class="cell" id="qkh4"/></td><td><input class="cell" id="qxn4"/></td></tr><tr><td class="stt">06</td><td><input class="cell" id="qhm5"/></td><td><input class="cell" id="qdg5"/></td><td><input class="cell num sl" id="qsl5" inputmode="numeric"/></td><td><input class="cell num don" id="qdn5" inputmode="numeric"/></td><td><input class="cell num tt" id="qtt5" readonly=""/></td><td><input class="cell" id="qkh5"/></td><td><input class="cell" id="qxn5"/></td></tr><tr><td class="stt">07</td><td><input class="cell" id="qhm6"/></td><td><input class="cell" id="qdg6"/></td><td><input class="cell num sl" id="qsl6" inputmode="numeric"/></td><td><input class="cell num don" id="qdn6" inputmode="numeric"/></td><td><input class="cell num tt" id="qtt6" readonly=""/></td><td><input class="cell" id="qkh6"/></td><td><input class="cell" id="qxn6"/></td></tr><tr><td class="stt">08</td><td><input class="cell" id="qhm7"/></td><td><input class="cell" id="qdg7"/></td><td><input class="cell num sl" id="qsl7" inputmode="numeric"/></td><td><input class="cell num don" id="qdn7" inputmode="numeric"/></td><td><input class="cell num tt" id="qtt7" readonly=""/></td><td><input class="cell" id="qkh7"/></td><td><input class="cell" id="qxn7"/></td></tr><tr><td class="stt">09</td><td><input class="cell" id="qhm8"/></td><td><input class="cell" id="qdg8"/></td><td><input class="cell num sl" id="qsl8" inputmode="numeric"/></td><td><input class="cell num don" id="qdn8" inputmode="numeric"/></td><td><input class="cell num tt" id="qtt8" readonly=""/></td><td><input class="cell" id="qkh8"/></td><td><input class="cell" id="qxn8"/></td></tr><tr><td class="stt">10</td><td><input class="cell" id="qhm9"/></td><td><input class="cell" id="qdg9"/></td><td><input class="cell num sl" id="qsl9" inputmode="numeric"/></td><td><input class="cell num don" id="qdn9" inputmode="numeric"/></td><td><input class="cell num tt" id="qtt9" readonly=""/></td><td><input class="cell" id="qkh9"/></td><td><input class="cell" id="qxn9"/></td></tr><tr class="tong"><td colspan="5">TỔNG TIỀN:</td><td><input class="cell num" id="qtong" readonly=""/></td><td></td><td></td></tr></table>
 <table style="margin-top:6px;font-size:10.5px"><tr>
 <td style="width:50%"><b>Nhân viên sửa chữa:</b> <input class="ln" id="nvsc2" style="width:60%" type="text"/></td>
@@ -269,24 +278,73 @@ function syncNumber(){
   display.textContent = 'No. ' + (value || '____________');
 }
 
+function parseNumber(value){
+  let s=String(value ?? '').trim().replace(/\s/g,'');
+  if(!s) return 0;
+  if(s.includes(',') && s.includes('.')){
+    if(s.lastIndexOf(',') > s.lastIndexOf('.')) s=s.replace(/\./g,'').replace(',','.');
+    else s=s.replace(/,/g,'');
+  }else if(s.includes(',')){
+    s=s.replace(',','.');
+  }else if(/^[-+]?\d{1,3}(\.\d{3})+$/.test(s)){
+    s=s.replace(/\./g,'');
+  }
+  return Number(s.replace(/[^0-9.+-]/g,'')) || 0;
+}
+
 function calculateTotals(){
   document.querySelectorAll('table.dv').forEach(table => {
-    const pre = table.dataset.pre;
-    const count = Number(table.dataset.n || 0);
-    let total = 0;
-    for(let i = 0; i < count; i++){
-      const slEl = document.getElementById(pre + 'sl' + i);
-      const priceEl = document.getElementById(pre + 'dn' + i);
-      const totalEl = document.getElementById(pre + 'tt' + i);
+    const pre=table.dataset.pre;
+    const count=Number(table.dataset.n || 0);
+    let total=0;
+    for(let i=0;i<count;i++){
+      const slEl=document.getElementById(pre+'sl'+i);
+      const priceEl=document.getElementById(pre+'dn'+i);
+      const totalEl=document.getElementById(pre+'tt'+i);
       if(!slEl || !priceEl || !totalEl) continue;
-      const sl = parseFloat((slEl.value || '').replace(/[^0-9.]/g, '')) || 0;
-      const price = parseFloat((priceEl.value || '').replace(/[^0-9.]/g, '')) || 0;
-      const value = sl * price;
-      totalEl.value = value ? value.toLocaleString('vi-VN') : '';
-      total += value;
+      const value=parseNumber(slEl.value)*parseNumber(priceEl.value);
+      totalEl.value=value ? value.toLocaleString('vi-VN') : '';
+      total+=value;
     }
-    const grand = document.getElementById(pre + 'tong');
-    if(grand) grand.value = total ? total.toLocaleString('vi-VN') : '';
+    const grand=document.getElementById(pre+'tong');
+    if(grand) grand.value=total ? total.toLocaleString('vi-VN') : '';
+  });
+}
+
+function addQuoteRow(pre, shouldSave=true){
+  const table=document.querySelector('table.dv[data-pre="'+pre+'"]');
+  if(!table) return;
+  const totalRow=table.querySelector('tr.tong');
+  const index=Number(table.dataset.n || 0);
+  const number=String(index+1).padStart(2,'0');
+  const row=document.createElement('tr');
+  row.innerHTML=`
+    <td class="stt">${number}</td>
+    <td><input class="cell" id="${pre}hm${index}"></td>
+    <td><input class="cell" id="${pre}dg${index}"></td>
+    <td><input class="cell num sl" id="${pre}sl${index}" inputmode="decimal"></td>
+    <td><input class="cell num don" id="${pre}dn${index}" inputmode="decimal"></td>
+    <td><input class="cell num tt" id="${pre}tt${index}" readonly></td>
+    <td><input class="cell" id="${pre}kh${index}"></td>
+    <td><input class="cell" id="${pre}xn${index}"></td>`;
+  totalRow.parentNode.insertBefore(row,totalRow);
+  table.dataset.n=String(index+1);
+  calculateTotals();
+  if(shouldSave) autoSave();
+  notify('Đã thêm dòng '+number+'.');
+}
+
+function ensureRowsForState(state){
+  const ids=Object.keys((state && state.t) || {});
+  ['p','q'].forEach(pre=>{
+    const table=document.querySelector('table.dv[data-pre="'+pre+'"]');
+    if(!table) return;
+    let max=-1;
+    ids.forEach(id=>{
+      const match=id.match(new RegExp('^'+pre+'(?:hm|dg|sl|dn|tt|kh|xn)(\\d+)$'));
+      if(match) max=Math.max(max,Number(match[1]));
+    });
+    while(Number(table.dataset.n || 0)<=max) addQuoteRow(pre,false);
   });
 }
 
@@ -332,6 +390,7 @@ document.addEventListener('change', () => { syncNumber(); autoSave(); });
     try{ state = JSON.parse(localStorage.getItem(LOCAL_KEY) || 'null'); }catch(e){}
   }
   if(state){
+    ensureRowsForState(state);
     applyState(state);
     notify('Đã khôi phục dữ liệu từ URL.');
   }else{
