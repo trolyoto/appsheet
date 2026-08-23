@@ -638,7 +638,9 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
     }
   }
 
-  async function updateUrl(){
+  var changeVersion = 0;
+
+  function updateUrlImmediately(){
     if(restoring) return;
     var state = getDelta();
     var url = new URL(window.location.href);
@@ -648,8 +650,19 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
       window.history.replaceState(null, '', url.toString());
       return;
     }
+    /* Bản JSON chưa nén được ghi ngay để người dùng có thể copy URL tức thì. */
+    url.searchParams.delete(LEGACY_KEY);
+    url.searchParams.set(URL_KEY, 'j' + bytesToBase64Url(new TextEncoder().encode(JSON.stringify(state))));
+    window.history.replaceState(null, '', url.toString());
+  }
+
+  async function updateUrlCompressed(version){
+    if(restoring || version !== changeVersion) return;
+    var state = getDelta();
+    if(!hasChanges(state)) return;
     var packed = await packState(state);
-    if(restoring) return;
+    if(restoring || version !== changeVersion) return;
+    var url = new URL(window.location.href);
     url.searchParams.delete(LEGACY_KEY);
     url.searchParams.set(URL_KEY, packed);
     window.history.replaceState(null, '', url.toString());
@@ -657,8 +670,11 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
 
   function scheduleUrlUpdate(){
     if(restoring) return;
+    changeVersion++;
+    var version = changeVersion;
     window.clearTimeout(saveTimer);
-    saveTimer = window.setTimeout(updateUrl, 120);
+    updateUrlImmediately();
+    saveTimer = window.setTimeout(function(){ updateUrlCompressed(version); }, 180);
   }
 
   captureBaseline();
