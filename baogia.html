@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<title>PHIẾU BÁO GIÁ - PHI LONG AUTO</title>
+<title>PHIẾU BÁO GIÁ &amp; NGHIỆM THU - PHI LONG AUTO</title>
 <style>
 @page { size: A4; margin: 0; }
 html, body{ width:210mm; max-width:210mm; margin:0 auto; overflow-x:hidden; }
@@ -287,7 +287,7 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
 
   /* ===== can lai cho vua khung in A4 (khong can thu nho khi in) ===== */
   .ln{ padding:.3mm 0; }
-  .gtb td, .gtb th{ padding:.3mm 1.3mm; font-size:6.5pt; }
+  .gtb td, .gtb th{ padding:.22mm 1.3mm; font-size:6.5pt; }
   .gtb td.nm .fi{ min-height:2.8mm; }
   .card{ padding:1mm 1.5mm; margin-bottom:1mm; }
   .bx{ padding:1mm 1.4mm; }
@@ -375,6 +375,11 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
 
   /* gach ngang duoi tieu de: lam chim, khong con dam net */
   .info{ border-top:.4pt solid #D3DCEB!important; padding-top:1.4mm; }
+
+  .cjpage .tbwrap .tools{ margin-top:.3mm; }
+  .cjpage .tbwrap .add{ font-family:inherit; font-size:5.8pt; color:var(--nv2); background:#fff;
+                        cursor:pointer; border:.4pt dashed var(--bd); border-radius:1mm; padding:.2mm 1.6mm; }
+  @media print{ .cjpage .tbwrap .tools{ display:none!important; } }
 
   /* ================= TRANG 2 - PHIEU NGHIEM THU ================= */
   .p2 .barrow2{ display:flex; align-items:center; gap:2mm; margin-top:2mm; }
@@ -467,7 +472,6 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
   .p2 .mile{ font-size:6.4pt; color:#3A4453; white-space:nowrap; }
   .p2 .note{ flex:1; text-align:right; font-size:6.1pt; color:#5A6473; }
   /* nhan IRA sau khi tinh */
-  .p2 .bg{ min-width:4.6mm; }
   .p2 .bg.na{ background:#F3F5F8; color:#98A2B3; border:.4pt solid #DFE4EC; }
   .p2 tr.hi-r td{ background:#FDF3F2; }
   .p2 tr.hi-a td{ background:#FDF8EC; }
@@ -475,7 +479,7 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
 
   .p2 .policy{ padding:1.1mm 1.8mm; margin-top:1.2mm; font-size:6.1pt; line-height:1.35; }
   .p2 .signs{ margin-top:1.4mm; }
-  .p2 .signs .sg{ height:12mm; padding-top:1.2mm; }
+  .p2 .signs .sg{ height:9.5mm; padding-top:.9mm; }
   .p2 .ck2 i{ width:3.8mm; height:3.8mm; }
   .p2 .policy{ border:.6pt solid var(--bd); border-radius:1.2mm; padding:1.6mm 2mm; margin-top:2mm;
                font-size:6.3pt; line-height:1.45; text-align:justify; color:#3A4453; }
@@ -486,20 +490,24 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
   .p2 .signs .sg .s{ font-size:6.2pt; color:#5A6473; margin-top:.4mm; }
 
   /* nen cho vua A4 khi da co 31 hang muc */
-  .p2 .tb2 td{ height:3.85mm; font-size:6.7pt; }
+  .p2 .tb2 td{ height:3.2mm; font-size:6.4pt; line-height:1.15; }
+  .p2 .tb2 td .fi{ min-height:2.2mm; line-height:1.15; }
+  .p2 .bg{ width:3.2mm; height:3.2mm; line-height:3.2mm; font-size:5pt; }
+  .p2 .tb2 td.dc{ line-height:1; }
+  .p2 .tb2 td.dc .del{ font-size:6.5pt; line-height:1; padding:0; display:inline-block; height:2.6mm; }
+  .p2 .tb2 th{ padding:.4mm 1.1mm; font-size:6.1pt; }
   .p2 .tb2 th{ padding:.5mm 1.2mm; font-size:6.3pt; }
-  .p2 .tb2 tr.grp td{ height:4.3mm; font-size:6.5pt; }
+  .p2 .tb2 tr.grp td{ height:3.5mm; font-size:6.3pt; }
   .p2 .tb2 tr.tot td{ height:4.6mm; font-size:7pt; }
-  .p2 .bg{ width:4.2mm; height:4.2mm; line-height:4.2mm; font-size:5.6pt; }
   .p2 .ck2 i{ width:3.4mm; height:3.4mm; }
   .p2 .tb2 td.xn .cb{ width:2.8mm; height:2.8mm; }
   .p2 .kmbar{ padding:.9mm 2mm; margin-top:1.2mm; }
-  .p2 .barrow2{ margin-top:1.1mm; }
+  .p2 .barrow2{ margin-top:.85mm; }
   .p2 .propbox .fi{ min-height:3.2mm; }
-  .p2 .acol .ln{ padding:.28mm 0; }
-  .p2 .policy{ font-size:5.9pt; line-height:1.3; padding:1mm 1.6mm; margin-top:1mm; }
+  .p2 .acol .ln{ padding:.12mm 0; }
+  .p2 .policy{ font-size:5.7pt; line-height:1.25; padding:.8mm 1.4mm; margin-top:.8mm; }
   .p2 .signs{ margin-top:1.1mm; }
-  .p2 .signs .sg{ height:14mm; padding-top:1.6mm; }
+  .p2 .signs .sg{ height:9.5mm; padding-top:.9mm; }
 
   .p2 .tb2 tr.grp td{ position:relative; }
   .p2 .glbl{ outline:none; display:inline-block; min-width:40mm; }
@@ -600,6 +608,54 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
 
   /* gach ngang duoi tieu de: lam chim, khong con dam net */
   .info{ border-top:.4pt solid #D3DCEB!important; padding-top:1.4mm; }
+
+  .p2 .bg{ width:3.4mm!important; height:3.4mm!important; line-height:3.4mm!important;
+           min-width:3.4mm!important; font-size:5.1pt!important; }
+
+  /* bang dich vu chia 2 cot cho can doi trang */
+  .p2 .svc2{ display:flex; gap:3mm; align-items:flex-start; }
+  .p2 .svc2 .col{ flex:1; min-width:0; }
+  .p2 .totbar{ display:flex; gap:2mm; margin-top:1.4mm; }
+  .p2 .totbar > div{ flex:1; display:flex; align-items:center; justify-content:space-between;
+                     padding:1mm 2.4mm; border-radius:1.2mm; font-size:7.2pt; font-weight:700; gap:2mm; }
+  .p2 .totbar .tt1{ background:var(--nv); color:#fff; }
+  .p2 .totbar .tt2{ background:var(--yll); color:#0E3C7A; border:.6pt solid var(--ylb); }
+  .p2 .totbar .tt2 .fi{ flex:0 0 32mm; text-align:right; border-bottom:.5pt dotted #9AA6BC;
+                        color:#B02020; font-weight:700; }
+  .p2 .totbar .tt3{ background:var(--yl); color:#0E3C7A; font-size:8pt; }
+  .p2 .totbar b{ white-space:nowrap; }
+
+  /* can doi lai chieu cao cho day trang */
+  .p2 .tb2 td{ height:2.95mm!important; font-size:6.3pt!important; }
+  .p2 .tb2 td .fi{ min-height:2.2mm!important; font-size:6.4pt!important; }
+  .p2 .tb2 th{ padding:.4mm 1.1mm!important; font-size:6.1pt!important; }
+  .p2 .tb2 tr.grp td{ height:3.5mm!important; font-size:6.3pt!important; }
+  .p2 .propbox .ln.pl{ padding:.35mm 0; }
+  .p2 .propbox .fi{ min-height:3.2mm; }
+  .p2 .acol .ln{ padding:.12mm 0; }
+  .p2 .ck2 i{ width:3.6mm; height:3.6mm; }
+  .p2 .signs .sg{ height:9.5mm; padding-top:.9mm; }
+  .p2 .policy{ font-size:5.7pt; line-height:1.25; padding:.8mm 1.4mm; margin-top:.8mm; }
+  .p2 .barrow2{ margin-top:.85mm; }
+
+  /* khoi dieu kien bao hanh: goi y san, sua/xoa duoc */
+  .p2 .warrbox{ border:.6pt solid var(--ylb); background:#FFFCF5; border-radius:1.2mm;
+                padding:1.1mm 1.8mm; margin-top:.8mm; }
+  .p2 .warrbox .ln.wl2{ padding:.28mm 0; align-items:flex-start; }
+  .p2 .warrbox .fi{ border-bottom:0; font-size:6.2pt; line-height:1.35; color:#25314A; font-weight:400;
+                    min-height:0; }
+  .p2 .warrbox .fi b{ color:#0E3C7A; font-weight:700; }
+  .p2 .warrbox .pnote{ font-size:5.8pt; color:#5A6473; margin-top:.4mm; border-top:.3pt dotted #D9C89E;
+                       padding-top:.5mm; }
+  .p2 .warrbox .tools{ margin-top:.2mm; }
+
+  .p2 .warrbox{ padding:.8mm 1.6mm; }
+  .p2 .warrbox .ln.wl2{ padding:.12mm 0; }
+  .p2 .warrbox .fi{ font-size:5.9pt; line-height:1.3; }
+  .p2 .warrbox .pnote{ font-size:5.5pt; margin-top:.25mm; padding-top:.3mm; }
+  .p2 .propbox .ln.pl{ padding:.2mm 0; }
+  .p2 .ck2 i{ width:3.2mm; height:3.2mm; }
+  .p2 .bb2{ padding:.85mm 4mm; padding-right:8mm; }
 </style>
 </head>
 <body>
@@ -616,7 +672,7 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
   <div class="rule2"></div>
   <div class="ttl2">
     <div class="sb2"></div>
-    <div class="mn2">PHIẾU BÁO GIÁ<em>Trang 2/2 &nbsp;·&nbsp; Báo giá theo hạng mục kiểm tra ở trang 1</em></div>
+    <div class="mn2">PHIẾU BÁO GIÁ &amp; NGHIỆM THU<em>Trang 2/2 &nbsp;·&nbsp; Báo giá &amp; nghiệm thu theo hạng mục kiểm tra ở trang 1</em></div>
     <div class="no2">No. <span class="fi" contenteditable="true"></span></div>
   </div>
   <div class="info">
@@ -624,7 +680,7 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
       <div class="f"><b>Biển số xe:</b><span class="fi" contenteditable="true"></span></div>
       <div class="f"><b>Tên khách hàng:</b><span class="fi" contenteditable="true"></span></div>
       <div class="f"><b>Điện thoại:</b><span class="fi" contenteditable="true"></span></div>
-      <div class="f"><b>Ngày báo giá:</b><span class="fi" contenteditable="true"></span></div>
+      <div class="f"><b>Ngày báo giá / nghiệm thu:</b><span class="fi" contenteditable="true"></span></div>
     </div>
   </div>
   <div class="kmbar">
@@ -644,15 +700,24 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
     <span class="c3">THEO DÕI &nbsp;·&nbsp; LÀM NGAY</span></div>
   <div class="propbox" data-box><div class="ln pl" data-row><span class="pn"><span class="fi" contenteditable="true"></span></span><span class="pd"><span class="fi" contenteditable="true"></span></span><span class="ck2 pr" data-grp><i class="ok pick" title="Theo dõi"></i><i class="no pick" title="Cần làm ngay"></i></span><button class="del" title="Xóa dòng">&times;</button></div><div class="ln pl" data-row><span class="pn"><span class="fi" contenteditable="true"></span></span><span class="pd"><span class="fi" contenteditable="true"></span></span><span class="ck2 pr" data-grp><i class="ok pick" title="Theo dõi"></i><i class="no pick" title="Cần làm ngay"></i></span><button class="del" title="Xóa dòng">&times;</button></div><div class="ln pl" data-row><span class="pn"><span class="fi" contenteditable="true"></span></span><span class="pd"><span class="fi" contenteditable="true"></span></span><span class="ck2 pr" data-grp><i class="ok pick" title="Theo dõi"></i><i class="no pick" title="Cần làm ngay"></i></span><button class="del" title="Xóa dòng">&times;</button></div>
     <div class="tools"><button class="add">+ thêm dòng</button></div></div>
-  <div class="policy"><b>Điều kiện báo giá:</b> Giá trên đã bao gồm công lắp đặt, chưa bao gồm VAT nếu khách hàng
-    có nhu cầu xuất hóa đơn. Báo giá có hiệu lực trong 07 ngày kể từ ngày lập. Hạng mục phát sinh ngoài báo giá sẽ
-    được thông báo và chỉ thực hiện khi khách hàng đồng ý. Thông tin cá nhân quý khách đăng ký trên phiếu này được
-    lưu vào hệ thống quản lý khách hàng của cửa hàng và được bảo mật; cửa hàng có thể gửi nhắc lịch bảo dưỡng hoặc
-    ưu đãi tới số điện thoại đã đăng ký.</div>
+  <div class="barrow2"><div class="bb2"><span class="blbl" contenteditable="true">NGHIỆM THU THEO HẠNG MỤC KIỂM TRA</span></div>
+    <div class="due"><span class="lg2"><i class="ok"></i> ĐẠT</span>
+      <span class="lg2"><i class="no"></i> CHƯA ĐẠT</span></div></div>
+  <div class="accbox">
+    <div class="acol" data-box><div class="ln" data-row><span class="t lbl" contenteditable="true">Lốp 4 bánh: áp suất đúng chuẩn, van kín</span><span class="ck2" data-grp><i class="ok pick"></i><i class="no pick"></i></span><button class="del" title="Xóa dòng">&times;</button></div><div class="ln" data-row><span class="t lbl" contenteditable="true">Má phanh / đĩa phanh: đúng thông số, phanh êm</span><span class="ck2" data-grp><i class="ok pick"></i><i class="no pick"></i></span><button class="del" title="Xóa dòng">&times;</button></div><div class="ln" data-row><span class="t lbl" contenteditable="true">Bánh xe siết đủ lực, nắp van đầy đủ</span><span class="ck2" data-grp><i class="ok pick"></i><i class="no pick"></i></span><button class="del" title="Xóa dòng">&times;</button></div><div class="ln" data-row><span class="t lbl" contenteditable="true">Lốp dự phòng: áp suất đạt, để đúng vị trí</span><span class="ck2" data-grp><i class="ok pick"></i><i class="no pick"></i></span><button class="del" title="Xóa dòng">&times;</button></div><div class="tools"><button class="add">+ thêm dòng</button></div></div>
+    <div class="acol" data-box><div class="ln" data-row><span class="t lbl" contenteditable="true">Gạt mưa: quét sạch, không kêu</span><span class="ck2" data-grp><i class="ok pick"></i><i class="no pick"></i></span><button class="del" title="Xóa dòng">&times;</button></div><div class="ln" data-row><span class="t lbl" contenteditable="true">Đèn trước / đèn sau: sáng đủ, đúng chỉnh</span><span class="ck2" data-grp><i class="ok pick"></i><i class="no pick"></i></span><button class="del" title="Xóa dòng">&times;</button></div><div class="ln" data-row><span class="t lbl" contenteditable="true">Dầu & dung dịch: đủ mức, đã reset bảo dưỡng</span><span class="ck2" data-grp><i class="ok pick"></i><i class="no pick"></i></span><button class="del" title="Xóa dòng">&times;</button></div><div class="ln" data-row><span class="t lbl" contenteditable="true">Ắc quy: khỏe, cọc bình siết chắc</span><span class="ck2" data-grp><i class="ok pick"></i><i class="no pick"></i></span><button class="del" title="Xóa dòng">&times;</button></div><div class="tools"><button class="add">+ thêm dòng</button></div></div>
+    <div class="acol" data-box><div class="ln" data-row><span class="t lbl" contenteditable="true">Lọc gió động cơ / điều hòa, bugi: đúng chủng loại</span><span class="ck2" data-grp><i class="ok pick"></i><i class="no pick"></i></span><button class="del" title="Xóa dòng">&times;</button></div><div class="ln" data-row><span class="t lbl" contenteditable="true">Giảm xóc, chụp bụi, cao su gầm: không hư, không chảy dầu</span><span class="ck2" data-grp><i class="ok pick"></i><i class="no pick"></i></span><button class="del" title="Xóa dòng">&times;</button></div><div class="ln" data-row><span class="t lbl" contenteditable="true">Bulông gầm và sàn xe: siết đủ lực</span><span class="ck2" data-grp><i class="ok pick"></i><i class="no pick"></i></span><button class="del" title="Xóa dòng">&times;</button></div><div class="ln" data-row><span class="t lbl" contenteditable="true">Không bỏ sót ốp, phụ kiện; không quên dụng cụ trên xe</span><span class="ck2" data-grp><i class="ok pick"></i><i class="no pick"></i></span><button class="del" title="Xóa dòng">&times;</button></div><div class="tools"><button class="add">+ thêm dòng</button></div></div>
+  </div>
+  <div class="barrow2"><div class="bb2"><span class="blbl" contenteditable="true">ĐIỀU KIỆN BẢO HÀNH &amp; BÁO GIÁ</span></div>
+    <div class="due"><span class="hint">Gợi ý sẵn &mdash; sửa hoặc xóa dòng tùy cửa hàng</span></div></div>
+  <div class="warrbox" data-box><div class="ln wl2" data-row><span class="fi" contenteditable="true"><b>1. Bảo hành:</b> Phụ tùng thay thế mới bảo hành 06 tháng hoặc 6.000 km, tùy điều kiện nào đến trước.</span><button class="del" title="Xóa dòng">&times;</button></div><div class="ln wl2" data-row><span class="fi" contenteditable="true">Không bảo hành với hư hỏng do tác động bên ngoài hoặc các chi tiết hao mòn trong quá trình sử dụng.</span><button class="del" title="Xóa dòng">&times;</button></div><div class="ln wl2" data-row><span class="fi" contenteditable="true"><b>2. Phụ thu 25%</b> giá trị tiền công đối với vật tư &ndash; phụ tùng quý khách mang đến.</span><button class="del" title="Xóa dòng">&times;</button></div><div class="ln wl2" data-row><span class="fi" contenteditable="true"><b>3. Phát sinh (nếu có)</b> sẽ được thông báo và chỉ thực hiện sau khi quý khách đồng ý.</span><button class="del" title="Xóa dòng">&times;</button></div><div class="ln wl2" data-row><span class="fi" contenteditable="true"><b>4. Báo giá</b> có hiệu lực 07 ngày, đã gồm công lắp đặt, chưa gồm VAT nếu xuất hóa đơn.</span><button class="del" title="Xóa dòng">&times;</button></div>
+    <div class="tools"><button class="add">+ thêm dòng</button></div>
+    <div class="pnote">Thông tin cá nhân quý khách trên phiếu được lưu vào hệ thống quản lý khách hàng và được bảo mật.</div>
+  </div>
   <div class="signs">
     <div class="sg"><div class="t">NGƯỜI LẬP BÁO GIÁ</div><div class="s">(ký, ghi rõ họ tên)</div></div>
-    <div class="sg"><div class="t">QUẢN LÝ DUYỆT GIÁ</div><div class="s">(ký, ghi rõ họ tên)</div></div>
-    <div class="sg"><div class="t">KHÁCH HÀNG ĐỒNG Ý</div><div class="s">(ký, ghi rõ họ tên)</div></div>
+    <div class="sg"><div class="t">NHÂN VIÊN KIỂM TRA CUỐI</div><div class="s">(ký, ghi rõ họ tên)</div></div>
+    <div class="sg"><div class="t">KHÁCH HÀNG NGHIỆM THU</div><div class="s">(ký, ghi rõ họ tên)</div></div>
   </div>
 </div>
 <script>
@@ -715,23 +780,21 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
                    var n = parseFloat(v); return isNaN(n) ? 0 : n; }
   function fmt(n){ return n ? Math.round(n).toLocaleString('vi-VN') : ''; }
   function calc(){
-    page.querySelectorAll('table[data-money]').forEach(function(tb){
-      var sum = 0;
-      tb.querySelectorAll('tr[data-row]').forEach(function(tr){
-        var q = num(tr.querySelector('.qty .fi') && tr.querySelector('.qty .fi').textContent);
-        var p = num(tr.querySelector('.price .fi') && tr.querySelector('.price .fi').textContent);
-        var a = q * p, cell = tr.querySelector('.amount');
-        if(cell){ cell.textContent = fmt(a) || '\u00A0'; }
-        sum += a;
-      });
-      var t = tb.querySelector('.total');
-      if(t) t.textContent = (fmt(sum) || '0') + ' đ';
-      var d = tb.querySelector('.disc .fi'), g = tb.querySelector('.gtotal');
-      if(g){
-        var dv = num(d ? d.textContent : '');
-        g.textContent = (fmt(Math.max(0, sum - dv)) || '0') + ' đ';
-      }
+    var sum = 0;
+    page.querySelectorAll('table[data-money] tr[data-row]').forEach(function(tr){
+      var q = num(tr.querySelector('.qty .fi') && tr.querySelector('.qty .fi').textContent);
+      var p = num(tr.querySelector('.price .fi') && tr.querySelector('.price .fi').textContent);
+      var a = q * p, cell = tr.querySelector('.amount');
+      if(cell) cell.textContent = fmt(a) || ' ';
+      sum += a;
     });
+    var t = page.querySelector('.total');
+    if(t) t.textContent = (fmt(sum) || '0') + ' đ';
+    var d = page.querySelector('.disc .fi'), g = page.querySelector('.gtotal');
+    if(g){
+      var dv = num(d ? d.textContent : '');
+      g.textContent = (fmt(Math.max(0, sum - dv)) || '0') + ' đ';
+    }
   }
   page.addEventListener('click', function(e){
     var t = e.target.closest('.tbwrap .add, .tbwrap .addg, .tb2 .del, .tb2 .delg');
@@ -760,8 +823,8 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
       var st = icl.querySelector('.stt'); if(st) st.textContent = '1';
       var bg = icl.querySelector('.bg'); if(bg){ bg.textContent = '–'; bg.className = 'bg na'; }
       var tr0 = tb2.querySelector('tr.tot');
-      tr0.parentNode.insertBefore(gcl, tr0);
-      tr0.parentNode.insertBefore(icl, tr0);
+      if(tr0){ tr0.parentNode.insertBefore(gcl, tr0); tr0.parentNode.insertBefore(icl, tr0); }
+      else { var last = isrc[isrc.length-1]; last.parentNode.appendChild(gcl); last.parentNode.appendChild(icl); }
       gcl.querySelector('.glbl').focus();
       calc(); return;
     }
@@ -777,7 +840,8 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
     var amt = clone.querySelector('.amount'); if(amt) amt.textContent = ' ';
     var stt = clone.querySelector('.stt'); if(stt) stt.textContent = '';
     var totRow = tb.querySelector('tr.tot');
-    totRow.parentNode.insertBefore(clone, totRow);
+    if(totRow) totRow.parentNode.insertBefore(clone, totRow);
+    else rows[rows.length-1].parentNode.appendChild(clone);
     var f = clone.querySelector('.fi'); if(f) f.focus();
     calc();
   }, true);
@@ -838,55 +902,57 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
 </script>
 <script>
 (function(){
-  var page = document.querySelector('.page.cjpage.p2');
-  if(!page) return;
-  var URL_KEY='d', LEGACY_KEY='data', restoring=true, timer=0, version=0;
-  var rowBase=Object.create(null), groupBase=Object.create(null), fieldBase=[], pickBase=[];
-  var nextRow=1, nextGroup=1, nextBox=1;
-  function fields(){ return Array.prototype.filter.call(page.querySelectorAll('[contenteditable="true"]'),function(e){return !e.closest('[data-row]')&&!e.closest('tr[data-grpline]');}); }
-  function picks(){ return Array.prototype.filter.call(page.querySelectorAll('.pick'),function(e){return !e.closest('[data-row]');}); }
-  function boxes(){ var a=[]; page.querySelectorAll('.tbwrap,[data-box]').forEach(function(e){if(a.indexOf(e)<0)a.push(e);}); return a; }
-  function ownerBox(e){ var b=e && e.closest('[data-url-box]'); return b ? b.dataset.urlBox : ''; }
+  var page=document.querySelector('.page.cjpage.p2');
+  if(!page)return;
+  var URL_KEY='d',LEGACY_KEY='data',restoring=true,timer=0,version=0;
+  var rowBase=Object.create(null),groupBase=Object.create(null),fieldBase=[],pickBase=[];
+  var nextRow=1,nextGroup=1,nextBox=1;
+  function fields(){return Array.prototype.filter.call(page.querySelectorAll('[contenteditable="true"]'),function(e){return !e.closest('[data-row]')&&!e.closest('tr[data-grpline]');});}
+  function picks(){return Array.prototype.filter.call(page.querySelectorAll('.pick'),function(e){return !e.closest('[data-row]');});}
+  function boxes(){var a=[];page.querySelectorAll('.tbwrap,[data-box]').forEach(function(e){if(a.indexOf(e)<0)a.push(e);});return a;}
+  function ownerBox(e){var b=e&&e.closest('[data-url-box]');return b?b.dataset.urlBox:'';}
   function ensureIds(){
     boxes().forEach(function(e){if(!e.dataset.urlBox)e.dataset.urlBox='b'+nextBox++;});
     page.querySelectorAll('tr[data-grpline]').forEach(function(e){if(!e.dataset.urlGroup)e.dataset.urlGroup='g'+nextGroup++;});
     page.querySelectorAll('[data-row]').forEach(function(e){if(!e.dataset.urlId)e.dataset.urlId='r'+nextRow++;});
   }
-  function text(e){return (e?(e.textContent||''):'').replace(/\u00a0/g,' ').replace(/\r\n/g,'\n');}
+  function text(e){return(e?(e.textContent||''):'').replace(/\u00a0/g,' ').replace(/\r\n/g,'\n');}
   function rf(r){return Array.from(r.querySelectorAll('[contenteditable="true"]'));}
   function rp(r){return Array.from(r.querySelectorAll('.pick'));}
   function capture(){
-    ensureIds(); fields().forEach(function(e,i){fieldBase[i]=text(e);}); picks().forEach(function(e,i){pickBase[i]=e.classList.contains('on');});
-    page.querySelectorAll('[data-row]').forEach(function(r){rowBase[r.dataset.urlId]={box:(r.closest('[data-url-box]')||{}).dataset&&r.closest('[data-url-box]').dataset.urlBox,html:r.outerHTML,f:rf(r).map(text),p:rp(r).map(function(e){return e.classList.contains('on');})};});
-    page.querySelectorAll('tr[data-grpline]').forEach(function(g){groupBase[g.dataset.urlGroup]={box:(g.closest('[data-url-box]')||{}).dataset&&g.closest('[data-url-box]').dataset.urlBox,html:g.outerHTML,label:text(g.querySelector('.glbl'))};});
+    ensureIds();
+    fields().forEach(function(e,i){fieldBase[i]=text(e);});
+    picks().forEach(function(e,i){pickBase[i]=e.classList.contains('on');});
+    page.querySelectorAll('[data-row]').forEach(function(r){rowBase[r.dataset.urlId]={box:ownerBox(r),html:r.outerHTML,f:rf(r).map(text),p:rp(r).map(function(e){return e.classList.contains('on');})};});
+    page.querySelectorAll('tr[data-grpline]').forEach(function(g){groupBase[g.dataset.urlGroup]={box:ownerBox(g),html:g.outerHTML,label:text(g.querySelector('.glbl'))};});
   }
   function delta(){
-    ensureIds(); var s={v:1,f:[],p:[],r:[],x:[],n:[],g:[],gx:[],ng:[]};
+    ensureIds();var s={v:1,f:[],p:[],r:[],x:[],n:[],g:[],gx:[],ng:[]};
     fields().forEach(function(e,i){var v=text(e);if(v!==(fieldBase[i]||''))s.f.push([i,v]);});
     picks().forEach(function(e,i){var v=e.classList.contains('on');if(v!==!!pickBase[i])s.p.push([i,v]);});
-    var rows=Object.create(null); page.querySelectorAll('[data-row]').forEach(function(r){
-      var id=r.dataset.urlId; rows[id]=1; var b=rowBase[id], f=[], p=[];
+    var rows=Object.create(null);
+    page.querySelectorAll('[data-row]').forEach(function(r){
+      var id=r.dataset.urlId;rows[id]=1;var b=rowBase[id],f=[],p=[];
       rf(r).forEach(function(e,i){var v=text(e);if(!b||v!==(b.f[i]||''))f.push([i,v]);});
       rp(r).forEach(function(e,i){var v=e.classList.contains('on');if(!b||v!==!!b.p[i])p.push([i,v]);});
       if(!b)s.n.push([id,ownerBox(r),r.outerHTML]);else if(f.length||p.length)s.r.push([id,f,p]);
     });
     Object.keys(rowBase).forEach(function(id){if(!rows[id])s.x.push(id);});
-    var groups=Object.create(null); page.querySelectorAll('tr[data-grpline]').forEach(function(g){
-      var id=g.dataset.urlGroup; groups[id]=1; var b=groupBase[id], v=text(g.querySelector('.glbl'));
-      if(!b)s.ng.push([id,ownerBox(g),g.outerHTML]);else if(v!==b.label)s.g.push([id,v]);
-    });
-    Object.keys(groupBase).forEach(function(id){if(!groups[id])s.gx.push(id);}); return s;
+    var groups=Object.create(null);
+    page.querySelectorAll('tr[data-grpline]').forEach(function(g){var id=g.dataset.urlGroup;groups[id]=1;var b=groupBase[id],v=text(g.querySelector('.glbl'));if(!b)s.ng.push([id,ownerBox(g),g.outerHTML]);else if(v!==b.label)s.g.push([id,v]);});
+    Object.keys(groupBase).forEach(function(id){if(!groups[id])s.gx.push(id);});
+    return s;
   }
-  function changed(s){return s.f.length||s.p.length||s.r.length||s.x.length||s.n.length||s.g.length||s.gx.length||s.ng.length;}
+  function changed(s){return!!(s.f.length||s.p.length||s.r.length||s.x.length||s.n.length||s.g.length||s.gx.length||s.ng.length);}
   function b64(bytes){var s='';for(var i=0;i<bytes.length;i++)s+=String.fromCharCode(bytes[i]);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
   function unb64(s){s=(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var b=atob(s),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a;}
-  function jsonToken(s){return 'j'+b64(new TextEncoder().encode(JSON.stringify(s)));}
+  function jsonToken(s){return'j'+b64(new TextEncoder().encode(JSON.stringify(s)));}
   function decode(token){try{return JSON.parse(new TextDecoder().decode(unb64(token.slice(1))));}catch(e){return null;}}
-  async function pack(s){var raw=new TextEncoder().encode(JSON.stringify(s));if('CompressionStream' in window){try{var c=new CompressionStream('deflate-raw'),w=c.writable.getWriter();w.write(raw);w.close();return 'z'+b64(new Uint8Array(await new Response(c.readable).arrayBuffer()));}catch(e){}}return 'j'+b64(raw);}
+  async function pack(s){var raw=new TextEncoder().encode(JSON.stringify(s));if('CompressionStream'in window){try{var c=new CompressionStream('deflate-raw'),w=c.writable.getWriter();w.write(raw);w.close();return'z'+b64(new Uint8Array(await new Response(c.readable).arrayBuffer()));}catch(e){}}return'j'+b64(raw);}
   async function unpack(token){if(!token)return null;if(token[0]==='j')return decode(token);if(token[0]!=='z')return null;try{var d=new DecompressionStream('deflate-raw'),w=d.writable.getWriter();w.write(unb64(token.slice(1)));w.close();return JSON.parse(new TextDecoder().decode(await new Response(d.readable).arrayBuffer()));}catch(e){return null;}}
   function node(html){var t=document.createElement('template');t.innerHTML=html;return t.content.firstElementChild;}
   function box(id){return page.querySelector('[data-url-box="'+id+'"]');}
-  function insert(b,n){if(!b||!n)return;var table=b.querySelector('table'),tools=b.querySelector('.tools'),tot=table&&table.querySelector('tr.tot');if(table&&tot){tot.parentNode.insertBefore(n,tot);}else if(tools){tools.parentNode.insertBefore(n,tools);}else b.appendChild(n);}
+  function insert(b,n){if(!b||!n)return;var table=b.querySelector('table'),tools=b.querySelector('.tools'),tot=table&&table.querySelector('tr.tot');if(table&&tot)tot.parentNode.insertBefore(n,tot);else if(tools)tools.parentNode.insertBefore(n,tools);else b.appendChild(n);}
   function removeGroup(g){var n=g.nextElementSibling;while(n&&!n.matches('tr[data-grpline],tr.tot')){var x=n;n=n.nextElementSibling;x.remove();}g.remove();}
   function apply(s){if(!s||s.v!==1)return;ensureIds();
     (s.f||[]).forEach(function(x){var e=fields()[x[0]];if(e)e.textContent=x[1];});
@@ -903,7 +969,7 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
   async function compress(v){if(restoring||v!==version)return;var s=delta();if(!changed(s))return;var t=await pack(s);if(restoring||v!==version)return;var u=new URL(location.href);u.searchParams.delete(LEGACY_KEY);u.searchParams.set(URL_KEY,t);history.replaceState(null,'',u.toString());}
   function schedule(){if(restoring)return;version++;var v=version;clearTimeout(timer);now();timer=setTimeout(function(){compress(v);},180);}
   capture();
-  page.addEventListener('input',schedule); page.addEventListener('change',schedule);
+  page.addEventListener('input',schedule);page.addEventListener('change',schedule);
   page.addEventListener('click',function(e){if(e.target.closest('.pick,.add,.addg,.del,.delg'))setTimeout(schedule,0);});
   restore();
 })();
