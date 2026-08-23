@@ -419,11 +419,15 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
   var page = document.querySelector('.cjpage');
   if(!page) return;
 
-  /* d = dữ liệu đã nén; data = tham số cũ vẫn được đọc để không làm hỏng link cũ. */
+  /* Chỉ lưu phần khác với mẫu gốc. Không thay đổi thì URL không có tham số. */
   var URL_KEY = 'd';
   var LEGACY_KEY = 'data';
   var saveTimer = null;
   var restoring = false;
+  var nextNewId = 0;
+  var baseFields;
+  var basePicks;
+  var baseRows = [];
 
   function textOf(el){
     return (el.textContent || '').replace(/\u00a0/g, ' ').replace(/\r\n/g, '\n');
@@ -445,12 +449,8 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
   }
 
   function decodeJson(value){
-    try{
-      return JSON.parse(new TextDecoder().decode(base64UrlToBytes(value)));
-    }catch(err){
-      console.warn('Không thể đọc dữ liệu cũ trong URL:', err);
-      return null;
-    }
+    try{ return JSON.parse(new TextDecoder().decode(base64UrlToBytes(value))); }
+    catch(err){ console.warn('Không thể đọc dữ liệu cũ trong URL:', err); return null; }
   }
 
   async function packState(state){
@@ -460,10 +460,7 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
       var stream = new Blob([raw]).stream().pipeThrough(new CompressionStream('deflate-raw'));
       var compressed = new Uint8Array(await new Response(stream).arrayBuffer());
       return 'z' + bytesToBase64Url(compressed);
-    }catch(err){
-      /* Dự phòng cho trình duyệt cũ: vẫn lưu được, nhưng không nén. */
-      return 'j' + bytesToBase64Url(raw);
-    }
+    }catch(err){ return 'j' + bytesToBase64Url(raw); }
   }
 
   async function unpackState(value){
@@ -475,13 +472,9 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
       var stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
       var raw = new Uint8Array(await new Response(stream).arrayBuffer());
       return JSON.parse(new TextDecoder().decode(raw));
-    }catch(err){
-      console.warn('Không thể giải nén dữ liệu trong URL:', err);
-      return null;
-    }
+    }catch(err){ console.warn('Không thể giải nén dữ liệu trong URL:', err); return null; }
   }
 
-  /* Các trường và trạng thái trong dòng động được lưu cùng dữ liệu của dòng. */
   function staticFields(){
     var result = [];
     page.querySelectorAll('.fi, .lbl[contenteditable="true"]').forEach(function(el){
@@ -498,46 +491,119 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
     return result;
   }
 
-  function getState(){
-    var rows = [];
-    var boxes = page.querySelectorAll('[data-box]');
-    page.querySelectorAll('[data-row]').forEach(function(row){
-      /* Dùng mảng thay cho tên thuộc tính dài để giảm thêm vài trăm byte trước khi nén. */
-      rows.push([Array.prototype.indexOf.call(boxes, row.closest('[data-box]')), row.outerHTML]);
+  function rowFields(row){
+    var result = [];
+    row.querySelectorAll('.fi, .lbl[contenteditable="true"]').forEach(function(el){ result.push(textOf(el)); });
+    return result;
+  }
+
+  function rowPicks(row){
+    var result = [];
+    row.querySelectorAll('.pick').forEach(function(el){ result.push(el.classList.contains('on')); });
+    return result;
+  }
+
+  function diffValues(current, original){
+    var result = [];
+    current.forEach(function(value, index){
+      if(value !== original[index]) result.push([index, value]);
     });
-    return { v: 3, f: staticFields(), p: staticPicks(), r: rows };
+    return result;
   }
 
-  async function updateUrl(){
-    if(restoring) return;
-    var packed = await packState(getState());
-    if(restoring) return;
-    var url = new URL(window.location.href);
-    url.searchParams.delete(LEGACY_KEY);
-    url.searchParams.set(URL_KEY, packed);
-    window.history.replaceState(null, '', url.toString());
+  function findRow(id){
+    return page.querySelector('[data-url-id="' + id + '"]');
   }
 
-  function scheduleUrlUpdate(){
-    if(restoring) return;
-    window.clearTimeout(saveTimer);
-    saveTimer = window.setTimeout(function(){ updateUrl(); }, 120);
+  function captureBaseline(){
+    baseFields = staticFields();
+    basePicks = staticPicks();
+    page.querySelectorAll('[data-row]').forEach(function(row, index){
+      var id = 'r' + index;
+      row.setAttribute('data-url-id', id);
+      baseRows.push({ id:id, fields:rowFields(row), picks:rowPicks(row) });
+    });
   }
 
-  async function restoreState(){
-    var url = new URL(window.location.href);
-    var encoded = url.searchParams.get(URL_KEY);
-    var legacy = url.searchParams.get(LEGACY_KEY);
-    if(!encoded && !legacy) return;
+  function getDelta(){
+    var state = { v:4, f:[], p:[], r:[], d:[], n:[] };
+    staticFields().forEach(function(value, index){
+      if(value !== baseFields[index]) state.f.push([index, value]);
+    });
+    staticPicks().forEach(function(value, index){
+      if(value !== basePicks[index]) state.p.push([index, value ? 1 : 0]);
+    });
 
-    var state = encoded ? await unpackState(encoded) : decodeJson(legacy);
-    if(!state) return;
+    baseRows.forEach(function(base){
+      var row = findRow(base.id);
+      if(!row){ state.d.push(base.id); return; }
+      var fields = diffValues(rowFields(row), base.fields);
+      var picks = diffValues(rowPicks(row), base.picks).map(function(item){ return [item[0], item[1] ? 1 : 0]; });
+      if(fields.length || picks.length) state.r.push([base.id, fields, picks]);
+    });
 
+    page.querySelectorAll('[data-row][data-url-id^="n"]').forEach(function(row){
+      var box = row.closest('[data-box]');
+      var parentIndex = Array.prototype.indexOf.call(page.querySelectorAll('[data-box]'), box);
+      state.n.push([row.getAttribute('data-url-id'), parentIndex, row.outerHTML]);
+    });
+    return state;
+  }
+
+  function hasChanges(state){
+    return state.f.length || state.p.length || state.r.length || state.d.length || state.n.length;
+  }
+
+  function applyPairs(elements, pairs){
+    if(!Array.isArray(pairs)) return;
+    pairs.forEach(function(pair){ if(elements[pair[0]]) elements[pair[0]].textContent = pair[1]; });
+  }
+
+  function applyRowPairs(row, fields, picks){
+    applyPairs(row.querySelectorAll('.fi, .lbl[contenteditable="true"]'), fields);
+    if(Array.isArray(picks)) picks.forEach(function(pair){
+      var item = row.querySelectorAll('.pick')[pair[0]];
+      if(item) item.classList.toggle('on', !!pair[1]);
+    });
+  }
+
+  function applyDelta(state){
+    /* staticFields() không dùng selector phức tạp để tương thích trình duyệt cũ. */
+    var fields = page.querySelectorAll('.fi, .lbl[contenteditable="true"]');
+    var staticIndex = 0;
+    fields.forEach(function(el){
+      if(el.closest('[data-row]')) return;
+      var pair = (state.f || []).find(function(item){ return item[0] === staticIndex; });
+      if(pair) el.textContent = pair[1];
+      staticIndex++;
+    });
+    var picks = page.querySelectorAll('.pick');
+    var pickIndex = 0;
+    picks.forEach(function(el){
+      if(el.closest('[data-row]')) return;
+      var pair = (state.p || []).find(function(item){ return item[0] === pickIndex; });
+      if(pair) el.classList.toggle('on', !!pair[1]);
+      pickIndex++;
+    });
+
+    (state.d || []).forEach(function(id){ var row = findRow(id); if(row) row.remove(); });
+    (state.r || []).forEach(function(item){
+      var row = findRow(item[0]);
+      if(row) applyRowPairs(row, item[1], item[2]);
+    });
+    (state.n || []).forEach(function(item){
+      var box = page.querySelectorAll('[data-box]')[item[1]];
+      if(!box || !item[2]) return;
+      var tools = box.querySelector('.tools');
+      if(tools) tools.insertAdjacentHTML('beforebegin', item[2]);
+    });
+  }
+
+  async function restoreLegacy(state){
     var rows = state.r || state.rows;
     if(Array.isArray(rows)){
       var boxes = page.querySelectorAll('[data-box]');
-      var currentRows = page.querySelectorAll('[data-row]');
-      Array.prototype.forEach.call(currentRows, function(row){ row.remove(); });
+      Array.prototype.forEach.call(page.querySelectorAll('[data-row]'), function(row){ row.remove(); });
       rows.forEach(function(item){
         var parentIndex = Array.isArray(item) ? item[0] : item.parentIndex;
         var html = Array.isArray(item) ? item[1] : item.html;
@@ -547,18 +613,56 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
         if(tools) tools.insertAdjacentHTML('beforebegin', html);
       });
     }
-
     var isCompact = state.v >= 3;
     var fields = isCompact ? staticFields() : (state.version >= 2 ? staticFields() : page.querySelectorAll('.fi, .lbl[contenteditable="true"]'));
     var fieldValues = state.f || state.fields;
-    if(Array.isArray(fieldValues)) fieldValues.forEach(function(value, index){ if(fields[index]) fields[index].textContent = value; });
-
+    if(Array.isArray(fieldValues)) fieldValues.forEach(function(value,index){ if(fields[index]) fields[index].textContent = value; });
     var picks = isCompact ? staticPicks() : (state.version >= 2 ? staticPicks() : page.querySelectorAll('.pick'));
     var pickValues = state.p || state.picks;
-    if(Array.isArray(pickValues)) pickValues.forEach(function(on, index){ if(picks[index]) picks[index].classList.toggle('on', !!on); });
+    if(Array.isArray(pickValues)) pickValues.forEach(function(on,index){ if(picks[index]) picks[index].classList.toggle('on', !!on); });
+    /* Link cũ được chuyển thành các dòng mới để lần lưu kế tiếp vẫn khôi phục được. */
+    page.querySelectorAll('[data-row]').forEach(function(row){ row.setAttribute('data-url-id', 'n' + nextNewId++); });
   }
 
-  /* Gắn sự kiện trước khi khôi phục để mọi thay đổi sau đó đều được ghi nhận. */
+  async function restoreState(){
+    var url = new URL(window.location.href);
+    var encoded = url.searchParams.get(URL_KEY);
+    var legacy = url.searchParams.get(LEGACY_KEY);
+    if(encoded){
+      var state = await unpackState(encoded);
+      if(state && state.v === 4) applyDelta(state);
+      else if(state) await restoreLegacy(state);
+    }else if(legacy){
+      var state = decodeJson(legacy);
+      if(state) await restoreLegacy(state);
+    }
+  }
+
+  async function updateUrl(){
+    if(restoring) return;
+    var state = getDelta();
+    var url = new URL(window.location.href);
+    if(!hasChanges(state)){
+      url.searchParams.delete(URL_KEY);
+      url.searchParams.delete(LEGACY_KEY);
+      window.history.replaceState(null, '', url.toString());
+      return;
+    }
+    var packed = await packState(state);
+    if(restoring) return;
+    url.searchParams.delete(LEGACY_KEY);
+    url.searchParams.set(URL_KEY, packed);
+    window.history.replaceState(null, '', url.toString());
+  }
+
+  function scheduleUrlUpdate(){
+    if(restoring) return;
+    window.clearTimeout(saveTimer);
+    saveTimer = window.setTimeout(updateUrl, 120);
+  }
+
+  captureBaseline();
+
   page.addEventListener('click', function(e){
     var el = e.target.closest('.pick');
     if(!el || !page.contains(el)) return;
@@ -585,6 +689,7 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
       clone.querySelectorAll('.pick').forEach(function(o){ o.classList.remove('on'); });
       clone.querySelectorAll('.fi').forEach(function(o){ o.textContent = ''; });
       var lb = clone.querySelector('.lbl'); if(lb) lb.textContent = 'Hạng mục mới';
+      clone.setAttribute('data-url-id', 'n' + nextNewId++);
       add.closest('.tools').parentNode.insertBefore(clone, add.closest('.tools'));
       if(lb){ lb.focus(); document.execCommand('selectAll', false, null); }
       scheduleUrlUpdate();
