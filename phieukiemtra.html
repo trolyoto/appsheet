@@ -419,36 +419,69 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
   var page = document.querySelector('.cjpage');
   if(!page) return;
 
-  /* Chỉ thêm ?data=... sau khi người dùng thực sự thay đổi biểu mẫu. */
-  var URL_KEY = 'data';
+  /* d = dữ liệu đã nén; data = tham số cũ vẫn được đọc để không làm hỏng link cũ. */
+  var URL_KEY = 'd';
+  var LEGACY_KEY = 'data';
   var saveTimer = null;
+  var restoring = false;
 
   function textOf(el){
     return (el.textContent || '').replace(/\u00a0/g, ' ').replace(/\r\n/g, '\n');
   }
 
-  function encodeState(state){
-    var bytes = new TextEncoder().encode(JSON.stringify(state));
+  function bytesToBase64Url(bytes){
     var binary = '';
-    bytes.forEach(function(b){ binary += String.fromCharCode(b); });
+    for(var i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
     return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
   }
 
-  function decodeState(value){
+  function base64UrlToBytes(value){
+    var base64 = value.replace(/-/g, '+').replace(/_/g, '/');
+    while(base64.length % 4) base64 += '=';
+    var binary = atob(base64);
+    var bytes = new Uint8Array(binary.length);
+    for(var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+  }
+
+  function decodeJson(value){
     try{
-      var base64 = value.replace(/-/g, '+').replace(/_/g, '/');
-      while(base64.length % 4) base64 += '=';
-      var binary = atob(base64);
-      var bytes = new Uint8Array(binary.length);
-      for(var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      return JSON.parse(new TextDecoder().decode(bytes));
+      return JSON.parse(new TextDecoder().decode(base64UrlToBytes(value)));
     }catch(err){
-      console.warn('Không thể đọc dữ liệu trong URL:', err);
+      console.warn('Không thể đọc dữ liệu cũ trong URL:', err);
       return null;
     }
   }
 
-  /* Các trường và trạng thái nằm trong dòng động được lưu cùng outerHTML của dòng. */
+  async function packState(state){
+    var raw = new TextEncoder().encode(JSON.stringify(state));
+    try{
+      if(!window.CompressionStream) throw new Error('CompressionStream không được hỗ trợ');
+      var stream = new Blob([raw]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+      var compressed = new Uint8Array(await new Response(stream).arrayBuffer());
+      return 'z' + bytesToBase64Url(compressed);
+    }catch(err){
+      /* Dự phòng cho trình duyệt cũ: vẫn lưu được, nhưng không nén. */
+      return 'j' + bytesToBase64Url(raw);
+    }
+  }
+
+  async function unpackState(value){
+    try{
+      var mode = value.charAt(0);
+      if(mode !== 'z') return JSON.parse(new TextDecoder().decode(base64UrlToBytes(mode === 'j' ? value.slice(1) : value)));
+      if(!window.DecompressionStream) throw new Error('DecompressionStream không được hỗ trợ');
+      var compressed = base64UrlToBytes(value.slice(1));
+      var stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+      var raw = new Uint8Array(await new Response(stream).arrayBuffer());
+      return JSON.parse(new TextDecoder().decode(raw));
+    }catch(err){
+      console.warn('Không thể giải nén dữ liệu trong URL:', err);
+      return null;
+    }
+  }
+
+  /* Các trường và trạng thái trong dòng động được lưu cùng dữ liệu của dòng. */
   function staticFields(){
     var result = [];
     page.querySelectorAll('.fi, .lbl[contenteditable="true"]').forEach(function(el){
@@ -469,66 +502,63 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
     var rows = [];
     var boxes = page.querySelectorAll('[data-box]');
     page.querySelectorAll('[data-row]').forEach(function(row){
-      rows.push({
-        html: row.outerHTML,
-        parentIndex: Array.prototype.indexOf.call(boxes, row.closest('[data-box]'))
-      });
+      /* Dùng mảng thay cho tên thuộc tính dài để giảm thêm vài trăm byte trước khi nén. */
+      rows.push([Array.prototype.indexOf.call(boxes, row.closest('[data-box]')), row.outerHTML]);
     });
-    return { version: 2, fields: staticFields(), picks: staticPicks(), rows: rows };
+    return { v: 3, f: staticFields(), p: staticPicks(), r: rows };
   }
 
-  function updateUrl(){
+  async function updateUrl(){
+    if(restoring) return;
+    var packed = await packState(getState());
+    if(restoring) return;
     var url = new URL(window.location.href);
-    url.searchParams.set(URL_KEY, encodeState(getState()));
+    url.searchParams.delete(LEGACY_KEY);
+    url.searchParams.set(URL_KEY, packed);
     window.history.replaceState(null, '', url.toString());
   }
 
   function scheduleUrlUpdate(){
+    if(restoring) return;
     window.clearTimeout(saveTimer);
-    saveTimer = window.setTimeout(updateUrl, 80);
+    saveTimer = window.setTimeout(function(){ updateUrl(); }, 120);
   }
 
-  function restoreState(){
+  async function restoreState(){
     var url = new URL(window.location.href);
     var encoded = url.searchParams.get(URL_KEY);
-    if(!encoded) return;
-    var state = decodeState(encoded);
+    var legacy = url.searchParams.get(LEGACY_KEY);
+    if(!encoded && !legacy) return;
+
+    var state = encoded ? await unpackState(encoded) : decodeJson(legacy);
     if(!state) return;
 
-    if(Array.isArray(state.rows)){
+    var rows = state.r || state.rows;
+    if(Array.isArray(rows)){
       var boxes = page.querySelectorAll('[data-box]');
       var currentRows = page.querySelectorAll('[data-row]');
       Array.prototype.forEach.call(currentRows, function(row){ row.remove(); });
-      state.rows.forEach(function(item){
-        var box = boxes[item.parentIndex];
-        if(!box || !item.html) return;
+      rows.forEach(function(item){
+        var parentIndex = Array.isArray(item) ? item[0] : item.parentIndex;
+        var html = Array.isArray(item) ? item[1] : item.html;
+        var box = boxes[parentIndex];
+        if(!box || !html) return;
         var tools = box.querySelector('.tools');
-        if(tools) tools.insertAdjacentHTML('beforebegin', item.html);
+        if(tools) tools.insertAdjacentHTML('beforebegin', html);
       });
     }
 
-    /* Hỗ trợ cả link cũ version 1 và link mới version 2. */
-    var fields = state.version >= 2
-      ? staticFields()
-      : page.querySelectorAll('.fi, .lbl[contenteditable="true"]');
-    if(Array.isArray(state.fields)){
-      state.fields.forEach(function(value, index){
-        if(fields[index]) fields[index].textContent = value;
-      });
-    }
+    var isCompact = state.v >= 3;
+    var fields = isCompact ? staticFields() : (state.version >= 2 ? staticFields() : page.querySelectorAll('.fi, .lbl[contenteditable="true"]'));
+    var fieldValues = state.f || state.fields;
+    if(Array.isArray(fieldValues)) fieldValues.forEach(function(value, index){ if(fields[index]) fields[index].textContent = value; });
 
-    var picks = state.version >= 2
-      ? staticPicks()
-      : page.querySelectorAll('.pick');
-    if(Array.isArray(state.picks)){
-      state.picks.forEach(function(on, index){
-        if(picks[index]) picks[index].classList.toggle('on', !!on);
-      });
-    }
+    var picks = isCompact ? staticPicks() : (state.version >= 2 ? staticPicks() : page.querySelectorAll('.pick'));
+    var pickValues = state.p || state.picks;
+    if(Array.isArray(pickValues)) pickValues.forEach(function(on, index){ if(picks[index]) picks[index].classList.toggle('on', !!on); });
   }
 
-  restoreState();
-
+  /* Gắn sự kiện trước khi khôi phục để mọi thay đổi sau đó đều được ghi nhận. */
   page.addEventListener('click', function(e){
     var el = e.target.closest('.pick');
     if(!el || !page.contains(el)) return;
@@ -586,6 +616,9 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
     }
     page.classList.remove('fitting');
   }
+
+  restoring = true;
+  restoreState().finally(function(){ restoring = false; });
 
   window.addEventListener('beforeprint', fit);
   window.addEventListener('afterprint', function(){ page.style.zoom = 1; page.style.minHeight = ''; });
