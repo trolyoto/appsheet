@@ -419,7 +419,7 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
   var page = document.querySelector('.cjpage');
   if(!page) return;
 
-  /* Lưu trạng thái biểu mẫu vào URL dạng ?data=<base64url>. */
+  /* Chỉ thêm ?data=... sau khi người dùng thực sự thay đổi biểu mẫu. */
   var URL_KEY = 'data';
   var saveTimer = null;
 
@@ -448,26 +448,33 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
     }
   }
 
-  function getState(){
-    var fields = [];
+  /* Các trường và trạng thái nằm trong dòng động được lưu cùng outerHTML của dòng. */
+  function staticFields(){
+    var result = [];
     page.querySelectorAll('.fi, .lbl[contenteditable="true"]').forEach(function(el){
-      fields.push(textOf(el));
+      if(!el.closest('[data-row]')) result.push(textOf(el));
     });
+    return result;
+  }
 
-    var picks = [];
+  function staticPicks(){
+    var result = [];
     page.querySelectorAll('.pick').forEach(function(el){
-      picks.push(el.classList.contains('on'));
+      if(!el.closest('[data-row]')) result.push(el.classList.contains('on'));
     });
+    return result;
+  }
 
+  function getState(){
     var rows = [];
+    var boxes = page.querySelectorAll('[data-box]');
     page.querySelectorAll('[data-row]').forEach(function(row){
       rows.push({
         html: row.outerHTML,
-        parentIndex: Array.prototype.indexOf.call(page.querySelectorAll('[data-box]'), row.closest('[data-box]'))
+        parentIndex: Array.prototype.indexOf.call(boxes, row.closest('[data-box]'))
       });
     });
-
-    return { version: 1, fields: fields, picks: picks, rows: rows };
+    return { version: 2, fields: staticFields(), picks: staticPicks(), rows: rows };
   }
 
   function updateUrl(){
@@ -488,7 +495,6 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
     var state = decodeState(encoded);
     if(!state) return;
 
-    /* Khôi phục các dòng đã thêm/xóa. */
     if(Array.isArray(state.rows)){
       var boxes = page.querySelectorAll('[data-box]');
       var currentRows = page.querySelectorAll('[data-row]');
@@ -501,20 +507,27 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
       });
     }
 
-    var fields = page.querySelectorAll('.fi, .lbl[contenteditable="true"]');
+    /* Hỗ trợ cả link cũ version 1 và link mới version 2. */
+    var fields = state.version >= 2
+      ? staticFields()
+      : page.querySelectorAll('.fi, .lbl[contenteditable="true"]');
     if(Array.isArray(state.fields)){
       state.fields.forEach(function(value, index){
         if(fields[index]) fields[index].textContent = value;
       });
     }
 
-    var picks = page.querySelectorAll('.pick');
+    var picks = state.version >= 2
+      ? staticPicks()
+      : page.querySelectorAll('.pick');
     if(Array.isArray(state.picks)){
       state.picks.forEach(function(on, index){
         if(picks[index]) picks[index].classList.toggle('on', !!on);
       });
     }
   }
+
+  restoreState();
 
   page.addEventListener('click', function(e){
     var el = e.target.closest('.pick');
@@ -549,7 +562,6 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
     }
   });
 
-  /* Bao phủ nhập chữ, xóa chữ và dán dữ liệu trong contenteditable. */
   page.addEventListener('input', scheduleUrlUpdate);
   page.addEventListener('change', scheduleUrlUpdate);
   page.addEventListener('paste', function(e){
@@ -574,9 +586,6 @@ body{ font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif; color:#111;
     }
     page.classList.remove('fitting');
   }
-
-  restoreState();
-  if(!new URL(window.location.href).searchParams.has(URL_KEY)) updateUrl();
 
   window.addEventListener('beforeprint', fit);
   window.addEventListener('afterprint', function(){ page.style.zoom = 1; page.style.minHeight = ''; });
