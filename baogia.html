@@ -2675,8 +2675,11 @@ table.sum td.v input{text-align:right;border-bottom-style:dashed}
     if (!s && legacy){ try { s = JSON.parse(decodeURIComponent(legacy)); } catch (e) {} }
     var restored = s && apply(s);
     if (restored){
-      pages().forEach(function(pg){
-        var trigger = pg.querySelector("input, textarea, select, [contenteditable='true']");
+      /* apply() gán value trực tiếp nên không kích hoạt input event. Gọi recalcAll()
+         để Thành tiền, Cộng phần, VAT, Tổng cộng và Bằng chữ hiện ngay lập tức. */
+      if (typeof window.recalcAll === "function") window.recalcAll();
+      else pages().forEach(function(pg){
+        var trigger = pg.querySelector(".i-qty, .i-price, .i-vat, .i-ck, .i-name");
         if (trigger) trigger.dispatchEvent(new Event("input", { bubbles: true }));
       });
     }
