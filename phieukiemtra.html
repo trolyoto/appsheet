@@ -917,6 +917,22 @@ body.only-2 #doc .page + .page{page-break-before:auto}
     });
   }
 
+  /* Chặn ở capture-phase để mọi phiên bản handler cũ không thể tick nhiều ô. */
+  doc.addEventListener('click', function(e){
+    if(body.classList.contains('delmode')) return;
+    var b=e.target.closest('.box,.cb');
+    if(!b || !doc.contains(b)) return;
+    var group=tickGroupFor(b);
+    if(!group) return;
+    e.preventDefault();
+    e.stopPropagation();
+    snapshot();
+    var was=b.classList.contains('ticked');
+    group.querySelectorAll('.box,.cb').forEach(function(x){ x.classList.remove('ticked'); });
+    if(!was) b.classList.add('ticked');
+    scheduleUrlUpdate();
+  }, true);
+
   doc.addEventListener('click', function(e){
     if(body.classList.contains('delmode')) return;
     var sg=e.target.closest('.sign');
