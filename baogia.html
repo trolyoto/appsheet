@@ -2391,28 +2391,34 @@ table.sum td.v input{text-align:right;border-bottom-style:dashed}
 </script>
 
 <script>
-/* ============ ĐỒNG BỘ DỮ LIỆU VÀO URL — áp dụng theo cơ chế code 1 ============ */
+/* ============ URL TỐI GIẢN: chỉ lưu dữ liệu người dùng nhập/thay đổi ============ */
 (function(){
   "use strict";
 
   var URL_KEY = "d", LEGACY_KEY = "data";
   var restoring = true, timer = 0, version = 0;
   var pages = function(){ return Array.prototype.slice.call(document.querySelectorAll(".pg")); };
+  var fields = Object.create(null), edits = Object.create(null), rows = Object.create(null), groups = Object.create(null);
+  var nextField = 1, nextEdit = 1, nextRow = 1, nextGroup = 1;
 
-  function copyFormState(pg){
-    var clone = pg.cloneNode(true);
-    var originals = pg.querySelectorAll("input, textarea, select, [contenteditable='true']");
-    var copies = clone.querySelectorAll("input, textarea, select, [contenteditable='true']");
-
-    Array.prototype.forEach.call(originals, function(src, i){
-      var dst = copies[i];
+  function textValue(el){
+    if (!el) return "";
+    if (el.matches("[contenteditable='true']")) return el.textContent || "";
+    return el.value == null ? "" : String(el.value);
+  }
+  function controls(root){
+    return Array.prototype.slice.call(root.querySelectorAll("input, textarea, select"));
+  }
+  function syncControls(source, clone){
+    var a = controls(source), b = controls(clone);
+    a.forEach(function(src, i){
+      var dst = b[i];
       if (!dst) return;
-      if (src.matches("[contenteditable='true']")){
-        dst.innerHTML = src.innerHTML;
-      } else if (src.tagName === "SELECT"){
+      if (src.tagName === "SELECT"){
         Array.prototype.forEach.call(dst.options, function(opt, n){
-          opt.selected = !!src.options[n].selected;
-          if (opt.selected) opt.setAttribute("selected", "selected");
+          var selected = !!src.options[n].selected;
+          opt.selected = selected;
+          if (selected) opt.setAttribute("selected", "selected");
           else opt.removeAttribute("selected");
         });
       } else if (src.type === "checkbox" || src.type === "radio"){
@@ -2424,54 +2430,114 @@ table.sum td.v input{text-align:right;border-bottom-style:dashed}
         dst.setAttribute("value", src.value);
       }
     });
-    return clone.innerHTML;
   }
-
-  function readState(){
-    var active = pages().findIndex(function(pg){ return pg.classList.contains("on"); });
-    var pall = document.getElementById("pall");
-    return {
-      v: 1,
-      active: active < 0 ? 0 : active,
-      printAll: !!(pall && pall.checked),
-      pages: pages().map(function(pg){ return { id: pg.id, html: copyFormState(pg) }; })
-    };
+  function rowValues(row){ return controls(row).map(textValue); }
+  function setRowValues(row, values){
+    controls(row).forEach(function(el, i){ if (values[i] !== undefined) el.value = values[i]; });
   }
-
-  var baseline = JSON.stringify(readState());
-
-  function notify(msg){
-    var d = document.createElement("div");
-    d.className = "toastx nop";
-    d.textContent = msg;
-    document.body.appendChild(d);
-    setTimeout(function(){ if (d.parentNode) d.parentNode.removeChild(d); }, 2600);
+  function sectionValues(tb){
+    var sec = tb.querySelector("tr.sec");
+    return sec ? [textValue(sec.querySelector(".i-sec")), textValue(sec.querySelector(".i-secnote"))] : ["", ""];
   }
-
-  function applyState(s){
-    if (!s || s.v !== 1 || !Array.isArray(s.pages)) return false;
-    s.pages.forEach(function(saved){
-      var pg = document.getElementById(saved.id);
-      if (!pg || typeof saved.html !== "string") return;
-      pg.innerHTML = saved.html;
+  function node(html){
+    var t = document.createElement("template");
+    t.innerHTML = html;
+    return t.content.firstElementChild;
+  }
+  function findField(id){ return document.querySelector("[data-url-field='" + id + "']"); }
+  function findEdit(id){ return document.querySelector("[data-url-edit='" + id + "']"); }
+  function findRow(id){ return document.querySelector("tr.row[data-url-row='" + id + "']"); }
+  function findGroup(id){ return document.querySelector("tbody[data-url-group='" + id + "']"); }
+  function ownerGroup(row){
+    var tb = row && row.closest("tbody");
+    return tb ? tb.dataset.urlGroup || "" : "";
+  }
+  function ensureIds(){
+    var seen;
+    seen = Object.create(null);
+    document.querySelectorAll(".pg input, .pg textarea, .pg select").forEach(function(el){
+      if (el.closest("tr.row")) return;
+      if (!el.dataset.urlField || seen[el.dataset.urlField]) el.dataset.urlField = "f" + nextField++;
+      seen[el.dataset.urlField] = 1;
+    });
+    seen = Object.create(null);
+    document.querySelectorAll(".pg [contenteditable='true']").forEach(function(el){
+      if (!el.dataset.urlEdit || seen[el.dataset.urlEdit]) el.dataset.urlEdit = "e" + nextEdit++;
+      seen[el.dataset.urlEdit] = 1;
+    });
+    seen = Object.create(null);
+    document.querySelectorAll(".pg tbody[data-group]").forEach(function(el){
+      if (!el.dataset.urlGroup || seen[el.dataset.urlGroup]) el.dataset.urlGroup = "g" + nextGroup++;
+      seen[el.dataset.urlGroup] = 1;
+    });
+    seen = Object.create(null);
+    document.querySelectorAll(".pg tr.row").forEach(function(el){
+      if (!el.dataset.urlRow || seen[el.dataset.urlRow]) el.dataset.urlRow = "r" + nextRow++;
+      seen[el.dataset.urlRow] = 1;
+    });
+  }
+  function capture(){
+    ensureIds();
+    document.querySelectorAll(".pg input, .pg textarea, .pg select").forEach(function(el){
+      if (!el.closest("tr.row")) fields[el.dataset.urlField] = textValue(el);
+    });
+    document.querySelectorAll(".pg [contenteditable='true']").forEach(function(el){ edits[el.dataset.urlEdit] = textValue(el); });
+    document.querySelectorAll(".pg tbody[data-url-group]").forEach(function(tb){
+      groups[tb.dataset.urlGroup] = 1;
+    });
+    document.querySelectorAll(".pg tr.row[data-url-row]").forEach(function(row){
+      rows[row.dataset.urlRow] = {
+        group: ownerGroup(row),
+        values: rowValues(row)
+      };
+    });
+  }
+  function delta(){
+    ensureIds();
+    var s = { v: 2 };
+    var f = [], e = [], r = [], n = [], x = [], ng = [], gx = [];
+    document.querySelectorAll(".pg input, .pg textarea, .pg select").forEach(function(el){
+      if (el.closest("tr.row")) return;
+      var id = el.dataset.urlField, value = textValue(el);
+      if (value !== (fields[id] === undefined ? "" : fields[id])) f.push([id, value]);
+    });
+    document.querySelectorAll(".pg [contenteditable='true']").forEach(function(el){
+      var id = el.dataset.urlEdit, value = textValue(el);
+      if (value !== (edits[id] === undefined ? "" : edits[id])) e.push([id, value]);
     });
 
-    var pall = document.getElementById("pall");
-    if (pall && typeof s.printAll === "boolean"){
-      pall.checked = s.printAll;
-      document.body.classList.toggle("print-all", s.printAll);
-    }
-    if (typeof window.show === "function" && pages().length){
-      window.show(Math.min(Math.max(Number(s.active) || 0, 0), pages().length - 1));
-    }
-
-    /* Tính lại các tổng tiền sau khi phục hồi input và dòng động. */
-    pages().forEach(function(pg){
-      var trigger = pg.querySelector(".i-name, .i-sec, input, [contenteditable='true']");
-      if (trigger) trigger.dispatchEvent(new Event("input", { bubbles: true }));
+    var liveRows = Object.create(null);
+    document.querySelectorAll(".pg tr.row[data-url-row]").forEach(function(row){
+      var id = row.dataset.urlRow, base = rows[id], values = rowValues(row);
+      liveRows[id] = 1;
+      if (!base){
+        n.push([id, ownerGroup(row), rowValues(row)]);
+      } else {
+        var changes = [];
+        values.forEach(function(value, i){ if (value !== (base.values[i] === undefined ? "" : base.values[i])) changes.push([i, value]); });
+        if (changes.length) r.push([id, changes]);
+      }
     });
-    return true;
+    Object.keys(rows).forEach(function(id){ if (!liveRows[id]) x.push(id); });
+
+    var liveGroups = Object.create(null);
+    document.querySelectorAll(".pg tbody[data-url-group]").forEach(function(tb){
+      var id = tb.dataset.urlGroup;
+      liveGroups[id] = 1;
+      if (!groups[id]) ng.push([id, tb.closest(".pg") ? tb.closest(".pg").id : "p0", sectionValues(tb)]);
+    });
+    Object.keys(groups).forEach(function(id){ if (!liveGroups[id]) gx.push(id); });
+
+    if (f.length) s.f = f;
+    if (e.length) s.e = e;
+    if (r.length) s.r = r;
+    if (n.length) s.n = n;
+    if (x.length) s.x = x;
+    if (ng.length) s.ng = ng;
+    if (gx.length) s.gx = gx;
+    return s;
   }
+  function changed(s){ return Object.keys(s).some(function(k){ return k !== "v"; }); }
 
   function b64(bytes){
     var raw = "";
@@ -2485,9 +2551,7 @@ table.sum td.v input{text-align:right;border-bottom-style:dashed}
     for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
     return out;
   }
-  function jsonToken(s){
-    return "j" + b64(new TextEncoder().encode(JSON.stringify(s)));
-  }
+  function jsonToken(s){ return "j" + b64(new TextEncoder().encode(JSON.stringify(s))); }
   function decode(token){
     try { return JSON.parse(new TextDecoder().decode(unb64(token.slice(1)))); }
     catch (e) { return null; }
@@ -2496,8 +2560,7 @@ table.sum td.v input{text-align:right;border-bottom-style:dashed}
     var raw = new TextEncoder().encode(JSON.stringify(s));
     if ("CompressionStream" in window){
       try {
-        var cs = new CompressionStream("deflate-raw");
-        var writer = cs.writable.getWriter();
+        var cs = new CompressionStream("deflate-raw"), writer = cs.writable.getWriter();
         writer.write(raw); writer.close();
         return "z" + b64(new Uint8Array(await new Response(cs.readable).arrayBuffer()));
       } catch (e) {}
@@ -2509,34 +2572,34 @@ table.sum td.v input{text-align:right;border-bottom-style:dashed}
     if (token.charAt(0) === "j") return decode(token);
     if (token.charAt(0) !== "z") return null;
     try {
-      var ds = new DecompressionStream("deflate-raw");
-      var writer = ds.writable.getWriter();
+      var ds = new DecompressionStream("deflate-raw"), writer = ds.writable.getWriter();
       writer.write(unb64(token.slice(1))); writer.close();
       return JSON.parse(new TextDecoder().decode(await new Response(ds.readable).arrayBuffer()));
     } catch (e) { return null; }
   }
-
-  function changed(state){ return JSON.stringify(state) !== baseline; }
-  function updateUrl(token){
+  function setUrl(token){
     var u = new URL(location.href);
     u.searchParams.delete(LEGACY_KEY);
-    if (token) u.searchParams.set(URL_KEY, token);
-    else u.searchParams.delete(URL_KEY);
+    if (token) u.searchParams.set(URL_KEY, token); else u.searchParams.delete(URL_KEY);
     history.replaceState(null, "", u.toString());
+  }
+  function notify(msg){
+    var d = document.createElement("div");
+    d.className = "toastx nop"; d.textContent = msg;
+    document.body.appendChild(d);
+    setTimeout(function(){ if (d.parentNode) d.parentNode.removeChild(d); }, 2600);
   }
   function writeNow(){
     if (restoring) return;
-    var state = readState();
-    if (!changed(state)){ updateUrl(""); return; }
-    updateUrl(jsonToken(state));
+    var s = delta();
+    setUrl(changed(s) ? jsonToken(s) : "");
   }
   async function compress(v){
     if (restoring || v !== version) return;
-    var state = readState();
-    if (!changed(state)){ updateUrl(""); return; }
-    var token = await pack(state);
-    if (restoring || v !== version) return;
-    updateUrl(token);
+    var s = delta();
+    if (!changed(s)){ setUrl(""); return; }
+    var token = await pack(s);
+    if (!restoring && v === version) setUrl(token);
   }
   function schedule(){
     if (restoring) return;
@@ -2546,36 +2609,96 @@ table.sum td.v input{text-align:right;border-bottom-style:dashed}
     writeNow();
     timer = setTimeout(function(){ compress(v); }, 180);
   }
-
+  function applyLegacySnapshot(s){
+    if (!s || !Array.isArray(s.pages)) return false;
+    s.pages.forEach(function(saved){
+      var pg = document.getElementById(saved.id);
+      if (pg && typeof saved.html === "string") pg.innerHTML = saved.html;
+    });
+    return true;
+  }
+  function apply(s){
+    if (!s) return false;
+    if (s.v === 1) return applyLegacySnapshot(s);
+    if (s.v !== 2) return false;
+    ensureIds();
+    (s.gx || []).forEach(function(id){ var tb = findGroup(id); if (tb) tb.remove(); });
+    (s.ng || []).forEach(function(item){
+      if (findGroup(item[0])) return;
+      var template = Array.prototype.slice.call(document.querySelectorAll(".pg tbody[data-url-group]"))
+        .find(function(source){ return source.querySelector("tr.sec"); });
+      if (!template) return;
+      var tb = template.cloneNode(true);
+      Array.prototype.forEach.call(tb.querySelectorAll("tr.row"), function(row){ row.remove(); });
+      tb.dataset.urlGroup = item[0];
+      tb.dataset.group = item[0];
+      var sec = tb.querySelector("tr.sec"), values = item[2] || [];
+      if (sec){
+        var title = sec.querySelector(".i-sec"), note = sec.querySelector(".i-secnote");
+        if (title) title.value = values[0] || "";
+        if (note) note.value = values[1] || "";
+      }
+      var pg = document.getElementById(item[1]) || document.querySelector(".pg");
+      var table = pg && pg.querySelector("table.it");
+      if (table) table.appendChild(tb);
+    });
+    (s.x || []).forEach(function(id){ var row = findRow(id); if (row) row.remove(); });
+    (s.n || []).forEach(function(item){
+      if (findRow(item[0])) return;
+      var template = document.querySelector("tr.row"), tb = findGroup(item[1]);
+      if (!template || !tb) return;
+      var row = template.cloneNode(true);
+      row.dataset.urlRow = item[0];
+      setRowValues(row, item[2] || []);
+      var sub = tb.querySelector("tr.sub");
+      if (sub) tb.insertBefore(row, sub); else tb.appendChild(row);
+    });
+    (s.f || []).forEach(function(item){ var el = findField(item[0]); if (el) el.value = item[1]; });
+    (s.e || []).forEach(function(item){
+      var el = findEdit(item[0]);
+      if (!el) return;
+      var value = String(item[1] == null ? "" : item[1]);
+      if (/<\/?[a-z][^>]*>/i.test(value)) el.innerHTML = value;
+      else el.textContent = value;
+    });
+    (s.r || []).forEach(function(item){
+      var row = findRow(item[0]);
+      if (!row) return;
+      var a = controls(row);
+      (item[1] || []).forEach(function(change){ if (a[change[0]]) a[change[0]].value = change[1]; });
+    });
+    return true;
+  }
   async function restore(){
-    var u = new URL(location.href);
-    var token = u.searchParams.get(URL_KEY);
-    var legacy = u.searchParams.get(LEGACY_KEY);
-    var state = token ? await unpack(token) : null;
-    if (!state && legacy){
-      try { state = JSON.parse(decodeURIComponent(legacy)); } catch (e) {}
+    var u = new URL(location.href), token = u.searchParams.get(URL_KEY), legacy = u.searchParams.get(LEGACY_KEY);
+    var s = token ? await unpack(token) : null;
+    if (!s && legacy){ try { s = JSON.parse(decodeURIComponent(legacy)); } catch (e) {} }
+    var restored = s && apply(s);
+    if (restored){
+      pages().forEach(function(pg){
+        var trigger = pg.querySelector("input, textarea, select, [contenteditable='true']");
+        if (trigger) trigger.dispatchEvent(new Event("input", { bubbles: true }));
+      });
     }
-    if (state) applyState(state);
     restoring = false;
+    if (s && s.v === 1) schedule();
   }
 
+  capture();
   pages().forEach(function(pg){
     pg.addEventListener("input", schedule);
     pg.addEventListener("change", schedule);
+    if (window.MutationObserver){
+      new MutationObserver(function(){ if (!restoring) setTimeout(schedule, 0); })
+        .observe(pg, { childList: true, subtree: true });
+    }
   });
-  if (window.MutationObserver){
-    new MutationObserver(function(){ if (!restoring) setTimeout(schedule, 0); })
-      .observe(document.body, { childList: true, subtree: true });
-  }
-
-  function fallbackCopy(url){
-    var ta = document.createElement("textarea");
-    ta.value = url; ta.style.position = "fixed"; ta.style.opacity = "0";
-    document.body.appendChild(ta); ta.select();
-    try { document.execCommand("copy"); notify("Đã sao chép link"); }
-    catch (e) { prompt("Copy link:", url); }
-    document.body.removeChild(ta);
-  }
+  var pall = document.getElementById("pall");
+  if (pall) pall.addEventListener("change", schedule);
+  ["t0", "t1"].forEach(function(id){
+    var tab = document.getElementById(id);
+    if (tab) tab.addEventListener("click", function(){ setTimeout(schedule, 0); });
+  });
   var link = document.getElementById("link");
   if (link) link.addEventListener("click", function(){
     schedule();
@@ -2584,7 +2707,14 @@ table.sum td.v input{text-align:right;border-bottom-style:dashed}
       navigator.clipboard.writeText(url).then(function(){ notify("Đã sao chép link"); }, function(){ fallbackCopy(url); });
     } else fallbackCopy(url);
   });
-
+  function fallbackCopy(url){
+    var ta = document.createElement("textarea");
+    ta.value = url; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); notify("Đã sao chép link"); }
+    catch (e) { prompt("Copy link:", url); }
+    document.body.removeChild(ta);
+  }
   restore();
 })();
 </script>
