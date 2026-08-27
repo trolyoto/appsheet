@@ -864,6 +864,7 @@ body.only-2 #doc .page + .page{page-break-before:auto}
     bindLevelSelector();
     var lv=doc.querySelector('#lvSel'); if(lv) lv.value=state.l||'';
     bind(); setEditable(!body.classList.contains('delmode'));
+    normalizeExclusiveTicks(doc);
     recalcAll();
     return true;
   }
@@ -891,6 +892,31 @@ body.only-2 #doc .page + .page{page-break-before:auto}
     if(el.textContent.trim()!==el.dataset.orig) el.classList.add('nw'); else el.classList.remove('nw');
   });
 
+  function tickGroupFor(el){
+    if(el.classList.contains('cb')) return el.closest('.need');
+    if(el.classList.contains('box')){
+      var safeRow=el.closest('table.safe tr');
+      if(safeRow) return safeRow;
+      var gamCell=el.closest('table.gam td.c');
+      if(gamCell) return gamCell;
+    }
+    return el.parentElement;
+  }
+  function normalizeExclusiveTicks(root){
+    root.querySelectorAll('.need').forEach(function(group){
+      var found=false;
+      group.querySelectorAll('.cb').forEach(function(el){
+        if(el.classList.contains('ticked')){ if(found) el.classList.remove('ticked'); else found=true; }
+      });
+    });
+    root.querySelectorAll('table.safe tr, table.gam td.c').forEach(function(group){
+      var found=false;
+      group.querySelectorAll('.box').forEach(function(el){
+        if(el.classList.contains('ticked')){ if(found) el.classList.remove('ticked'); else found=true; }
+      });
+    });
+  }
+
   doc.addEventListener('click', function(e){
     if(body.classList.contains('delmode')) return;
     var sg=e.target.closest('.sign');
@@ -902,7 +928,14 @@ body.only-2 #doc .page + .page{page-break-before:auto}
         return; }
     }
     var b=e.target.closest('.box,.cb');
-    if(b){ snapshot(); b.classList.toggle('ticked'); return; }
+    if(b){
+      snapshot();
+      var group=tickGroupFor(b), was=b.classList.contains('ticked');
+      if(group) group.querySelectorAll('.box,.cb').forEach(function(x){ x.classList.remove('ticked'); });
+      if(!was) b.classList.add('ticked');
+      scheduleUrlUpdate();
+      return;
+    }
     var sq=e.target.closest('.final .tk .sq');
     if(sq){ snapshot(); var on=sq.classList.contains('ticked');
       sq.parentNode.querySelectorAll('.sq').forEach(function(x){x.classList.remove('ticked');});
