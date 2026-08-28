@@ -434,8 +434,8 @@
                     const cols = trimmedRow.split('_a_').map(c => c.trim());
                     if (cols.length >= 3) {
                         const tenHang   = cols[0].replace(/_c_([^_]*)/g, '<br><s>$1</s>');
-                        const soLuong   = parseFloat(cols[1]) || 0;
-                        const donGia    = parseInt(cols[2]) || 0;
+                        const donGia    = parseInt(cols[1]) || 0;
+                        const soLuong   = parseFloat(cols[2]) || 0;
                         const productKey = `${cols[0]}_${donGia}`;
                         if (productMap.has(productKey)) {
                             const p = productMap.get(productKey);
@@ -465,7 +465,7 @@
                 tr2.className = 'item-row-2';
                 tr2.innerHTML = `
                     <td></td>
-                    <td class="cell-sub-sl" colspan="2">${product.donGia.toLocaleString('vi-VN')} x ${product.soLuong.toFixed(1)}</td>
+                    <td class="cell-sub-sl" colspan="2">${product.soLuong.toFixed(1)} x ${product.donGia.toLocaleString('vi-VN')}</td>
                 `;
                 tableBody.appendChild(tr2);
 
