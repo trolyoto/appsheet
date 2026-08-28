@@ -225,8 +225,8 @@ tr.sec .sbtn.del:hover{background:#fdf1f0}
   font-size:calc(11.2px * var(--fs,1))}
 .wline b{font-weight:700}
 .wline i{font-weight:600}
-.foot{display:flex;gap:0;align-items:stretch;margin-top:7px}
-.foot > *{align-self:stretch}
+.foot{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:0;align-items:stretch;width:100%;min-width:0;margin-top:7px}
+.foot > *{align-self:stretch;min-width:0}
 .foot .words + table.sum{border-left:none}
 .words{
   flex:1;min-width:0;border:1.5px solid var(--rule);padding:5px 8px;font-size:calc(11.2px * var(--fs,1));
@@ -249,10 +249,10 @@ tr.sec .sbtn.del:hover{background:#fdf1f0}
 .bhin .fx{font-style:italic;background:var(--brand-soft);border-left:2px solid var(--amber);padding:2px 5px;margin-top:2px}
 .bhin .note{text-transform:none;letter-spacing:0;margin-top:4px;font-size:calc(9px * var(--fs,1));font-style:italic;color:var(--ink-3);
   border-top:1px dotted var(--hair);padding-top:3px}
-table.sum{border-collapse:collapse;flex:0 0 auto;min-width:250px;align-self:stretch;margin-left:auto}
+table.sum{border-collapse:collapse;width:250px;min-width:0;max-width:250px;table-layout:fixed;align-self:stretch;margin:0}
 table.sum td{border:1px solid var(--rule);padding:3px 7px;font-size:calc(11.3px * var(--fs,1));vertical-align:middle}
-table.sum td.k{background:#f2f6fc;font-weight:600;text-align:right;white-space:nowrap}
-table.sum td.v{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;min-width:110px}
+table.sum td.k{width:140px;background:#f2f6fc;font-weight:600;text-align:right;white-space:nowrap}
+table.sum td.v{width:110px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;min-width:0}
 table.sum tr.big td{font-size:calc(13px * var(--fs,1));font-weight:800;background:#fff8e3}
 table.sum td.v input{text-align:right;border-bottom-style:dashed}
 .warn{color:var(--alert);font-size:calc(10.6px * var(--fs,1));font-weight:600;margin-top:3px;display:none}
@@ -305,16 +305,29 @@ table.sum td.v input{text-align:right;border-bottom-style:dashed}
 .notes p{font-style:italic}
 
 /* ---------- IN A4 ---------- */
-@page{size:A4 portrait;margin:8mm}
+@page{size:A4 portrait;margin:0}
 @media print{
   .bar,.nop{display:none !important}
-  body{background:#fff}
+  html,body{margin:0 !important;padding:0 !important;background:#fff !important;overflow-x:hidden}
+  .pg{width:100%;max-width:100%;overflow:hidden}
   .sheet{
-    width:auto;margin:0;padding:0;box-shadow:none;min-height:281mm;
-    font-size:calc(11px * var(--fs,1));
+    display:flex;
+    width:100%;
+    max-width:210mm;
+    min-height:277mm;
+    margin:0 auto;
+    padding:4mm 4mm 3mm;
+    box-shadow:none;
+    background:#fff;
+    font-size:calc(11.6px * var(--fs,1));
+    line-height:1.32;
+    overflow:hidden;
+    box-sizing:border-box;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
   }
-  .pg{display:none}
   .pg.on{display:block}
+  table.it col.c-act{display:none !important}
   body.print-all .pg{display:block;page-break-after:always;break-after:page}
   body.print-all .pg:last-of-type{page-break-after:auto;break-after:auto}
   input[type=text]{border-bottom:1px solid #cfd4da;background:transparent !important;color:#000}
@@ -326,7 +339,7 @@ table.sum td.v input{text-align:right;border-bottom-style:dashed}
   tr.sec td,tr.sub td,tr.grand td,table.sum td.k,table.sum tr.big td,.slogan,.hrule{
     -webkit-print-color-adjust:exact;print-color-adjust:exact;
   }
-  tr,td,th{page-break-inside:avoid}
+  tr,td,th{page-break-inside:avoid;break-inside:avoid}
 }
 </style>
 </head>
@@ -377,9 +390,9 @@ table.sum td.v input{text-align:right;border-bottom-style:dashed}
 
   <div class="meta">
     <div class="l"><b>Ngày báo giá:</b><input type="text" class="ngay"></div>
-    <div class="l"><b>Cố vấn dịch vụ:</b><input type="text" placeholder="Họ tên cố vấn"></div>
+    <div class="l"><b>Cố vấn dịch vụ:</b><input type="text" class="i-cvdv" placeholder="Họ tên cố vấn"></div>
     <div class="l"><b>Hiệu lực báo giá:</b><input type="text" value="15 ngày kể từ ngày báo giá"></div>
-    <div class="l"><b>Điện thoại CVDV:</b><input type="text"></div>
+    <div class="l"><b>Điện thoại CVDV:</b><input type="text" class="i-phone-cvdv"></div>
     <div class="l"><b>Chi nhánh:</b><input type="text" placeholder="Tên chi nhánh"></div>
     <div class="l"><b>MST · STK:</b><input type="text" value="3702997768 · ACB 2222227768"></div>
   </div>
@@ -495,9 +508,9 @@ table.sum td.v input{text-align:right;border-bottom-style:dashed}
 
   <div class="meta">
     <div class="l"><b>Ngày báo giá:</b><input type="text" class="ngay"></div>
-    <div class="l"><b>Cố vấn dịch vụ:</b><input type="text" placeholder="Họ tên cố vấn"></div>
+    <div class="l"><b>Cố vấn dịch vụ:</b><input type="text" class="i-cvdv" placeholder="Họ tên cố vấn"></div>
     <div class="l"><b>Hiệu lực báo giá:</b><input type="text" value="15 ngày kể từ ngày báo giá"></div>
-    <div class="l"><b>Điện thoại CVDV:</b><input type="text"></div>
+    <div class="l"><b>Điện thoại CVDV:</b><input type="text" class="i-phone-cvdv"></div>
     <div class="l"><b>Chi nhánh:</b><input type="text" placeholder="Tên chi nhánh"></div>
     <div class="l"><b>MST · STK:</b><input type="text" value="3702997768 · ACB 2222227768"></div>
   </div>
@@ -1431,7 +1444,7 @@ table.sum td.v input{text-align:right;border-bottom-style:dashed}
 
   /* --- dựng file PDF chứa 1 ảnh JPEG khổ A4 --- */
   function pdfFromJpeg(jpegBytes, iw, ih){
-    var PW = 595.28, PH = 841.89, M = 22.68;        /* A4 pt, lề 8mm — khớp @page */
+    var PW = 595.28, PH = 841.89, M = 0;             /* A4 pt, sát mép trang; đệm nằm trong ảnh */
     var aw = PW - 2 * M, ah = PH - 2 * M;
     var sc = Math.min(aw / iw, ah / ih);
     var dw = iw * sc, dh = ih * sc;
@@ -1486,11 +1499,11 @@ table.sum td.v input{text-align:right;border-bottom-style:dashed}
     btn.disabled = true;
     var label = btn.textContent; btn.textContent = "Đang tạo PDF…";
     try {
-      /* dựng lại đúng hình học lúc IN: khổ A4 lề 8mm -> vùng in 194 x 281 mm */
-      var w = 733;                                  /* 194mm @96dpi */
-      var MAXH = 1062;                              /* 281mm @96dpi */
+      /* dựng lại hình học sát mép khổ A4: 210 x 297 mm, chừa 4 mm đệm nội dung */
+      var w = 794;                                  /* 210mm @96dpi */
+      var MAXH = 1123;                              /* 297mm @96dpi */
       var clone = flatten(sheet.cloneNode(true));
-      clone.style.cssText += ";width:" + w + "px;min-height:" + MAXH + "px;margin:0;padding:0;box-shadow:none;font-size:calc(11px * var(--fs,1));background:#fff;";
+      clone.style.cssText += ";width:" + w + "px;min-height:" + MAXH + "px;margin:0;padding:4mm 4mm 3mm;box-sizing:border-box;box-shadow:none;font-size:calc(11.6px * var(--fs,1));background:#fff;";
 
       var holder = document.createElement("div");
       holder.style.cssText = "position:fixed;left:-10000px;top:0;width:" + w + "px;background:#fff;";
@@ -2718,7 +2731,33 @@ table.sum td.v input{text-align:right;border-bottom-style:dashed}
     catch (e) { prompt("Copy link:", url); }
     document.body.removeChild(ta);
   }
-  restore();
+  function urlValue(u, keys){
+    for (var i = 0; i < keys.length; i++){
+      if (u.searchParams.has(keys[i])) return { present:true, value:u.searchParams.get(keys[i]) || "" };
+    }
+    return { present:false, value:"" };
+  }
+  function applyAdvisorUrlParams(){
+    var u = new URL(location.href);
+    var name = urlValue(u, ["cvdv", "advisor", "co_van_dich_vu"]);
+    var phone = urlValue(u, ["sdt_cvdv", "phone_cvdv", "advisor_phone", "dien_thoai_cvdv"]);
+    if (!name.present && !phone.present) return;
+    document.querySelectorAll(".pg").forEach(function(pg){
+      if (name.present){
+        var n = pg.querySelector(".i-cvdv");
+        if (n) n.value = name.value;
+      }
+      if (phone.present){
+        var p = pg.querySelector(".i-phone-cvdv");
+        if (p) p.value = phone.value;
+      }
+    });
+    if (typeof window.recalcAll === "function") window.recalcAll();
+  }
+  restore().then(function(){
+    applyAdvisorUrlParams();
+    schedule();
+  });
 })();
 </script>
 
