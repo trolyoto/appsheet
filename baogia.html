@@ -2740,8 +2740,10 @@ table.sum td.v input{text-align:right;border-bottom-style:dashed}
   function applyAdvisorUrlParams(){
     var u = new URL(location.href);
     var name = urlValue(u, ["cvdv", "advisor", "co_van_dich_vu"]);
+    var signName = urlValue(u, ["ten_cvdv", "ten_cvdv_ky", "ky_cvdv"]);
+    if (!signName.present) signName = name;
     var phone = urlValue(u, ["sdt_cvdv", "phone_cvdv", "advisor_phone", "dien_thoai_cvdv"]);
-    if (!name.present && !phone.present) return;
+    if (!name.present && !signName.present && !phone.present) return;
     document.querySelectorAll(".pg").forEach(function(pg){
       if (name.present){
         var n = pg.querySelector(".i-cvdv");
@@ -2750,6 +2752,10 @@ table.sum td.v input{text-align:right;border-bottom-style:dashed}
       if (phone.present){
         var p = pg.querySelector(".i-phone-cvdv");
         if (p) p.value = phone.value;
+      }
+      if (signName.present){
+        var s = pg.querySelector(".nm-cv");
+        if (s) s.value = signName.value;
       }
     });
     if (typeof window.recalcAll === "function") window.recalcAll();
