@@ -155,6 +155,7 @@
   .discount-input:focus { outline: 1.5px solid var(--blue); background: #fff; }
   .discount-input::-webkit-inner-spin-button,
   .discount-input::-webkit-outer-spin-button { opacity: 1; }
+  .discount-print-value { display: none; }
   .discount-toolbar {
     display: flex; align-items: center; justify-content: flex-end; gap: 6px;
     padding: 5px 7px; background: #f5f6fa; border-bottom: 1px solid var(--border);
@@ -259,6 +260,12 @@
     .vehicle-table .lbl { white-space: normal; width: 80px; }
     #btn-print { bottom: 16px; right: 16px; padding: 11px 20px; font-size: 13px; }
     #font-ctrl { bottom: 72px; right: 16px; }
+  }
+
+  @media print {
+    .discount-toolbar { display: none !important; }
+    .discount-input { display: none !important; }
+    .discount-print-value { display: inline !important; }
   }
 </style>
 </head>
@@ -518,12 +525,13 @@ function docSoTienBangChu(n) {
     tr.innerHTML = '<td class="col-no">' + itemNo + '</td><td class="col-content">' + esc(content) + '</td>'
       + '<td class="col-dvt">' + esc(cols[1]||'-') + '</td><td class="col-sl">' + esc(cols[2]||'') + '</td>'
       + '<td class="col-price">' + fmtNum(cols[3]||'') + '</td>'
-      + '<td class="col-discount"><input class="discount-input" type="number" min="0" max="100" step="0.01" value="' + esc(discount === null ? '' : discount) + '" aria-label="Phần trăm chiết khấu"></td>'
+      + '<td class="col-discount"><input class="discount-input" type="number" min="0" max="100" step="0.01" value="' + esc(discount === null ? '' : discount) + '" aria-label="Phần trăm chiết khấu"><span class="discount-print-value">' + esc(discount === null ? '' : discount) + '%</span></td>'
       + '<td class="col-total">' + fmtNum(cols[4]||'') + '</td>'
       + '<td class="col-tax">-</td>';
-    var totalCell = tr.querySelector('.col-total'), discountInput = tr.querySelector('.discount-input');
+    var totalCell = tr.querySelector('.col-total'), discountInput = tr.querySelector('.discount-input'), printDiscount = tr.querySelector('.discount-print-value');
     function updateTotal() {
       var pct = parsePercent(discountInput.value);
+      printDiscount.textContent = pct === null ? '' : pct + '%';
       if (qty !== null && price !== null) {
         var total = qty * price * (1 - (pct === null ? 0 : pct) / 100);
         totalCell.textContent = formatMoney(total);
@@ -582,6 +590,17 @@ function docSoTienBangChu(n) {
 
   set('el-tongcong','tongcong'); set('el-ck','ck'); set('el-nocu','nocu');
   set('el-datt','datt'); set('el-vat','vat'); set('el-thanhtoan','thanhtoan');
+
+  function updatePaymentTotal() {
+    var tongCong = parseNumber(document.getElementById('el-tongcong').textContent) || 0;
+    var chietKhau = parseNumber(document.getElementById('el-ck').textContent) || 0;
+    var noCu = parseNumber(document.getElementById('el-nocu').textContent) || 0;
+    var daThanhToan = parseNumber(document.getElementById('el-datt').textContent) || 0;
+    var vat = parseNumber(document.getElementById('el-vat').textContent) || 0;
+    var thanhToan = tongCong - chietKhau + noCu - daThanhToan + vat;
+    document.getElementById('el-thanhtoan').textContent = formatMoney(thanhToan);
+  }
+  updatePaymentTotal();
 
   (function() {
     var el = document.getElementById('el-sotienchu'); if (!el) return;
