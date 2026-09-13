@@ -279,13 +279,13 @@
 </div>
 
 <!-- ── NÚT IN ── -->
-<button id="btn-print" onclick="window.print()">
+  <button id="btn-print" onclick="exportPDF()" title="Xuất phiếu thành file PDF">
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
     <polyline points="6 9 6 2 18 2 18 9"/>
     <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
     <rect x="6" y="14" width="12" height="8"/>
   </svg>
-  In phiếu
+  Xuất PDF
 </button>
 
 <!-- ── WRAPPER SCALE ── -->
@@ -422,6 +422,11 @@
 </div><!-- end scale-root -->
 
 <script>
+function exportPDF() {
+  // Hộp thoại in của trình duyệt hỗ trợ chọn "Save as PDF / Lưu thành PDF".
+  window.print();
+}
+
 /* ── SCALE TOÀN BỘ TRANG (áp dụng cả khi in qua CSS zoom) ── */
 (function () {
   var STEP = 0.05, MIN = 0.6, MAX = 2.0;
@@ -591,6 +596,11 @@ function docSoTienBangChu(n) {
 
   set('el-tongcong','tongcong'); set('el-ck','ck'); set('el-nocu','nocu');
   set('el-datt','datt'); set('el-vat','vat'); set('el-thanhtoan','thanhtoan');
+  (function() {
+    var el = document.getElementById('el-nocu');
+    var value = parseNumber(el ? el.textContent : '');
+    if (el && value !== null) el.textContent = formatMoney(value);
+  })();
 
   function updatePaymentTotal() {
     var tongCong = parseNumber(document.getElementById('el-tongcong').textContent) || 0;
