@@ -129,11 +129,36 @@
   .col-dvt   { text-align: center; width: 40px; }
   .col-sl    { text-align: center; width: 32px; }
   .col-price { text-align: right;  width: 82px; }
+  .col-discount { text-align: center; width: 48px; }
   .col-total { text-align: right;  width: 88px; }
   .col-tax   { text-align: center; width: 32px; }
   .col-content { text-align: left; }
   .sub-header td { background: var(--blue); color: #fff; font-weight: 700; font-size: 11px; padding: 4px 6px; }
   .row-alt { background: #fafbff; }
+  .discount-input {
+    width: 100%; min-width: 36px; padding: 2px 3px;
+    border: 1px solid #b8bfd4; border-radius: 2px;
+    background: #fffef2; color: var(--blue); text-align: center;
+    font: inherit; font-weight: 600;
+  }
+  .discount-input:focus { outline: 1.5px solid var(--blue); background: #fff; }
+  .discount-input::-webkit-inner-spin-button,
+  .discount-input::-webkit-outer-spin-button { opacity: 1; }
+  .discount-print-value { display: none; }
+  .discount-toolbar {
+    display: flex; align-items: center; justify-content: flex-end; gap: 6px;
+    padding: 5px 7px; background: #f5f6fa; border-bottom: 1px solid var(--border);
+    color: var(--gray); font-size: 10.5px;
+  }
+  .discount-toolbar input {
+    width: 58px; padding: 3px 5px; border: 1px solid #b8bfd4; border-radius: 2px;
+    background: #fffef2; color: var(--blue); text-align: center; font: inherit; font-weight: 600;
+  }
+  .discount-toolbar button {
+    padding: 3px 8px; border: 1px solid var(--blue); border-radius: 2px;
+    background: var(--blue); color: #fff; cursor: pointer; font: inherit; font-weight: 600;
+  }
+  .discount-toolbar button:hover { background: #2650c0; }
 
   /* BOTTOM */
   .bottom-section { display: flex; gap: 8px; margin-bottom: 6px; }
@@ -229,8 +254,15 @@
     .sig-row { flex-direction: column; gap: 16px; }
     .col-dvt, .col-tax { display: none; }
     .vehicle-table .lbl { white-space: normal; width: 80px; }
+    .discount-toolbar { justify-content: flex-start; flex-wrap: wrap; }
     #btn-print { bottom: 16px; right: 16px; padding: 11px 20px; }
     #font-ctrl { bottom: 72px; right: 16px; }
+  }
+
+  @media print {
+    .discount-toolbar { display: none !important; }
+    .discount-input { display: none !important; }
+    .discount-print-value { display: inline !important; }
   }
 </style>
 </head>
@@ -329,6 +361,12 @@
 
   <!-- BẢNG DỊCH VỤ -->
   <div class="services-wrapper">
+    <div class="discount-toolbar">
+      <label for="global-discount">Chiết khấu chung:</label>
+      <input id="global-discount" type="number" min="0" max="100" step="0.01" placeholder="0" aria-label="Phần trăm chiết khấu chung">
+      <span>%</span>
+      <button id="btn-apply-discount" type="button">Áp dụng toàn bộ</button>
+    </div>
     <table class="services-table">
       <thead>
         <tr>
@@ -337,6 +375,7 @@
           <th class="col-dvt">ĐVT</th>
           <th class="col-sl">SL</th>
           <th class="col-price">Đơn giá</th>
+          <th class="col-discount">% CK</th>
           <th class="col-total">Thành tiền</th>
           <th class="col-tax">%<br>Thuế</th>
         </tr>
@@ -481,19 +520,50 @@ function docSoTienBangChu(n) {
   function appendGroupHeader(lbl) {
     var letter = String.fromCharCode(65 + groupNo); groupNo++; altCount = 0;
     var tr = document.createElement('tr'); tr.className = 'sub-header';
-    tr.innerHTML = '<td class="col-no">' + esc(letter) + '</td><td colspan="6">' + esc(lbl) + '</td>';
+    tr.innerHTML = '<td class="col-no">' + esc(letter) + '</td><td colspan="7">' + esc(lbl) + '</td>';
     tbody.appendChild(tr);
   }
   function appendDataRow(cols) {
     itemNo++; var tr = document.createElement('tr');
     if (altCount % 2 === 1) tr.className = 'row-alt'; altCount++;
     var content = (cols[0]||'').replace(/^[|#]+/,'').trim();
+    var qty = parseNumber(cols[2]||''), price = parseNumber(cols[3]||''), originalTotal = parseNumber(cols[4]||'');
+    var discount = parsePercent(cols[5]||'');
     tr.innerHTML = '<td class="col-no">' + itemNo + '</td><td class="col-content">' + esc(content) + '</td>'
       + '<td class="col-dvt">' + esc(cols[1]||'-') + '</td><td class="col-sl">' + esc(cols[2]||'') + '</td>'
-      + '<td class="col-price">' + fmtNum(cols[3]||'') + '</td><td class="col-total">' + fmtNum(cols[4]||'') + '</td>'
+      + '<td class="col-price">' + fmtNum(cols[3]||'') + '</td>'
+      + '<td class="col-discount"><input class="discount-input" type="number" min="0" max="100" step="0.01" value="' + esc(discount === null ? '' : discount) + '" aria-label="Phần trăm chiết khấu"><span class="discount-print-value">' + esc(discount === null ? '' : discount) + '%</span></td>'
+      + '<td class="col-total">' + fmtNum(cols[4]||'') + '</td>'
       + '<td class="col-tax">-</td>';
+    var totalCell = tr.querySelector('.col-total'), discountInput = tr.querySelector('.discount-input'), printDiscount = tr.querySelector('.discount-print-value');
+    function updateTotal() {
+      var pct = parsePercent(discountInput.value);
+      printDiscount.textContent = pct === null ? '' : pct + '%';
+      if (qty !== null && price !== null) {
+        totalCell.textContent = formatMoney(qty * price * (1 - (pct === null ? 0 : pct) / 100));
+      } else if (originalTotal !== null && pct !== null) {
+        totalCell.textContent = formatMoney(originalTotal * (1 - pct / 100));
+      }
+      updateTableSummary();
+    }
+    discountInput.addEventListener('input', updateTotal);
+    if (discount !== null) updateTotal();
     tbody.appendChild(tr);
   }
+
+  function parseNumber(value) {
+    value = String(value||'').trim(); if (!value || value === '-') return null;
+    var s = value.replace(/\s/g,'');
+    if (s.indexOf(',') >= 0 && s.indexOf('.') >= 0) s = s.replace(/\./g,'').replace(',','.');
+    else if (s.indexOf('.') >= 0 && /^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g,'');
+    else s = s.replace(/,/g,'.');
+    var n = parseFloat(s.replace(/[^\d.-]/g,'')); return isNaN(n) ? null : n;
+  }
+  function parsePercent(value) {
+    var n = parseNumber(String(value||'').replace('%',''));
+    return n === null ? null : Math.min(100, Math.max(0, n));
+  }
+  function formatMoney(value) { return Math.round(value).toLocaleString('vi-VN'); }
 
   if (raw.trim()) {
     raw.split('_b_').forEach(function(rowStr) {
@@ -506,13 +576,53 @@ function docSoTienBangChu(n) {
     });
   }
 
+  (function() {
+    var globalInput = document.getElementById('global-discount');
+    var applyButton = document.getElementById('btn-apply-discount');
+    if (!globalInput || !applyButton) return;
+    applyButton.addEventListener('click', function() {
+      var pct = parsePercent(globalInput.value);
+      if (pct === null) return;
+      tbody.querySelectorAll('.discount-input').forEach(function(input) {
+        input.value = pct;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+    });
+    globalInput.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') applyButton.click();
+    });
+  })();
+
   set('el-tongcong','tongcong'); set('el-ck','ck'); set('el-nocu','nocu');
   set('el-datt','datt'); set('el-vat','vat'); set('el-thanhtoan','thanhtoan');
+  (function() {
+    var el = document.getElementById('el-nocu');
+    var value = parseNumber(el ? el.textContent : '');
+    if (el && value !== null) el.textContent = formatMoney(value);
+  })();
+
+  function updatePaymentTotal() {
+    var tongCong = parseNumber(document.getElementById('el-tongcong').textContent) || 0;
+    var noCu = parseNumber(document.getElementById('el-nocu').textContent) || 0;
+    var daThanhToan = parseNumber(document.getElementById('el-datt').textContent) || 0;
+    var vat = parseNumber(document.getElementById('el-vat').textContent) || 0;
+    document.getElementById('el-thanhtoan').textContent = formatMoney(tongCong + noCu - daThanhToan + vat);
+  }
+  function updateTableSummary() {
+    var total = 0;
+    tbody.querySelectorAll('.col-total').forEach(function(cell) {
+      var value = parseNumber(cell.textContent);
+      if (value !== null) total += value;
+    });
+    document.getElementById('el-tongcong').textContent = formatMoney(total);
+    updatePaymentTotal();
+  }
+  updateTableSummary();
 
   (function() {
     var el = document.getElementById('el-sotienchu'); if (!el) return;
     if (p.has('sotienchu') && p.get('sotienchu').trim()) { el.textContent = p.get('sotienchu'); return; }
-    var raw = (p.get('thanhtoan')||'').trim();
+    var raw = (document.getElementById('el-thanhtoan').textContent || p.get('thanhtoan') || '').trim();
     if (!raw || raw === '-') { el.textContent = ''; return; }
     var num = parseInt(raw.replace(/[^0-9]/g,''), 10);
     el.textContent = isNaN(num) ? raw : docSoTienBangChu(num);
