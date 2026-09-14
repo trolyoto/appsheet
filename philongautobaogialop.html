@@ -556,6 +556,7 @@ function docSoTienBangChu(n) {
     var s = value.replace(/\s/g,'');
     if (s.indexOf(',') >= 0 && s.indexOf('.') >= 0) s = s.replace(/\./g,'').replace(',','.');
     else if (s.indexOf('.') >= 0 && /^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g,'');
+    else if (s.indexOf(',') >= 0 && /^\d{1,3}(,\d{3})+$/.test(s)) s = s.replace(/,/g,'');
     else s = s.replace(/,/g,'.');
     var n = parseFloat(s.replace(/[^\d.-]/g,'')); return isNaN(n) ? null : n;
   }
