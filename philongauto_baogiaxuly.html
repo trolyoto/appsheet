@@ -516,10 +516,8 @@ function docSoTienBangChu(n) {
   var itemNo = 0, altCount = 0, lastGroup = null;
 
   function appendGroupHeader(lbl) {
+    // Bỏ hoàn toàn hàng tiêu đề nhóm (A/B/C..., PTBD, DVL...); chỉ hiển thị hàng dịch vụ.
     altCount = 0;
-    var tr = document.createElement('tr'); tr.className = 'sub-header';
-    tr.innerHTML = '<td colspan="8">' + esc(lbl) + '</td>';
-    tbody.appendChild(tr);
   }
   function appendDataRow(cols) {
     itemNo++; var tr = document.createElement('tr');
