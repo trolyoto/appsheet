@@ -1129,5 +1129,29 @@ loadFromURL();
 
 </script>
 
+<!-- ====== NAP DU LIEU TRUC TIEP TU BAO CAO NGAY (link khong con mang chuoi data) ====== -->
+<script>
+(function () {
+  var API = "https://script.google.com/macros/s/AKfycbwMFz4z--d1wHR4xgil0BsL881Jhok_mBMHEYNfSPzB_0hm-yuSzMfn0toKvrndCNZTow/exec";
+  var p = new URLSearchParams(window.location.search || "");
+  if ((p.get("data") || "").trim()) return;   /* link kieu cu van chay nhu cu */
+  var ngay = p.get("ngay") || "", cn = p.get("chinhanh") || "";
+  var z = document.getElementById("alert-zone");
+  z.innerHTML = "<div class='alert info'><b>Dang tai du lieu tu BAO CAO NGAY...</b></div>";
+  var u = API + "?chinhanh=" + encodeURIComponent(cn) + "&ngay=" + encodeURIComponent(ngay);
+  fetch(u).then(function (r) { return r.json(); }).then(function (j) {
+    if (!j || !j.ok) { showNoData("API bao loi: " + ((j && j.loi) || "khong ro")); return; }
+    if (!j.data) { showNoData("Ky " + j.tu + " - " + j.den + " khong co phieu nhap nao cua nha cung cap."); return; }
+    document.getElementById("meta-ngay").textContent = j.tu + " - " + j.den;
+    document.getElementById("meta-cn").textContent = cn || "Tat ca";
+    z.innerHTML = "";
+    nap(j.data, "");
+    z.innerHTML = "<div class='alert info'>Nguon: BAO CAO NGAY (tab XNK) &mdash; " + j.sodong + " phieu &mdash; du lieu tinh luc " + j.tinhluc + "</div>" + z.innerHTML;
+  }).catch(function (e) {
+    showNoData("Khong goi duoc API du lieu: " + e.message);
+  });
+})();
+</script>
+
 </body>
 </html>
