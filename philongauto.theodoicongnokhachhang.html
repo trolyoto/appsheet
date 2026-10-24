@@ -92,7 +92,7 @@ thead th{font-size:9.5px}
 <div class="toolbar">
   <div class="seg">
     <button id="btn-th" class="on" onclick="setView('th')">Tổng hợp</button>
-    <button id="btn-ct" onclick="setView('ct')">Chi tiết chứng từ</button>
+    <button id="btn-ct" onclick="setView('ct')">Chi tiết hàng hoá</button>
   </div>
   <span class="tb-label">Từ ngày:</span>
   <input type="date" id="f-tu" class="tb-input" onchange="napAPI()">
@@ -158,25 +158,27 @@ thead th{font-size:9.5px}
 
 <!-- ══ BẢNG CHI TIẾT CHỨNG TỪ ══ -->
 <div id="wrap-ct" style="display:none">
-<table id="tbl-ct" data-plg-sheet="CHI TIẾT CHỨNG TỪ">
+<table id="tbl-ct" data-plg-sheet="CHI TIẾT HÀNG HOÁ">
 <thead>
   <tr>
-    <th style="width:40px">TT</th>
-    <th style="min-width:80px">Ngày</th>
-    <th style="min-width:200px">Khách hàng</th>
-    <th style="width:62px">CN</th>
-    <th style="min-width:120px">Chứng từ</th>
-    <th style="min-width:190px">Diễn giải</th>
-    <th style="min-width:110px">Phát sinh</th>
-    <th style="min-width:110px">Đã thu</th>
+    <th style="width:38px">TT</th>
+    <th style="min-width:78px">Ngày</th>
+    <th style="min-width:180px">Khách hàng</th>
+    <th style="width:56px">CN</th>
+    <th style="min-width:230px">Tên hàng hoá</th>
+    <th style="width:48px">SL</th>
+    <th style="min-width:95px">Đơn giá</th>
+    <th style="min-width:105px">Thành tiền</th>
+    <th style="min-width:105px">Đã TT</th>
+    <th style="min-width:105px">Còn lại</th>
   </tr>
 </thead>
-<tbody id="tb-ct"><tr><td colspan="8" class="empty-note">Chọn tab “Chi tiết chứng từ” để tải.</td></tr></tbody>
+<tbody id="tb-ct"><tr><td colspan="10" class="empty-note">Chọn tab “Chi tiết hàng hoá” để tải.</td></tr></tbody>
 <tfoot id="tf-ct"></tfoot>
 </table>
-<div style="font-size:12px;font-style:italic;margin-top:6px">
-  Chỉ liệt kê chứng từ của các khách hàng có trong bảng Tổng hợp, nên tổng ở đây bám theo kỳ báo cáo.
-  Khách mua trả tiền ngay và không còn theo dõi công nợ không xuất hiện ở bảng này.
+<div style="font-size:12px;font-style:italic;margin-top:6px" id="ct-note">
+  Chỉ liệt kê đơn hàng của các khách hàng có trong bảng Tổng hợp. Đã TT / Còn lại lấy theo từng đơn hàng
+  (thành tiền trừ số tiền còn nợ trên app).
 </div>
 </div>
 
@@ -300,28 +302,78 @@ function renderTH(rows){
     +'<td>'+fmt(t.ckT)+'</td><td>'+fmt(t.ckD)+'</td></tr>';
 }
 
-/* ───── BẢNG CHI TIẾT CHỨNG TỪ ───── */
+/* ───── BẢNG CHI TIẾT HÀNG HOÁ ───── */
+var hhMap = {};
+
+function napHangHoa(){
+  var codes=[], seen={};
+  ctRows.forEach(function(r){
+    if(r.ps>0 && r.ct){ var k=khongDau(r.ct); if(!seen[k] && !hhMap[k]){ seen[k]=1; codes.push(r.ct); } }
+  });
+  if(!codes.length){ applyFilter(); return; }
+  var lo=[];
+  for(var i=0;i<codes.length;i+=120) lo.push(codes.slice(i,i+120));
+  var xong=0;
+  lo.forEach(function(ph){
+    fetch(API+'?dh='+encodeURIComponent(ph.join(',')))
+      .then(function(r){ return r.json(); })
+      .then(function(j){ if(j&&j.ok&&j.dh){ for(var k in j.dh) hhMap[k]=j.dh[k]; } })
+      .catch(function(){})
+      .then(function(){ xong++; if(xong===lo.length) applyFilter(); });
+  });
+}
+
 function renderCT(rows){
   var tb=document.getElementById('tb-ct'), tf=document.getElementById('tf-ct');
-  if(!rows.length){
-    tb.innerHTML='<tr><td colspan="8" class="empty-note">Không có chứng từ trong kỳ.</td></tr>';
+  var don=rows.filter(function(r){ return r.ps>0; });
+  if(!don.length){
+    tb.innerHTML='<tr><td colspan="10" class="empty-note">Không có đơn hàng trong kỳ.</td></tr>';
     tf.innerHTML=''; return;
   }
-  tb.innerHTML=rows.map(function(r,i){
-    return '<tr>'
-      +'<td class="ctr">'+(i+1)+'</td>'
-      +'<td class="ctr">'+esc(r.ngay)+'</td>'
-      +'<td>'+esc(r.kh)+'</td>'
-      +'<td class="ctr">'+esc(r.cn||'')+'</td>'
-      +'<td>'+esc(r.ct||'')+'</td>'
-      +'<td>'+esc(r.dg||'')+'</td>'
-      +'<td class="num">'+fmt(r.ps)+'</td>'
-      +'<td class="num">'+fmt(r.thu)+'</td></tr>';
-  }).join('');
-  var a=0,b=0;
-  rows.forEach(function(r){ a+=r.ps; b+=r.thu; });
-  tf.innerHTML='<tr><td class="ctr" colspan="6">TỔNG CỘNG ('+rows.length+' chứng từ)</td>'
-    +'<td>'+fmt(a)+'</td><td>'+fmt(b)+'</td></tr>';
+  var html='', stt=0, tTT=0, tDa=0, tCon=0, thieu=0;
+  don.forEach(function(r){
+    var hh=hhMap[khongDau(r.ct)]||null;
+    var items=(hh && hh.ct && hh.ct.length) ? hh.ct : null;
+    var tt =(hh && hh.tt!==null && hh.tt!==undefined) ? hh.tt : r.ps;
+    var con=(hh && hh.conno!==null && hh.conno!==undefined) ? hh.conno : (r.ps-r.thu);
+    var da = tt-con;
+    tTT+=tt; tDa+=da; tCon+=con;
+    stt++;
+    var n=items?items.length:1;
+    var dau='<td class="ctr" rowspan="'+n+'">'+stt+'</td>'
+           +'<td class="ctr" rowspan="'+n+'">'+esc(r.ngay)+'</td>'
+           +'<td rowspan="'+n+'">'+esc(r.kh)+'</td>'
+           +'<td class="ctr" rowspan="'+n+'">'+esc(r.cn||'')+'</td>';
+    var cuoi='<td class="num" rowspan="'+n+'">'+fmt(da)+'</td>'
+            +'<td class="num" rowspan="'+n+'"'+(con>0?' style="font-weight:700;color:#b0531a"':'')+'>'+fmt(con)+'</td>';
+    if(items){
+      items.forEach(function(it,k){
+        html+='<tr>'+(k===0?dau:'')
+          +'<td>'+esc(it.ten)+(it.dvt?' <span style="color:#5c748f">('+esc(it.dvt)+')</span>':'')+'</td>'
+          +'<td class="ctr">'+fmtSL(it.sl)+'</td>'
+          +'<td class="num">'+fmt(it.gia)+'</td>'
+          +'<td class="num">'+fmt(it.tt)+'</td>'
+          +(k===0?cuoi:'')+'</tr>';
+      });
+    } else {
+      thieu++;
+      html+='<tr>'+dau
+        +'<td style="color:#b0531a;font-style:italic">Chưa có chi tiết hàng hoá — đơn '+esc(r.ct)+'</td>'
+        +'<td class="ctr"></td><td class="num"></td>'
+        +'<td class="num">'+fmt(tt)+'</td>'+cuoi+'</tr>';
+    }
+  });
+  tb.innerHTML=html;
+  tf.innerHTML='<tr><td class="ctr" colspan="7">TỔNG CỘNG ('+don.length+' đơn hàng)</td>'
+    +'<td>'+fmt(tTT)+'</td><td>'+fmt(tDa)+'</td><td>'+fmt(tCon)+'</td></tr>';
+
+  var note=document.getElementById('ct-note');
+  if(note){
+    note.innerHTML='Chỉ liệt kê đơn hàng của các khách hàng có trong bảng Tổng hợp. '
+      +'Đã TT / Còn lại lấy theo từng đơn hàng (thành tiền trừ số tiền còn nợ trên app).'
+      +(thieu?' <b style="color:#b0531a">'+thieu+'/'+don.length+' đơn hàng không còn dòng hàng hoá trong tab DON_HANG_CT</b> '
+        +'(tab này bị xoá dữ liệu ngày cũ khi đồng bộ) — các đơn đó vẫn giữ đúng số tiền.':'');
+  }
 }
 
 /* ───── LỌC ───── */
@@ -401,6 +453,7 @@ function napAPI(kemCT){
       khRows.forEach(function(r){ coTH[khongDau(r.ten)]=1; });
       ctRows=(j.ct||[]).filter(function(r){ return coTH[khongDau(r.kh)]; });
       daNapCT=true;
+      setTimeout(napHangHoa,0);
     }
     khList=[]; var seen={};
     khRows.forEach(function(r){ if(r.ten&&!seen[r.ten]){seen[r.ten]=1;khList.push(r.ten);} });
