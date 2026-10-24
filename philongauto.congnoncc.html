@@ -62,7 +62,27 @@
   .has-lech::after{content:' \26A0';color:#b0531a;font-weight:700}
   .empty-note{text-align:center;padding:34px;color:#7a8ea4;font-style:italic}
 
-  /* ───── CHỮ KÝ ───── */
+  /* ───── CHI TIẾT HÀNG HOÁ (bung trong tab Chi tiết) ───── */
+#tb-ct tr.pxn-row td.pxn-cell{cursor:pointer;color:#124A95;font-weight:700;white-space:nowrap;user-select:none}
+#tb-ct tr.pxn-row td.pxn-cell .cav{display:inline-block;width:13px;font-size:10px}
+#tb-ct tr.pxn-row.open td{background:#eaf1fa}
+#tb-ct tr.hh-row>td{padding:0;background:#fff}
+.hh-box{padding:8px 10px 11px;background:#fbfdff;border-top:2px solid #124A95}
+.hh-title{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;font-weight:700;color:#124A95;margin-bottom:5px}
+.hh-chk{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;margin-top:5px}
+.hh-chk.ok{color:#1b6b2f}
+.hh-chk.no{color:#b0531a;font-weight:700}
+table.hh-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+table.hh-tbl th,table.hh-tbl td{border:1px solid #000;padding:4px 6px}
+table.hh-tbl thead th{background:#124A95;color:#fff;text-align:center;font-size:12px;font-weight:700}
+table.hh-tbl tbody tr:nth-child(even) td{background:#f4f8fd}
+table.hh-tbl tfoot td{background:#FFF2A8;font-weight:700}
+table.hh-tbl td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+table.hh-tbl td.c{text-align:center}
+.hh-msg{font-family:"Segoe UI",Arial,sans-serif;font-size:12.5px;color:#7a8ea4;font-style:italic;padding:6px 2px}
+#hh-export-wrap{position:absolute;left:-99999px;top:0;width:1200px}
+
+/* ───── CHỮ KÝ ───── */
   .sign-date{text-align:right;font-style:italic;font-size:13px;margin-top:16px}
   .sign-row{display:flex;justify-content:space-around;margin-top:8px;text-align:center}
   .sign-col{width:30%}
@@ -81,6 +101,11 @@
     tfoot td{background:#DCE6F1!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     tbody tr:nth-child(even) td{background:#f7fafd!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     tr{page-break-inside:avoid}
+  #hh-export-wrap{display:none!important}
+  table.hh-tbl thead th{background:#124A95!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  table.hh-tbl tfoot td{background:#FFF2A8!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  table.hh-tbl tbody tr:nth-child(even) td{background:#f4f8fd!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .hh-box{background:#fff!important;border-top:2px solid #124A95!important}
   }
 </style>
 </head>
@@ -320,13 +345,19 @@ function renderCT(rows){
     tf.innerHTML = ''; return;
   }
   tb.innerHTML = rows.map(function(r,i){
-    return '<tr>'
-      + '<td class="ctr">'+(i+1)+'</td><td>'+esc(r.kh)+'</td><td>'+esc(r.dh)+'</td>'
+    var pxn = String(r.dh==null?'':r.dh).trim();
+    var oPhieu = pxn
+      ? '<td class="pxn-cell" onclick="hhToggle(this)" title="Bấm để xem hàng hoá của phiếu"><span class="cav">▶</span>'+esc(pxn)+'</td>'
+      : '<td>'+esc(pxn)+'</td>';
+    var dong = '<tr class="pxn-row" data-pxn="'+esc(pxn)+'" data-ncc="'+esc(r.kh)+'" data-tt="'+(r.thanhtien||0)+'">'
+      + '<td class="ctr">'+(i+1)+'</td><td>'+esc(r.kh)+'</td>'+oPhieu
       + '<td class="num">'+fmt(r.thanhtien)+'</td><td class="num">'+fmt(r.thucchi)+'</td>'
       + '<td class="ctr">'+esc(r.hinhthuc||'TM')+'</td>'
       + '<td class="num">'+fmt(r.conno)+'</td><td class="num">'+fmt(r.nocu)+'</td>'
       + '<td class="num">'+fmt(r.noluyk)+'</td>'
       + '<td class="ctr">'+esc(r.cn)+'</td><td>'+esc(r.ghichu)+'</td></tr>';
+    if(pxn) dong += '<tr class="hh-row" style="display:none"><td colspan="11"><div class="hh-box"></div></td></tr>';
+    return dong;
   }).join('');
   var s={a:0,b:0,c:0};
   rows.forEach(function(r){ s.a+=r.thanhtien; s.b+=r.thucchi; s.c+=r.conno; });
@@ -1150,6 +1181,188 @@ loadFromURL();
   }).catch(function (e) {
     showNoData("Khong goi duoc API du lieu: " + e.message);
   });
+})();
+</script>
+
+<!-- ══════════ CHI TIẾT HÀNG HOÁ THEO PHIẾU (nguồn: BÁO CÁO NGÀY / tab XNK_CT) ══════════ -->
+<script>
+(function(){
+  var HH_API  = "https://script.google.com/macros/s/AKfycbwMFz4z--d1wHR4xgil0BsL881Jhok_mBMHEYNfSPzB_0hm-yuSzMfn0toKvrndCNZTow/exec";
+  var hhCache = {};          /* pxn -> [dòng hàng hoá] */
+
+  function nz(n){ return Math.round(Number(n)||0).toLocaleString('vi-VN'); }
+
+  /* ── gọi API, gom nhiều phiếu 1 lần cho nhanh ───────────────────────── */
+  function hhFetch(dsPxn){
+    var can = [];
+    for(var i=0;i<dsPxn.length;i++) if(!hhCache[dsPxn[i]]) can.push(dsPxn[i]);
+    if(!can.length) return Promise.resolve();
+    var lo = [], B = 40;
+    for(i=0;i<can.length;i+=B) lo.push(can.slice(i,i+B));
+    return lo.reduce(function(chuoi, nhom){
+      return chuoi.then(function(){
+        return fetch(HH_API + '?pxn=' + encodeURIComponent(nhom.join(',')))
+          .then(function(r){ return r.json(); })
+          .then(function(j){
+            if(!j || !j.ok) throw new Error((j&&j.loi)||'API không trả dữ liệu');
+            nhom.forEach(function(k){ hhCache[k] = []; });
+            (j.ct||[]).forEach(function(d){
+              if(!hhCache[d.pxn]) hhCache[d.pxn] = [];
+              hhCache[d.pxn].push(d);
+            });
+          });
+      });
+    }, Promise.resolve());
+  }
+
+  /* ── bảng hàng hoá của 1 phiếu ──────────────────────────────────────── */
+  function hhRender(pxn, ct, ttHeader){
+    if(!ct || !ct.length)
+      return '<div class="hh-msg">Phiếu <b>'+esc(pxn)+'</b> không có dòng hàng hoá nào trong tab XNK_CT.</div>';
+    var tSL=0, tTH=0, tTT=0;
+    var body = ct.map(function(d,i){
+      var sl = Number(d.sl)||0, dg = Number(d.dg)||0, tt = Number(d.tt)||0, th = sl*dg;
+      tSL+=sl; tTH+=th; tTT+=tt;
+      var w = Math.abs(th-tt)>1 ? ' style="color:#b0531a;font-weight:700"' : '';
+      return '<tr><td class="c">'+(i+1)+'</td><td>'+esc(d.ma)+'</td><td>'+esc(d.ten)+'</td>'
+        + '<td class="c">'+esc(d.dvt)+'</td><td class="n">'+nz(sl)+'</td>'
+        + '<td class="n">'+nz(dg)+'</td><td class="n">'+nz(th)+'</td>'
+        + '<td class="n"'+w+'>'+nz(tt)+'</td></tr>';
+    }).join('');
+    var lech = Math.round((Number(ttHeader)||0) - tTT);
+    var chk = Math.abs(lech)<=1
+      ? '<div class="hh-chk ok">✔ Khớp: tổng hàng hoá '+nz(tTT)+' = thành tiền phiếu trên báo cáo.</div>'
+      : '<div class="hh-chk no">⚠ Lệch '+nz(lech)+'đ: tổng hàng hoá '+nz(tTT)+' ≠ thành tiền phiếu '+nz(ttHeader)+' — cần kiểm tra.</div>';
+    return '<div class="hh-title">HÀNG HOÁ — phiếu '+esc(pxn)+'</div>'
+      + '<table class="hh-tbl" data-plg-skip><thead><tr>'
+      + '<th style="width:42px">STT</th><th style="min-width:150px">Mã hàng</th>'
+      + '<th style="min-width:240px">Tên hàng</th><th style="width:56px">ĐVT</th>'
+      + '<th style="width:56px">SL</th><th style="min-width:95px">Đơn giá</th>'
+      + '<th style="min-width:105px">Tiền hàng</th><th style="min-width:105px">Thành tiền</th>'
+      + '</tr></thead><tbody>'+body+'</tbody><tfoot><tr>'
+      + '<td class="c" colspan="4">CỘNG '+ct.length+' mặt hàng</td>'
+      + '<td class="n">'+nz(tSL)+'</td><td></td>'
+      + '<td class="n">'+nz(tTH)+'</td><td class="n">'+nz(tTT)+'</td>'
+      + '</tr></tfoot></table>' + chk;
+  }
+
+  /* ── bấm số phiếu: bung / thu ───────────────────────────────────────── */
+  window.hhToggle = function(td){
+    var tr  = td.parentNode, box = tr.nextElementSibling;
+    if(!box || String(box.className).indexOf('hh-row')<0) return;
+    var cav = td.querySelector('.cav');
+    if(box.style.display !== 'none'){
+      box.style.display = 'none'; tr.className = 'pxn-row';
+      if(cav) cav.textContent = '▶'; return;
+    }
+    box.style.display = ''; tr.className = 'pxn-row open';
+    if(cav) cav.textContent = '▼';
+    var pxn = tr.getAttribute('data-pxn');
+    var ttH = Number(tr.getAttribute('data-tt'))||0;
+    var div = box.querySelector('.hh-box');
+    if(hhCache[pxn]){ div.innerHTML = hhRender(pxn, hhCache[pxn], ttH); return; }
+    div.innerHTML = '<div class="hh-msg">Đang tải hàng hoá của phiếu '+esc(pxn)+'...</div>';
+    hhFetch([pxn])
+      .then(function(){ div.innerHTML = hhRender(pxn, hhCache[pxn], ttH); })
+      .catch(function(e){ div.innerHTML = '<div class="hh-msg">Lỗi gọi API chi tiết: '+esc(e.message)+'</div>'; });
+  };
+
+  window.hhThuGon = function(){
+    var i, rs = document.querySelectorAll('#tb-ct tr.hh-row');
+    for(i=0;i<rs.length;i++) rs[i].style.display = 'none';
+    var ps = document.querySelectorAll('#tb-ct tr.pxn-row.open');
+    for(i=0;i<ps.length;i++){
+      ps[i].className = 'pxn-row';
+      var c = ps[i].querySelector('.cav'); if(c) c.textContent = '▶';
+    }
+  };
+
+  /* ── danh sách phiếu đang hiển thị (theo bộ lọc NCC hiện tại) ───────── */
+  function dsPhieuDangXem(){
+    var rs = document.querySelectorAll('#tb-ct tr.pxn-row'), ra = [];
+    for(var i=0;i<rs.length;i++){
+      var p = rs[i].getAttribute('data-pxn');
+      if(p) ra.push({pxn:p, ncc:rs[i].getAttribute('data-ncc')||'', tt:Number(rs[i].getAttribute('data-tt'))||0});
+    }
+    return ra;
+  }
+
+  /* ── bảng gộp "CHI TIẾT HÀNG HOÁ" chỉ dựng lúc xuất Excel ───────────── */
+  function dungBangGop(ds){
+    var html = '<table id="tbl-hh-all" data-plg-sheet="CHI TIẾT HÀNG HOÁ"><thead><tr>'
+      + '<th>TT</th><th>Nhà cung cấp</th><th>Số phiếu</th><th>Mã hàng</th><th>Tên hàng</th>'
+      + '<th>ĐVT</th><th>SL</th><th>Đơn giá</th><th>Tiền hàng</th><th>Thành tiền</th>'
+      + '</tr></thead><tbody>';
+    var stt=0, tSL=0, tTH=0, tTT=0;
+    ds.forEach(function(p){
+      (hhCache[p.pxn]||[]).forEach(function(d){
+        var sl=Number(d.sl)||0, dg=Number(d.dg)||0, tt=Number(d.tt)||0, th=sl*dg;
+        stt++; tSL+=sl; tTH+=th; tTT+=tt;
+        html += '<tr><td>'+stt+'</td><td>'+esc(p.ncc)+'</td><td>'+esc(p.pxn)+'</td>'
+             +  '<td>'+esc(d.ma)+'</td><td>'+esc(d.ten)+'</td><td>'+esc(d.dvt)+'</td>'
+             +  '<td>'+nz(sl)+'</td><td>'+nz(dg)+'</td><td>'+nz(th)+'</td><td>'+nz(tt)+'</td></tr>';
+      });
+    });
+    html += '</tbody><tfoot><tr><td colspan="6">TỔNG CỘNG '+stt+' dòng hàng hoá</td>'
+         +  '<td>'+nz(tSL)+'</td><td></td><td>'+nz(tTH)+'</td><td>'+nz(tTT)+'</td></tr></tfoot></table>';
+    var w = document.createElement('div');
+    w.id = 'hh-export-wrap';
+    w.innerHTML = html;
+    document.querySelector('.page').appendChild(w);
+    return stt;
+  }
+
+  /* ── nút: Xuất Excel kèm hàng hoá ───────────────────────────────────── */
+  function xuatKemHangHoa(btn){
+    var ds = dsPhieuDangXem();
+    if(!ds.length){ alert('Chưa có dòng phiếu nào trong tab Chi tiết để xuất.'); return; }
+    var chu = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Đang lấy hàng hoá...';
+    hhFetch(ds.map(function(p){ return p.pxn; }))
+      .then(function(){
+        window.hhThuGon();
+        var thWrap = document.getElementById('wrap-th'), ctWrap = document.getElementById('wrap-ct');
+        var dTh = thWrap.style.display, dCt = ctWrap.style.display;
+        thWrap.style.display = ''; ctWrap.style.display = '';
+        var sodong = dungBangGop(ds);
+        try{
+          window.PLGExcel.xuat({
+            tenBaoCao: 'TỔNG HỢP CÔNG NỢ PHẢI TRẢ NHÀ CUNG CẤP',
+            tenFile  : 'CongNo_NCC_Kem_HangHoa'
+          });
+        } finally {
+          var w = document.getElementById('hh-export-wrap');
+          if(w) w.parentNode.removeChild(w);
+          thWrap.style.display = dTh; ctWrap.style.display = dCt;
+        }
+        btn.disabled = false; btn.textContent = chu;
+        if(!sodong) alert('Các phiếu đang xem không có dòng hàng hoá nào trong XNK_CT.');
+      })
+      .catch(function(e){
+        btn.disabled = false; btn.textContent = chu;
+        alert('Không lấy được chi tiết hàng hoá: ' + e.message);
+      });
+  }
+
+  function ganNutHH(){
+    var tb = document.querySelector('.toolbar');
+    if(!tb || document.getElementById('btn-xuat-hh')) return;
+    var b = document.createElement('button');
+    b.id = 'btn-xuat-hh';
+    b.type = 'button';
+    b.className = 'btn';
+    b.textContent = 'Xuất Excel kèm hàng hoá';
+    b.onclick = function(){ xuatKemHangHoa(b); };
+    tb.appendChild(b);
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ganNutHH);
+  else ganNutHH();
+
+  /* Nút "Xuất Excel" gốc: thu gọn trước để file Excel giữ đúng mẫu cũ */
+  document.addEventListener('click', function(e){
+    var b = e.target && e.target.closest ? e.target.closest('#plg-excel-btn') : null;
+    if(b) window.hhThuGon();
+  }, true);
 })();
 </script>
 
