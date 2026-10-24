@@ -174,6 +174,10 @@ thead th{font-size:9.5px}
 <tbody id="tb-ct"><tr><td colspan="8" class="empty-note">Chọn tab “Chi tiết chứng từ” để tải.</td></tr></tbody>
 <tfoot id="tf-ct"></tfoot>
 </table>
+<div style="font-size:12px;font-style:italic;margin-top:6px">
+  Chỉ liệt kê chứng từ của các khách hàng có trong bảng Tổng hợp, nên tổng ở đây bám theo kỳ báo cáo.
+  Khách mua trả tiền ngay và không còn theo dõi công nợ không xuất hiện ở bảng này.
+</div>
 </div>
 
 <div class="sign-date" id="sign-date"></div>
@@ -382,7 +386,8 @@ function napAPI(kemCT){
   }
 
   dangNap=true;
-  baoTin('Đang tải dữ liệu từ file BÁO CÁO NGÀY...');
+  baoTin('Đang tải dữ liệu từ file BÁO CÁO NGÀY...'
+    + (muonCT ? ' Phần chi tiết chứng từ phải đọc cả sổ công nợ nên có thể mất 15–20 giây.' : ''));
   document.getElementById('tb-th').innerHTML='<tr><td colspan="9" class="empty-note">Đang tải dữ liệu...</td></tr>';
 
   fetch(u).then(function(r){ return r.json(); }).then(function(j){
@@ -390,7 +395,13 @@ function napAPI(kemCT){
     if(!j||!j.ok){ baoLoi('<b>API báo lỗi:</b> '+esc(j&&j.loi?j.loi:'không rõ nguyên nhân')); return; }
 
     khRows=j.kh||[];
-    if(muonCT){ ctRows=j.ct||[]; daNapCT=true; }
+    if(muonCT){
+      /* chỉ giữ chứng từ của các khách có trong bảng tổng hợp, để 2 tab cùng phạm vi */
+      var coTH={};
+      khRows.forEach(function(r){ coTH[khongDau(r.ten)]=1; });
+      ctRows=(j.ct||[]).filter(function(r){ return coTH[khongDau(r.kh)]; });
+      daNapCT=true;
+    }
     khList=[]; var seen={};
     khRows.forEach(function(r){ if(r.ten&&!seen[r.ten]){seen[r.ten]=1;khList.push(r.ten);} });
 
