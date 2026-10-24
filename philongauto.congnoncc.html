@@ -457,11 +457,11 @@ function loadFromURL(){
   document.getElementById('sign-date').textContent =
     'Ngày ' + d.getDate() + ' tháng ' + (d.getMonth()+1) + ' năm ' + d.getFullYear();
 
-  var raw = params.get('data');
+  var raw = ''; /* 24/10/2026: bo qua data tren URL, du lieu lay tu API */
   /* dự phòng: tên NCC chứa dấu & làm vỡ URLSearchParams -> lấy thô từ sau data= */
   if((!raw || !raw.trim()) && qs.indexOf('data=')>-1){
     var tail = qs.slice(qs.indexOf('data=')+5);
-    if(tail.trim()) { try{ raw = decodeURIComponent(tail.replace(/\+/g,' ')); }catch(e){ raw = tail; } }
+    if(tail.trim()) { try{ raw = ''; /* 24/10/2026: bo qua data tren URL, du lieu lay tu API */ }catch(e){ raw = tail; } }
   }
 
   if(!raw || !raw.trim()){
@@ -1134,7 +1134,7 @@ loadFromURL();
 (function () {
   var API = "https://script.google.com/macros/s/AKfycbwMFz4z--d1wHR4xgil0BsL881Jhok_mBMHEYNfSPzB_0hm-yuSzMfn0toKvrndCNZTow/exec";
   var p = new URLSearchParams(window.location.search || "");
-  if ((p.get("data") || "").trim()) return;   /* link kieu cu van chay nhu cu */
+  /* 24/10/2026: luon goi API, KHONG dung tham so data cu tren URL nua */   /* link kieu cu van chay nhu cu */
   var ngay = p.get("ngay") || "", cn = p.get("chinhanh") || "";
   var z = document.getElementById("alert-zone");
   z.innerHTML = "<div class='alert info'><b>Dang tai du lieu tu BAO CAO NGAY...</b></div>";
