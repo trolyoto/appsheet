@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script>var API_BCN = "https://script.google.com/macros/s/AKfycbzUu_xc4wNWsrn2ZOZxCUw04AHIK5GqyKGjliox2zqJMemNNL93QtqOGVWiRhRL72kjHw/exec";</script>
+<script>/*BCN_INJECT*/ var API_BCN = "https://script.google.com/macros/s/AKfycbzUu_xc4wNWsrn2ZOZxCUw04AHIK5GqyKGjliox2zqJMemNNL93QtqOGVWiRhRL72kjHw/exec"; var BCN_DATA = null; var BCN_BASE = "";</script>
 <title>Báo cáo nhanh - Phi Long Auto</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -115,6 +115,8 @@
    =================================================================== */
 
 var API = (typeof API_BCN === 'string') ? API_BCN : '';
+var SERVER_DATA = (typeof BCN_DATA === 'object' && BCN_DATA) ? BCN_DATA : null;
+var SERVER_BASE = (typeof BCN_BASE === 'string') ? BCN_BASE : '';
 
 var CHI_TIEU = [
   {key:'doanh_thu',  ten:'Doanh thu',  mau:'#2D9CDB'},
@@ -189,10 +191,10 @@ function dmy2key(s){ /* 24/10/2026 -> 20261024 */
   if (loai && CHI_TIEU.some(function(c){ return c.key === loai; })) DANG_XEM = loai;
 
   veKPI(null);
-  $('btnXem').onclick = tai;
+  $('btnXem').onclick = function(){ tai(false); };
   $('btnExcel').onclick = xuatExcel;
   $('btnIn').onclick = function(){ window.print(); };
-  tai();
+  tai(true);
 })();
 
 function dsChiNhanh(){
@@ -200,33 +202,46 @@ function dsChiNhanh(){
 }
 
 /* ---------- gọi API ---------- */
-function tai(){
+function thamSo(){
+  return 'tungay=' + encodeURIComponent($('tungay').value)
+       + '&denngay=' + encodeURIComponent($('denngay').value)
+       + '&chinhanh=' + encodeURIComponent(dsChiNhanh());
+}
+
+function apDung(j){
+  DATA = j;
+  $('kyText').textContent = 'Từ ngày ' + j.ky.tu + ' đến ngày ' + j.ky.den
+    + '  -  Chi nhánh: ' + (j.chi_nhanh || 'Tất cả');
+  $('metaText').textContent = 'Nguồn: ' + j.nguon + '  |  Cập nhật: ' + j.cap_nhat
+    + '  |  ' + j.tong.so_don + ' đơn hàng, ' + j.tong.so_phieu + ' phiếu thu chi';
+  veKPI(j.tong);
+  veBang(DANG_XEM);
+  $('btnExcel').disabled = false; $('btnIn').disabled = false;
+}
+
+function tai(lanDau){
   $('boxErr').innerHTML = '';
   $('card').innerHTML = '<div class="empty">Đang tải dữ liệu...</div>';
   $('btnExcel').disabled = true; $('btnIn').disabled = true;
 
+  /* 1. Server (Apps Script) da nhung san du lieu -> dung luon */
+  if (lanDau && SERVER_DATA && SERVER_DATA.ok) { apDung(SERVER_DATA); return; }
+
+  /* 2. Dang chay tren Apps Script -> doi ky bang cach nap lai trang */
+  if (SERVER_BASE) { window.location.href = SERVER_BASE + '?' + thamSo(); return; }
+
+  /* 3. Chay tren GitHub Pages -> goi API truc tiep (can quyen Bat ky ai) */
   if (!API || API.indexOf('script.google.com') < 0) {
     $('boxErr').innerHTML = '<div class="err"><b>Chưa gắn link API.</b> Sửa dòng var API_BCN ở đầu file HTML, dán link Web App cua API BAO CAO NHANH.</div>';
     $('card').innerHTML = '<div class="empty">-</div>';
     return;
   }
 
-  var u = API + '?tungay=' + encodeURIComponent($('tungay').value)
-              + '&denngay=' + encodeURIComponent($('denngay').value)
-              + '&chinhanh=' + encodeURIComponent(dsChiNhanh());
-
-  fetch(u)
+  fetch(API + '?json=1&' + thamSo())
     .then(function(r){ return r.json(); })
     .then(function(j){
       if (!j || !j.ok) throw new Error((j && j.error) || 'API trả về lỗi');
-      DATA = j;
-      $('kyText').textContent = 'Từ ngày ' + j.ky.tu + ' đến ngày ' + j.ky.den
-        + '  -  Chi nhánh: ' + (j.chi_nhanh || 'Tất cả');
-      $('metaText').textContent = 'Nguồn: ' + j.nguon + '  |  Cập nhật: ' + j.cap_nhat
-        + '  |  ' + j.tong.so_don + ' đơn hàng, ' + j.tong.so_phieu + ' phiếu thu chi';
-      veKPI(j.tong);
-      veBang(DANG_XEM);
-      $('btnExcel').disabled = false; $('btnIn').disabled = false;
+      apDung(j);
     })
     .catch(function(err){
       $('boxErr').innerHTML = '<div class="err"><b>Không tải được dữ liệu.</b> ' + esc(err.message) + '</div>';
