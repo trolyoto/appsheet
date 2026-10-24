@@ -182,7 +182,6 @@ table.hh-tbl td.c{text-align:center}
 
   <!-- BẢNG CHI TIẾT -->
   <div id="wrap-ct" style="display:none">
-    <div class="sct-title">SỔ CHI TIẾT NHÀ CUNG CẤP</div>
     <table id="tbl-ct" data-plg-sheet="SỔ CHI TIẾT NCC">
       <thead>
         <tr>
@@ -1356,6 +1355,16 @@ loadFromURL();
 
   /* thay hẳn bảng chi tiết cũ bằng sổ chi tiết */
   window.renderCT = renderSoChiTiet;
+
+  /* đổi luôn tiêu đề trang theo tab đang xem */
+  var setViewGoc = window.setView;
+  window.setView = function(v){
+    setViewGoc(v);
+    var t = document.querySelector('.doc-title');
+    if(t) t.textContent = (v === 'ct')
+      ? 'SỔ CHI TIẾT NHÀ CUNG CẤP'
+      : 'TỔNG HỢP CÔNG NỢ PHẢI TRẢ NHÀ CUNG CẤP';
+  };
 
   /* chỗ hiện cảnh báo, đặt ngay trên bảng */
   (function(){
