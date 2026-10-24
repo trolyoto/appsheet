@@ -1146,7 +1146,7 @@ loadFromURL();
     document.getElementById("meta-cn").textContent = cn || "Tat ca";
     z.innerHTML = "";
     nap(j.data, "");
-    z.innerHTML = "<div class='alert info'>Nguon: BAO CAO NGAY (tab XNK) &mdash; " + j.sodong + " phieu &mdash; du lieu tinh luc " + j.tinhluc + "</div>" + z.innerHTML;
+    z.innerHTML = "<div class='alert info'>Nguon: BAO CAO NGAY (tab NCC + XNK + THU_CHI) &mdash; " + j.sodong + " dong chung tu &mdash; du lieu tinh luc " + j.tinhluc + "</div>" + z.innerHTML;
   }).catch(function (e) {
     showNoData("Khong goi duoc API du lieu: " + e.message);
   });
