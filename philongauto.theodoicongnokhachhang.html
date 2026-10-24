@@ -378,12 +378,24 @@ function renderCT(rows){
 
   var note=document.getElementById('ct-note');
   if(note){
-    note.innerHTML='Chỉ liệt kê đơn hàng của các khách hàng có trong bảng Tổng hợp. '
-      +'Đã TT / Còn lại lấy theo từng đơn hàng (thành tiền trừ số tiền còn nợ trên app).'
-      +' Cột <b>Thành tiền</b> ở dòng tổng lấy theo SỔ CÔNG NỢ nên khớp đúng cột Phát sinh của bảng Tổng hợp.'
-      +(thieu?' <b style="color:#b0531a">'+thieu+'/'+don.length+' đơn hàng không còn dòng hàng hoá trong tab DON_HANG_CT</b> '
-        +'(tab này bị xoá dữ liệu ngày cũ khi đồng bộ) — các đơn đó vẫn giữ đúng số tiền.':'')
-      +(lech?' <b style="color:#b0531a">'+lech+' đơn có tổng tiền hàng khác số phát sinh trên sổ</b> (đánh dấu &#9888;).':'');
+    /* đối chiếu với cột Phát sinh của bảng Tổng hợp (đang lọc cùng điều kiện) */
+    var f=locHam(), thCmp=f?khRows.filter(function(x){return f(x.ten);}):khRows;
+    var psTH=0; thCmp.forEach(function(x){ psTH+=x.ps; });
+    var dTH=tTT-psTH;
+    var t='Chỉ liệt kê đơn hàng của các khách hàng có trong bảng Tổng hợp. '
+      +'Thành tiền lấy theo SỔ CÔNG NỢ KH; Đã TT / Còn lại lấy theo từng đơn hàng trên app '
+      +'(so_tien_con_no của DON_HANG).';
+    if(Math.abs(dTH)>1){
+      t+=' <b style="color:#b0531a">&#9888; Tổng Thành tiền ở đây ('+fmt0(tTT)+') lệch '+fmt0(dTH)
+        +' so với cột Phát sinh của bảng Tổng hợp ('+fmt0(psTH)+')</b> — vì bảng Tổng hợp lấy tab '
+        +'BC TỔNG NỢ 3 CHI NHÁNH đã qua bước điều chỉnh khớp APP, còn bảng này lấy thẳng từng dòng sổ.';
+    } else {
+      t+=' Tổng Thành tiền khớp đúng cột Phát sinh của bảng Tổng hợp.';
+    }
+    if(thieu) t+=' <b style="color:#b0531a">'+thieu+'/'+don.length+' đơn hàng không còn dòng hàng hoá '
+      +'trong tab DON_HANG_CT</b> (tab này bị xoá dữ liệu ngày cũ khi đồng bộ) — các đơn đó vẫn giữ đúng số tiền.';
+    if(lech) t+=' <b style="color:#b0531a">'+lech+' đơn có tổng tiền hàng khác số phát sinh trên sổ</b> (đánh dấu &#9888;).';
+    note.innerHTML=t;
   }
 }
 
