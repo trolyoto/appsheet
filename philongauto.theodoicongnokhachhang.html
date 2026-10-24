@@ -330,17 +330,26 @@ function renderCT(rows){
     tb.innerHTML='<tr><td colspan="10" class="empty-note">Không có đơn hàng trong kỳ.</td></tr>';
     tf.innerHTML=''; return;
   }
-  var html='', stt=0, tTT=0, tDa=0, tCon=0, thieu=0;
+  var html='', stt=0, tTT=0, tDa=0, tCon=0, thieu=0, lech=0;
   don.forEach(function(r){
     var hh=hhMap[khongDau(r.ct)]||null;
     var items=(hh && hh.ct && hh.ct.length) ? hh.ct : null;
-    var tt =(hh && hh.tt!==null && hh.tt!==undefined) ? hh.tt : r.ps;
+    /* Thành tiền của đơn luôn lấy theo SỔ CÔNG NỢ (số chuẩn, khớp bảng Tổng hợp) */
+    var tt = r.ps;
     var con=(hh && hh.conno!==null && hh.conno!==undefined) ? hh.conno : (r.ps-r.thu);
+    if(con>tt) con=tt;
+    if(con<0) con=0;
     var da = tt-con;
+    var tongHH=0;
+    if(items) items.forEach(function(it){ tongHH+=it.tt; });
+    var saiLech = items && Math.abs(tongHH-tt)>1;
+    if(saiLech) lech++;
     tTT+=tt; tDa+=da; tCon+=con;
     stt++;
     var n=items?items.length:1;
-    var dau='<td class="ctr" rowspan="'+n+'">'+stt+'</td>'
+    var dau='<td class="ctr'+(saiLech?' warn-cell':'')+'" rowspan="'+n+'"'
+           +(saiLech?' title="Tổng tiền hàng '+fmt0(tongHH)+' khác phát sinh trên sổ '+fmt0(tt)+'"':'')
+           +'>'+stt+(saiLech?' \u26A0':'')+'</td>'
            +'<td class="ctr" rowspan="'+n+'">'+esc(r.ngay)+'</td>'
            +'<td rowspan="'+n+'">'+esc(r.kh)+'</td>'
            +'<td class="ctr" rowspan="'+n+'">'+esc(r.cn||'')+'</td>';
@@ -371,8 +380,10 @@ function renderCT(rows){
   if(note){
     note.innerHTML='Chỉ liệt kê đơn hàng của các khách hàng có trong bảng Tổng hợp. '
       +'Đã TT / Còn lại lấy theo từng đơn hàng (thành tiền trừ số tiền còn nợ trên app).'
+      +' Cột <b>Thành tiền</b> ở dòng tổng lấy theo SỔ CÔNG NỢ nên khớp đúng cột Phát sinh của bảng Tổng hợp.'
       +(thieu?' <b style="color:#b0531a">'+thieu+'/'+don.length+' đơn hàng không còn dòng hàng hoá trong tab DON_HANG_CT</b> '
-        +'(tab này bị xoá dữ liệu ngày cũ khi đồng bộ) — các đơn đó vẫn giữ đúng số tiền.':'');
+        +'(tab này bị xoá dữ liệu ngày cũ khi đồng bộ) — các đơn đó vẫn giữ đúng số tiền.':'')
+      +(lech?' <b style="color:#b0531a">'+lech+' đơn có tổng tiền hàng khác số phát sinh trên sổ</b> (đánh dấu &#9888;).':'');
   }
 }
 
