@@ -1346,6 +1346,27 @@ loadFromURL();
       });
   }
 
+  /* ── nạp sẵn hàng hoá của cả kỳ ngay sau khi báo cáo có dữ liệu ─────── */
+  var daNapSan = false;
+  function napSanHangHoa(){
+    if(daNapSan) return;
+    var ds = (window.allRows||[])
+      .map(function(r){ return String(r.dh==null?'':r.dh).trim(); })
+      .filter(function(p){ return p && /^[0-9]/.test(p); });
+    ds = ds.filter(function(p,i){ return ds.indexOf(p)===i; });
+    if(!ds.length) return;
+    daNapSan = true;
+    hhFetch(ds).catch(function(){ daNapSan = false; });
+  }
+  (function cho(){
+    var n = 0;
+    var id = setInterval(function(){
+      n++;
+      if(daNapSan || n > 60){ clearInterval(id); return; }
+      if(window.allRows && window.allRows.length){ clearInterval(id); napSanHangHoa(); }
+    }, 800);
+  })();
+
   function ganNutHH(){
     var tb = document.querySelector('.toolbar');
     if(!tb || document.getElementById('btn-xuat-hh')) return;
