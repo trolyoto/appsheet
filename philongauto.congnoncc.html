@@ -110,7 +110,7 @@ table.hh-tbl td.c{text-align:center}
   @media print{
     @page{size:A4 landscape;margin:10mm}
     body{background:#fff;padding:0}
-    .toolbar,.alert.info,#plg-excel-btn{display:none!important}
+    .toolbar,.alert.info,.alert.warn,#plg-excel-btn{display:none!important}
     .page{border:none;max-width:none;padding:0}
     thead{display:table-header-group}
     thead th{background:#0070C0!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -244,7 +244,7 @@ window.PLG_EXCEL_OPTIONS = {
 
 var allRows = [], aggRows = [], khList = [], activeKH = '', view = 'th';
 var dauKyMode = 'once';          /* 'once' = lấy 1 lần | 'sum' = cộng dồn */
-var canhBao = [];
+var canhBao = [], traSoatMo = false;
 
 /* ── SỐ ───────────────────────────────────────────────────────────────── */
 /* Parser chịu được: 1.132.346.628 | 1,132,346,628 | 1132346628 | (1.000) | -1.000 */
@@ -438,10 +438,10 @@ function showAlerts(extra){
   if(extra) html += extra;
   if(canhBao.length){
     var ds = canhBao.slice(0,12).map(function(c){ return '<li><b>'+esc(c.kh)+':</b> '+esc(c.msg)+'</li>'; }).join('');
-    html += '<div class="alert warn"><b>&#9888; Tra soát: '+canhBao.length+' điểm cần kiểm tra</b><ul>'+ds+'</ul>'
+    html += '<details class="alert warn"'+(traSoatMo?' open':'')+' ontoggle="traSoatMo=this.open"><summary style="cursor:pointer;font-weight:700;outline:none">&#9888; Tra soát: '+canhBao.length+' điểm cần kiểm tra <span style="font-weight:400;font-size:12px;color:#8a6a1f">(bấm để xem)</span></summary><ul>'+ds+'</ul>'
           + (canhBao.length>12 ? '<div style="margin-top:6px">…và '+(canhBao.length-12)+' dòng khác.</div>' : '')
           + '<div style="margin-top:8px">Cách tính đầu kỳ hiện tại: <b>'+(dauKyMode==='once'?'lấy 1 lần mỗi NCC':'cộng dồn mọi dòng')+'</b>. '
-          + '<button class="btn ghost" style="padding:5px 10px" onclick="toggleDauKy()">Đổi cách tính</button></div></div>';
+          + '<button class="btn ghost" style="padding:5px 10px" onclick="toggleDauKy()">Đổi cách tính</button></div></details>';
   }
   z.innerHTML = html;
 }
