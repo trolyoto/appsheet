@@ -62,7 +62,17 @@
   .has-lech::after{content:' \26A0';color:#b0531a;font-weight:700}
   .empty-note{text-align:center;padding:34px;color:#7a8ea4;font-style:italic}
 
-  /* ───── CHI TIẾT HÀNG HOÁ (bung trong tab Chi tiết) ───── */
+  /* ───── SỔ CHI TIẾT NHÀ CUNG CẤP ───── */
+.sct-title{text-align:center;font-size:16px;font-weight:700;text-transform:uppercase;margin:4px 0 10px}
+#tb-ct tr.sct-ncc td{background:#DCE6F1;font-weight:700;font-size:13.5px;text-transform:uppercase;padding:7px}
+#tb-ct tr.sct-dau td,#tb-ct tr.sct-cuoi td{background:#FFF2A8;font-weight:700}
+#tb-ct tr.sct-cong td{background:#eef3f9;font-weight:700;font-style:italic}
+#tb-ct tr.sct-lech td{color:#b0531a;font-weight:700}
+#tb-ct tr.sct-tra td{color:#1b4f8a}
+#tb-ct tbody tr:nth-child(even) td{background:inherit}
+.sct-note{font-family:"Segoe UI",Arial,sans-serif;font-size:12.5px;color:#5c748f;margin:8px 0 2px}
+
+/* ───── CHI TIẾT HÀNG HOÁ (giữ cho bảng hàng hoá) ───── */
 #tb-ct tr.pxn-row td.pxn-cell{cursor:pointer;color:#124A95;font-weight:700;white-space:nowrap;user-select:none}
 #tb-ct tr.pxn-row td.pxn-cell .cav{display:inline-block;width:13px;font-size:10px}
 #tb-ct tr.pxn-row.open td{background:#eaf1fa}
@@ -115,7 +125,7 @@ table.hh-tbl td.c{text-align:center}
 <div class="toolbar">
   <div class="seg">
     <button id="btn-th" class="on" onclick="setView('th')">Tổng hợp</button>
-    <button id="btn-ct" onclick="setView('ct')">Chi tiết</button>
+    <button id="btn-ct" onclick="setView('ct')">Sổ chi tiết NCC</button>
   </div>
   <span class="tb-label">Lọc NCC:</span>
   <div class="combo-wrap" id="combo-wrap">
@@ -172,23 +182,26 @@ table.hh-tbl td.c{text-align:center}
 
   <!-- BẢNG CHI TIẾT -->
   <div id="wrap-ct" style="display:none">
-    <table id="tbl-ct" data-plg-sheet="CHI TIẾT PHIẾU">
+    <div class="sct-title">SỔ CHI TIẾT NHÀ CUNG CẤP</div>
+    <table id="tbl-ct" data-plg-sheet="SỔ CHI TIẾT NCC">
       <thead>
         <tr>
-          <th style="width:42px">TT</th>
-          <th style="min-width:200px">Nhà cung cấp</th>
-          <th style="min-width:130px">Số phiếu</th>
-          <th style="min-width:110px">Thành tiền</th>
-          <th style="min-width:110px">Thực chi</th>
-          <th style="width:80px">Hình thức</th>
-          <th style="min-width:110px">Còn nợ</th>
-          <th style="min-width:110px">Nợ cũ</th>
-          <th style="min-width:118px">Nợ lũy kế</th>
-          <th style="width:80px">Chi nhánh</th>
-          <th style="min-width:110px">Ghi chú</th>
+          <th rowspan="2" style="width:40px">STT</th>
+          <th colspan="2">Chứng từ</th>
+          <th rowspan="2" style="min-width:270px">Diễn giải</th>
+          <th rowspan="2" style="width:74px">Nhập kho<br>chi nhánh</th>
+          <th rowspan="2" style="width:56px">Số<br>lượng</th>
+          <th rowspan="2" style="min-width:95px">Đơn giá</th>
+          <th rowspan="2" style="min-width:110px">Thành tiền</th>
+          <th rowspan="2" style="min-width:110px">Đã thanh toán</th>
+          <th rowspan="2" style="min-width:115px">Còn lại</th>
+        </tr>
+        <tr>
+          <th style="min-width:120px">Số phiếu</th>
+          <th style="width:88px">Ngày tháng</th>
         </tr>
       </thead>
-      <tbody id="tb-ct"><tr><td colspan="11" class="empty-note">Đang chờ dữ liệu...</td></tr></tbody>
+      <tbody id="tb-ct"><tr><td colspan="10" class="empty-note">Đang chờ dữ liệu...</td></tr></tbody>
       <tfoot id="tf-ct"></tfoot>
     </table>
   </div>
@@ -1186,18 +1199,31 @@ loadFromURL();
 })();
 </script>
 
-<!-- ══════════ CHI TIẾT HÀNG HOÁ THEO PHIẾU (nguồn: BÁO CÁO NGÀY / tab XNK_CT) ══════════ -->
+<!-- ══════════ SỔ CHI TIẾT NHÀ CUNG CẤP (nguồn: BÁO CÁO NGÀY / XNK_CT) ══════════ -->
 <script>
 (function(){
   var HH_API  = "https://script.google.com/macros/s/AKfycbwMFz4z--d1wHR4xgil0BsL881Jhok_mBMHEYNfSPzB_0hm-yuSzMfn0toKvrndCNZTow/exec";
-  var hhCache = {};          /* pxn -> [dòng hàng hoá] */
+  var hhCache = {};        /* số phiếu -> [dòng hàng hoá] */
+  var dangNap = false;
 
-  function nz(n){ return Math.round(Number(n)||0).toLocaleString('vi-VN'); }
+  function nz(n){ n = Math.round(Number(n)||0); return n ? n.toLocaleString('vi-VN') : ''; }
+  function nz0(n){ return Math.round(Number(n)||0).toLocaleString('vi-VN'); }
 
-  /* ── gọi API, gom nhiều phiếu 1 lần cho nhanh ───────────────────────── */
-  function hhFetch(dsPxn){
-    var can = [];
-    for(var i=0;i<dsPxn.length;i++) if(!hhCache[dsPxn[i]]) can.push(dsPxn[i]);
+  /* ── ngày lấy từ chính số phiếu: 221026081852_CN1 / PC28082616280811_CN2 ── */
+  function ngayTuPhieu(p){
+    var t = String(p==null?'':p).trim().replace(/^PC/i,'');
+    var m = t.match(/^(\d{2})(\d{2})(\d{2})/);
+    if(!m) return null;
+    var d = +m[1], mo = +m[2], y = 2000 + (+m[3]);
+    if(d<1 || d>31 || mo<1 || mo>12) return null;
+    return { key: y*10000 + mo*100 + d,
+             txt: (d<10?'0':'')+d + '/' + (mo<10?'0':'')+mo + '/' + y };
+  }
+
+  /* ── gọi API hàng hoá, gom nhiều phiếu một lần ───────────────────────── */
+  function hhFetch(ds){
+    var can = [], i;
+    for(i=0;i<ds.length;i++) if(!hhCache[ds[i]]) can.push(ds[i]);
     if(!can.length) return Promise.resolve();
     var lo = [], B = 40;
     for(i=0;i<can.length;i+=B) lo.push(can.slice(i,i+B));
@@ -1207,7 +1233,7 @@ loadFromURL();
           .then(function(r){ return r.json(); })
           .then(function(j){
             if(!j || !j.ok) throw new Error((j&&j.loi)||'API không trả dữ liệu');
-            nhom.forEach(function(k){ hhCache[k] = []; });
+            nhom.forEach(function(k){ hhCache[k] = hhCache[k] || []; });
             (j.ct||[]).forEach(function(d){
               if(!hhCache[d.pxn]) hhCache[d.pxn] = [];
               hhCache[d.pxn].push(d);
@@ -1217,175 +1243,152 @@ loadFromURL();
     }, Promise.resolve());
   }
 
-  /* ── bảng hàng hoá của 1 phiếu ──────────────────────────────────────── */
-  function hhRender(pxn, ct, ttHeader){
-    if(!ct || !ct.length)
-      return '<div class="hh-msg">Phiếu <b>'+esc(pxn)+'</b> không có dòng hàng hoá nào trong tab XNK_CT.</div>';
-    var tSL=0, tTH=0, tTT=0;
-    var body = ct.map(function(d,i){
-      var sl = Number(d.sl)||0, dg = Number(d.dg)||0, tt = Number(d.tt)||0, th = sl*dg;
-      tSL+=sl; tTH+=th; tTT+=tt;
-      var w = Math.abs(th-tt)>1 ? ' style="color:#b0531a;font-weight:700"' : '';
-      return '<tr><td class="c">'+(i+1)+'</td><td>'+esc(d.ma)+'</td><td>'+esc(d.ten)+'</td>'
-        + '<td class="c">'+esc(d.dvt)+'</td><td class="n">'+nz(sl)+'</td>'
-        + '<td class="n">'+nz(dg)+'</td><td class="n">'+nz(th)+'</td>'
-        + '<td class="n"'+w+'>'+nz(tt)+'</td></tr>';
-    }).join('');
-    var lech = Math.round((Number(ttHeader)||0) - tTT);
-    var chk = Math.abs(lech)<=1
-      ? '<div class="hh-chk ok">✔ Khớp: tổng hàng hoá '+nz(tTT)+' = thành tiền phiếu trên báo cáo.</div>'
-      : '<div class="hh-chk no">⚠ Lệch '+nz(lech)+'đ: tổng hàng hoá '+nz(tTT)+' ≠ thành tiền phiếu '+nz(ttHeader)+' — cần kiểm tra.</div>';
-    return '<div class="hh-title">HÀNG HOÁ — phiếu '+esc(pxn)+'</div>'
-      + '<table class="hh-tbl" data-plg-skip><thead><tr>'
-      + '<th style="width:42px">STT</th><th style="min-width:150px">Mã hàng</th>'
-      + '<th style="min-width:240px">Tên hàng</th><th style="width:56px">ĐVT</th>'
-      + '<th style="width:56px">SL</th><th style="min-width:95px">Đơn giá</th>'
-      + '<th style="min-width:105px">Tiền hàng</th><th style="min-width:105px">Thành tiền</th>'
-      + '</tr></thead><tbody>'+body+'</tbody><tfoot><tr>'
-      + '<td class="c" colspan="4">CỘNG '+ct.length+' mặt hàng</td>'
-      + '<td class="n">'+nz(tSL)+'</td><td></td>'
-      + '<td class="n">'+nz(tTH)+'</td><td class="n">'+nz(tTT)+'</td>'
-      + '</tr></tfoot></table>' + chk;
-  }
+  /* ── dựng danh sách bút toán của 1 NCC ───────────────────────────────── */
+  function butToan(rows){
+    var ev = [], thieuCT = 0;
+    rows.forEach(function(r){
+      var pxn = String(r.dh==null?'':r.dh).trim();
+      var ng  = ngayTuPhieu(pxn);
+      var mua = Number(r.thanhtien)||0;
+      var tra = Number(r.thucchi)||0;
+      var khoa = (ng ? ng.key : 99999999);
 
-  /* ── bấm số phiếu: bung / thu ───────────────────────────────────────── */
-  window.hhToggle = function(td){
-    var tr  = td.parentNode, box = tr.nextElementSibling;
-    if(!box || String(box.className).indexOf('hh-row')<0) return;
-    var cav = td.querySelector('.cav');
-    if(box.style.display !== 'none'){
-      box.style.display = 'none'; tr.className = 'pxn-row';
-      if(cav) cav.textContent = '▶'; return;
-    }
-    box.style.display = ''; tr.className = 'pxn-row open';
-    if(cav) cav.textContent = '▼';
-    var pxn = tr.getAttribute('data-pxn');
-    var ttH = Number(tr.getAttribute('data-tt'))||0;
-    var div = box.querySelector('.hh-box');
-    if(hhCache[pxn]){ div.innerHTML = hhRender(pxn, hhCache[pxn], ttH); return; }
-    div.innerHTML = '<div class="hh-msg">Đang tải hàng hoá của phiếu '+esc(pxn)+'...</div>';
-    hhFetch([pxn])
-      .then(function(){ div.innerHTML = hhRender(pxn, hhCache[pxn], ttH); })
-      .catch(function(e){ div.innerHTML = '<div class="hh-msg">Lỗi gọi API chi tiết: '+esc(e.message)+'</div>'; });
-  };
-
-  window.hhThuGon = function(){
-    var i, rs = document.querySelectorAll('#tb-ct tr.hh-row');
-    for(i=0;i<rs.length;i++) rs[i].style.display = 'none';
-    var ps = document.querySelectorAll('#tb-ct tr.pxn-row.open');
-    for(i=0;i<ps.length;i++){
-      ps[i].className = 'pxn-row';
-      var c = ps[i].querySelector('.cav'); if(c) c.textContent = '▶';
-    }
-  };
-
-  /* ── danh sách phiếu đang hiển thị (theo bộ lọc NCC hiện tại) ───────── */
-  function dsPhieuDangXem(){
-    var rs = document.querySelectorAll('#tb-ct tr.pxn-row'), ra = [];
-    for(var i=0;i<rs.length;i++){
-      var p = rs[i].getAttribute('data-pxn');
-      if(p && /^[0-9]/.test(p)) ra.push({pxn:p, ncc:rs[i].getAttribute('data-ncc')||'', tt:Number(rs[i].getAttribute('data-tt'))||0});
-    }
-    return ra;
-  }
-
-  /* ── bảng gộp "CHI TIẾT HÀNG HOÁ" chỉ dựng lúc xuất Excel ───────────── */
-  function dungBangGop(ds){
-    var html = '<table id="tbl-hh-all" data-plg-sheet="CHI TIẾT HÀNG HOÁ"><thead><tr>'
-      + '<th>TT</th><th>Nhà cung cấp</th><th>Số phiếu</th><th>Mã hàng</th><th>Tên hàng</th>'
-      + '<th>ĐVT</th><th>SL</th><th>Đơn giá</th><th>Tiền hàng</th><th>Thành tiền</th>'
-      + '</tr></thead><tbody>';
-    var stt=0, tSL=0, tTH=0, tTT=0;
-    ds.forEach(function(p){
-      (hhCache[p.pxn]||[]).forEach(function(d){
-        var sl=Number(d.sl)||0, dg=Number(d.dg)||0, tt=Number(d.tt)||0, th=sl*dg;
-        stt++; tSL+=sl; tTH+=th; tTT+=tt;
-        html += '<tr><td>'+stt+'</td><td>'+esc(p.ncc)+'</td><td>'+esc(p.pxn)+'</td>'
-             +  '<td>'+esc(d.ma)+'</td><td>'+esc(d.ten)+'</td><td>'+esc(d.dvt)+'</td>'
-             +  '<td>'+nz(sl)+'</td><td>'+nz(dg)+'</td><td>'+nz(th)+'</td><td>'+nz(tt)+'</td></tr>';
-      });
-    });
-    html += '</tbody><tfoot><tr><td colspan="6">TỔNG CỘNG '+stt+' dòng hàng hoá</td>'
-         +  '<td>'+nz(tSL)+'</td><td></td><td>'+nz(tTH)+'</td><td>'+nz(tTT)+'</td></tr></tfoot></table>';
-    var w = document.createElement('div');
-    w.id = 'hh-export-wrap';
-    w.innerHTML = html;
-    document.querySelector('.page').appendChild(w);
-    return stt;
-  }
-
-  /* ── nút: Xuất Excel kèm hàng hoá ───────────────────────────────────── */
-  function xuatKemHangHoa(btn){
-    var ds = dsPhieuDangXem();
-    if(!ds.length){ alert('Chưa có dòng phiếu nào trong tab Chi tiết để xuất.'); return; }
-    var chu = btn.textContent;
-    btn.disabled = true; btn.textContent = 'Đang lấy hàng hoá...';
-    hhFetch(ds.map(function(p){ return p.pxn; }))
-      .then(function(){
-        window.hhThuGon();
-        var thWrap = document.getElementById('wrap-th'), ctWrap = document.getElementById('wrap-ct');
-        var dTh = thWrap.style.display, dCt = ctWrap.style.display;
-        thWrap.style.display = ''; ctWrap.style.display = '';
-        var sodong = dungBangGop(ds);
-        try{
-          window.PLGExcel.xuat({
-            tenBaoCao: 'TỔNG HỢP CÔNG NỢ PHẢI TRẢ NHÀ CUNG CẤP',
-            tenFile  : 'CongNo_NCC_Kem_HangHoa'
+      if(mua){
+        var ct = (/^[0-9]/.test(pxn) && hhCache[pxn]) ? hhCache[pxn] : [];
+        var tong = 0;
+        ct.forEach(function(d){ tong += Number(d.tt)||0; });
+        if(ct.length){
+          ct.forEach(function(d){
+            ev.push({k:khoa, pxn:pxn, ngay:ng?ng.txt:'', dg:'MUA HÀNG - '+(d.ten||d.ma||''),
+                     cn:r.cn, sl:Number(d.sl)||0, don:Number(d.dg)||0, tien:Number(d.tt)||0, tra:0});
           });
-        } finally {
-          var w = document.getElementById('hh-export-wrap');
-          if(w) w.parentNode.removeChild(w);
-          thWrap.style.display = dTh; ctWrap.style.display = dCt;
+          if(Math.abs(tong - mua) > 1){
+            ev.push({k:khoa, pxn:pxn, ngay:ng?ng.txt:'',
+                     dg:'Chênh lệch / chiết khấu phiếu '+pxn+' (chi tiết '+nz0(tong)+' ≠ phiếu '+nz0(mua)+')',
+                     cn:r.cn, sl:0, don:0, tien:(mua - tong), tra:0, lech:true});
+          }
+        } else {
+          if(/^[0-9]/.test(pxn)) thieuCT++;
+          ev.push({k:khoa, pxn:pxn, ngay:ng?ng.txt:'',
+                   dg:'MUA HÀNG' + (/^[0-9]/.test(pxn) ? ' (chưa tải được chi tiết hàng hoá)' : '') + (r.ghichu? ' - '+r.ghichu : ''),
+                   cn:r.cn, sl:0, don:0, tien:mua, tra:0});
         }
-        btn.disabled = false; btn.textContent = chu;
-        if(!sodong) alert('Các phiếu đang xem không có dòng hàng hoá nào trong XNK_CT.');
-      })
-      .catch(function(e){
-        btn.disabled = false; btn.textContent = chu;
-        alert('Không lấy được chi tiết hàng hoá: ' + e.message);
-      });
+      }
+      if(tra){
+        ev.push({k:khoa+0.5, pxn:pxn, ngay:ng?ng.txt:'',
+                 dg:'THANH TOÁN' + (r.hinhthuc? ' ('+r.hinhthuc+')' : '') + (r.ghichu? ' - '+r.ghichu : ''),
+                 cn:r.cn, sl:0, don:0, tien:0, tra:tra, chi:true});
+      }
+    });
+    ev.sort(function(a,b){ return a.k - b.k; });
+    return {ev:ev, thieuCT:thieuCT};
   }
 
-  /* ── nạp sẵn hàng hoá của cả kỳ ngay sau khi báo cáo có dữ liệu ─────── */
-  var daNapSan = false;
-  function napSanHangHoa(){
-    if(daNapSan) return;
+  /* ── render sổ chi tiết (thay hẳn tab Chi tiết cũ) ───────────────────── */
+  function renderSoChiTiet(rows){
+    var tb = document.getElementById('tb-ct'), tf = document.getElementById('tf-ct');
+    if(!rows || !rows.length){
+      tb.innerHTML = '<tr><td colspan="10" class="empty-note">Không có dữ liệu phù hợp.</td></tr>';
+      tf.innerHTML = ''; return;
+    }
+
+    /* gom theo NCC, giữ đúng thứ tự xuất hiện */
+    var map = {}, thuTu = [];
+    rows.forEach(function(r){
+      var k = (r.kh||'(Không rõ tên)').trim();
+      if(!map[k]){ map[k] = []; thuTu.push(k); }
+      map[k].push(r);
+    });
+
+    var html = '', tMua = 0, tTra = 0, tCuoi = 0, tongThieu = 0;
+
+    thuTu.forEach(function(ten){
+      var ds = map[ten];
+      var noCu = ds.map(function(r){ return Number(r.nocu)||0; });
+      var dauKy = (typeof dauKyMode !== 'undefined' && dauKyMode === 'sum')
+        ? noCu.reduce(function(a,b){ return a+b; }, 0)
+        : (noCu[0] || 0);
+
+      var bt = butToan(ds);
+      tongThieu += bt.thieuCT;
+      var con = dauKy, sMua = 0, sTra = 0, stt = 0;
+
+      html += '<tr class="sct-ncc"><td colspan="10">NHÀ CUNG CẤP: ' + esc(ten) + '</td></tr>';
+      html += '<tr class="sct-dau"><td colspan="9">SỐ DƯ ĐẦU KỲ</td>'
+            + '<td class="num">' + nz0(dauKy) + '</td></tr>';
+
+      bt.ev.forEach(function(e){
+        stt++;
+        con += (e.tien||0) - (e.tra||0);
+        sMua += (e.tien||0); sTra += (e.tra||0);
+        var cls = e.lech ? ' class="sct-lech"' : (e.chi ? ' class="sct-tra"' : '');
+        html += '<tr'+cls+'>'
+          + '<td class="ctr">'+stt+'</td>'
+          + '<td>'+esc(e.pxn)+'</td>'
+          + '<td class="ctr">'+esc(e.ngay)+'</td>'
+          + '<td>'+esc(e.dg)+'</td>'
+          + '<td class="ctr">'+esc(e.cn)+'</td>'
+          + '<td class="num">'+ (e.sl ? nz0(e.sl) : '') +'</td>'
+          + '<td class="num">'+ nz(e.don) +'</td>'
+          + '<td class="num">'+ nz(e.tien) +'</td>'
+          + '<td class="num">'+ (e.tra ? nz0(e.tra) : '-') +'</td>'
+          + '<td class="num">'+ nz0(con) +'</td></tr>';
+      });
+
+      html += '<tr class="sct-cong"><td colspan="7">CỘNG PHÁT SINH TRONG KỲ</td>'
+            + '<td class="num">'+nz0(sMua)+'</td><td class="num">'+nz0(sTra)+'</td><td></td></tr>';
+      html += '<tr class="sct-cuoi"><td colspan="9">SỐ DƯ CUỐI KỲ</td>'
+            + '<td class="num">'+nz0(con)+'</td></tr>';
+
+      tMua += sMua; tTra += sTra; tCuoi += con;
+    });
+
+    tb.innerHTML = html;
+    tf.innerHTML = '<tr><td class="ctr" colspan="7">TỔNG CỘNG ('+thuTu.length+' nhà cung cấp)</td>'
+      + '<td class="num">'+nz0(tMua)+'</td><td class="num">'+nz0(tTra)+'</td>'
+      + '<td class="num">'+nz0(tCuoi)+'</td></tr>';
+
+    var z = document.getElementById('sct-canhbao');
+    if(z) z.innerHTML = tongThieu
+      ? '<div class="sct-note">⚠ Còn '+tongThieu+' phiếu chưa tải được chi tiết hàng hoá — đang tải, bấm Bỏ lọc rồi chọn lại để xem đầy đủ.</div>'
+      : '';
+  }
+
+  /* thay hẳn bảng chi tiết cũ bằng sổ chi tiết */
+  window.renderCT = renderSoChiTiet;
+
+  /* chỗ hiện cảnh báo, đặt ngay trên bảng */
+  (function(){
+    var w = document.getElementById('wrap-ct');
+    if(w && !document.getElementById('sct-canhbao')){
+      var d = document.createElement('div');
+      d.id = 'sct-canhbao';
+      w.insertBefore(d, w.firstChild);
+    }
+  })();
+
+  /* ── nạp sẵn hàng hoá của cả kỳ rồi vẽ lại sổ ────────────────────────── */
+  var daNap = false;
+  function napHangHoa(){
+    if(daNap || dangNap) return;
     var ds = (window.allRows||[])
       .map(function(r){ return String(r.dh==null?'':r.dh).trim(); })
       .filter(function(p){ return p && /^[0-9]/.test(p); });
     ds = ds.filter(function(p,i){ return ds.indexOf(p)===i; });
-    if(!ds.length) return;
-    daNapSan = true;
-    hhFetch(ds).catch(function(){ daNapSan = false; });
+    if(!ds.length){ daNap = true; return; }
+    dangNap = true;
+    hhFetch(ds)
+      .then(function(){ daNap = true; dangNap = false; if(window.applyFilter) applyFilter(); })
+      .catch(function(){ dangNap = false; });
   }
   (function cho(){
     var n = 0;
     var id = setInterval(function(){
       n++;
-      if(daNapSan || n > 60){ clearInterval(id); return; }
-      if(window.allRows && window.allRows.length){ clearInterval(id); napSanHangHoa(); }
+      if(daNap || n > 90){ clearInterval(id); return; }
+      if(window.allRows && window.allRows.length){ clearInterval(id); napHangHoa(); }
     }, 800);
   })();
-
-  function ganNutHH(){
-    var tb = document.querySelector('.toolbar');
-    if(!tb || document.getElementById('btn-xuat-hh')) return;
-    var b = document.createElement('button');
-    b.id = 'btn-xuat-hh';
-    b.type = 'button';
-    b.className = 'btn';
-    b.textContent = 'Xuất Excel kèm hàng hoá';
-    b.onclick = function(){ xuatKemHangHoa(b); };
-    tb.appendChild(b);
-  }
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ganNutHH);
-  else ganNutHH();
-
-  /* Nút "Xuất Excel" gốc: thu gọn trước để file Excel giữ đúng mẫu cũ */
-  document.addEventListener('click', function(e){
-    var b = e.target && e.target.closest ? e.target.closest('#plg-excel-btn') : null;
-    if(b) window.hhThuGon();
-  }, true);
 })();
 </script>
 
