@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Báo cáo thu chi - Phi Long Auto</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Times New Roman",Times,serif;background:#e9eef4;padding:18px 10px;color:#000}
+
+/* ───── THANH CÔNG CỤ (không in) ───── */
+.toolbar{max-width:1320px;margin:0 auto 12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+background:#fff;border:1px solid #c3d2e3;border-radius:8px;padding:10px 14px;font-family:"Segoe UI",Arial,sans-serif}
+.btn{background:#0070C0;color:#fff;border:none;border-radius:6px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.btn:hover{background:#005A9E}
+.btn.ghost{background:#fff;color:#0070C0;border:1px solid #0070C0}
+.tb-label{font-size:13px;font-weight:600;color:#33475e}
+.tb-input{padding:7px 9px;border:1px solid #b9c9dc;border-radius:6px;font-size:13px;font-family:inherit}
+.tb-input.tim{min-width:220px}
+.count{font-size:12px;color:#5c748f}
+
+/* ───── CẢNH BÁO ───── */
+.alert{max-width:1320px;margin:0 auto 12px;border-radius:8px;padding:12px 16px;font-family:"Segoe UI",Arial,sans-serif;font-size:13px;line-height:1.55}
+.alert.warn{background:#fff6e5;border:1px solid #e0b057;color:#6b4800}
+.alert.err{background:#fdecea;border:1px solid #e09a93;color:#7a241c}
+.alert.info{background:#eaf2fb;border:1px solid #9dbbdd;color:#1b3a63}
+.alert b{font-weight:700}
+.alert ul{margin:6px 0 0 18px}
+
+/* ───── TRANG BÁO CÁO ───── */
+.page{max-width:1320px;margin:0 auto;background:#fff;border:1px solid #c3d2e3;padding:22px 26px 28px}
+.co-head{margin-bottom:4px}
+.co-logo{height:46px;width:auto;display:block}
+.doc-title{text-align:center;font-size:21px;font-weight:700;text-transform:uppercase;margin:10px 0 4px;letter-spacing:.01em}
+.doc-sub{text-align:center;font-size:14px;font-style:italic;margin-bottom:14px}
+.sec{font-size:15px;font-weight:700;text-transform:uppercase;margin:18px 0 6px;border-bottom:2px solid #0070C0;padding-bottom:3px}
+.sub{font-size:13.5px;font-weight:700;font-style:italic;margin:12px 0 4px}
+
+/* ───── BẢNG ───── */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid #000;padding:5px 7px;vertical-align:middle}
+thead th{background:#0070C0;color:#fff;font-weight:700;text-align:center;font-size:13.5px;line-height:1.3;font-family:"Times New Roman",Times,serif;letter-spacing:.01em}
+td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.ctr{text-align:center}
+tbody tr:nth-child(even) td{background:#f7fafd}
+tfoot td{background:#DCE6F1;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+tfoot td.ctr{text-align:center}
+.warn-cell{color:#b0531a;font-weight:700}
+.empty-note{text-align:center;padding:22px;color:#7a8ea4;font-style:italic}
+
+/* Dòng TỔNG vàng nằm ngay dưới dòng tiêu đề (mẫu SỔ CHI TIẾT KHÁCH HÀNG) */
+tr.tong-top td{background:#FFFF00!important;color:#000;font-weight:700;
+               text-align:right;font-variant-numeric:tabular-nums;
+               border-top:2px solid #000;border-bottom:2px solid #000;font-size:13.5px}
+tr.tong-top td.ctr{text-align:center;letter-spacing:.02em}
+tr.cl-row td{background:#FFF2CC!important;font-weight:700}
+
+/* ───── CHỮ KÝ ───── */
+.sign-date{text-align:right;font-style:italic;font-size:13px;margin-top:16px}
+.sign-row{display:flex;justify-content:space-around;margin-top:8px;text-align:center}
+.sign-col{width:30%}
+.sign-col .t{font-weight:700;font-size:13px}
+.sign-col .h{font-size:12px;font-style:italic;color:#444;margin-top:2px}
+.sign-col .n{margin-top:52px;font-size:13px}
+
+/* ───── IN ───── */
+@media print{
+@page{size:A4 landscape;margin:10mm}
+body{background:#fff;padding:0}
+.toolbar,.alert.info,#plg-excel-btn{display:none!important}
+.page{border:none;max-width:none;padding:0}
+thead{display:table-header-group}
+thead th{background:#0070C0!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+tfoot td{background:#DCE6F1!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+tbody tr:nth-child(even) td{background:#f7fafd!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+tr.tong-top td{background:#FFFF00!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+tr.cl-row td{background:#FFF2CC!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+tr{page-break-inside:avoid}
+table{font-size:10px}
+th,td{padding:3px 4px}
+thead th{font-size:9.5px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ THANH CÔNG CỤ ══════════ -->
+<div class="toolbar">
+  <span class="tb-label">Từ ngày:</span>
+  <input type="date" id="f-tu" class="tb-input" onchange="napAPI()">
+  <span class="tb-label">Đến ngày:</span>
+  <input type="date" id="f-den" class="tb-input" onchange="napAPI()">
+  <span class="tb-label">Chi nhánh:</span>
+  <select id="f-cn" class="tb-input" onchange="napAPI()">
+    <option value="">Tất cả</option>
+    <option value="CN1">CN1</option>
+    <option value="CN2">CN2</option>
+    <option value="CN3">CN3</option>
+  </select>
+  <span class="tb-label">Hình thức:</span>
+  <select id="f-ht" class="tb-input" onchange="veLai()">
+    <option value="">Tất cả</option>
+    <option value="TM">Tiền mặt</option>
+    <option value="CK">Chuyển khoản</option>
+  </select>
+  <span class="tb-label">Tìm:</span>
+  <input type="text" id="f-tim" class="tb-input tim" placeholder="Tên đối tác / số phiếu / diễn giải..." oninput="veLai()">
+  <button class="btn ghost" onclick="boLoc()">Bỏ lọc</button>
+  <span class="count" id="dem"></span>
+  <button class="btn" onclick="window.print()">In báo cáo</button>
+</div>
+
+<div id="alert-zone"></div>
+
+<!-- ══════════ TRANG ══════════ -->
+<div class="page">
+
+<div class="co-head">
+  <img class="co-logo" src="https://i.ibb.co/JwHMkPXc/logo-PHILONG1.jpg" alt="Phi Long Auto">
+</div>
+
+<div class="doc-title">BÁO CÁO THU CHI</div>
+<div class="doc-sub">
+  Kỳ: <span data-plg-info="Kỳ báo cáo" id="meta-ky">——</span>
+  &nbsp;—&nbsp; Chi nhánh: <span data-plg-info="Chi nhánh" id="meta-cn">——</span>
+</div>
+
+<div class="sec">A. THU</div>
+
+<div class="sub">I. Thu tiền bán hàng</div>
+<table id="tbl-a1" data-plg-sheet="A1 THU BAN HANG">
+<thead><tr>
+  <th style="width:42px">TT</th><th style="width:86px">Ngày</th><th style="min-width:150px">Số phiếu</th>
+  <th style="min-width:210px">Khách hàng</th><th style="min-width:150px">Đơn hàng</th>
+  <th style="width:70px">Hình thức</th><th style="width:58px">CN</th><th style="min-width:110px">Số tiền</th>
+</tr></thead>
+<tbody id="tb-a1"><tr><td colspan="8" class="empty-note">Đang tải dữ liệu...</td></tr></tbody>
+<tfoot id="tf-a1"></tfoot>
+</table>
+
+<div class="sub">II. Thu công nợ khách hàng</div>
+<table id="tbl-a2" data-plg-sheet="A2 THU CONG NO KH">
+<thead><tr>
+  <th style="width:42px">TT</th><th style="width:86px">Ngày</th><th style="min-width:150px">Số phiếu</th>
+  <th style="min-width:210px">Khách hàng</th><th style="min-width:260px">Diễn giải</th>
+  <th style="width:70px">Hình thức</th><th style="width:58px">CN</th><th style="min-width:110px">Số tiền</th>
+</tr></thead>
+<tbody id="tb-a2"><tr><td colspan="8" class="empty-note">Đang tải dữ liệu...</td></tr></tbody>
+<tfoot id="tf-a2"></tfoot>
+</table>
+
+<div class="sub">III. Thu khác</div>
+<table id="tbl-a3" data-plg-sheet="A3 THU KHAC">
+<thead><tr>
+  <th style="width:42px">TT</th><th style="width:86px">Ngày</th><th style="min-width:150px">Số phiếu</th>
+  <th style="min-width:210px">Đối tác</th><th style="min-width:160px">Phân nhóm</th><th style="min-width:230px">Diễn giải</th>
+  <th style="width:70px">Hình thức</th><th style="width:58px">CN</th><th style="min-width:110px">Số tiền</th>
+</tr></thead>
+<tbody id="tb-a3"><tr><td colspan="9" class="empty-note">Đang tải dữ liệu...</td></tr></tbody>
+<tfoot id="tf-a3"></tfoot>
+</table>
+
+<div class="sec">B. CHI</div>
+
+<div class="sub">I. Trả nhà cung cấp</div>
+<table id="tbl-b1" data-plg-sheet="B1 TRA NCC">
+<thead><tr>
+  <th style="width:42px">TT</th><th style="width:86px">Ngày</th><th style="min-width:150px">Số phiếu</th>
+  <th style="min-width:210px">Nhà cung cấp</th><th style="min-width:160px">Phân nhóm</th><th style="min-width:230px">Diễn giải</th>
+  <th style="width:70px">Hình thức</th><th style="width:58px">CN</th><th style="min-width:110px">Số tiền</th>
+</tr></thead>
+<tbody id="tb-b1"><tr><td colspan="9" class="empty-note">Đang tải dữ liệu...</td></tr></tbody>
+<tfoot id="tf-b1"></tfoot>
+</table>
+
+<div class="sub">II. Chi vận hành &amp; chi phí</div>
+<table id="tbl-b2" data-plg-sheet="B2 CHI VAN HANH">
+<thead><tr>
+  <th style="width:42px">TT</th><th style="width:86px">Ngày</th><th style="min-width:150px">Số phiếu</th>
+  <th style="min-width:210px">Đối tượng nhận</th><th style="min-width:160px">Phân nhóm</th><th style="min-width:230px">Diễn giải</th>
+  <th style="width:70px">Hình thức</th><th style="width:58px">CN</th><th style="min-width:110px">Số tiền</th>
+</tr></thead>
+<tbody id="tb-b2"><tr><td colspan="9" class="empty-note">Đang tải dữ liệu...</td></tr></tbody>
+<tfoot id="tf-b2"></tfoot>
+</table>
+
+<div class="sub">III. Chi khác</div>
+<table id="tbl-b3" data-plg-sheet="B3 CHI KHAC">
+<thead><tr>
+  <th style="width:42px">TT</th><th style="width:86px">Ngày</th><th style="min-width:150px">Số phiếu</th>
+  <th style="min-width:210px">Đối tượng nhận</th><th style="min-width:160px">Phân nhóm</th><th style="min-width:230px">Diễn giải</th>
+  <th style="width:70px">Hình thức</th><th style="width:58px">CN</th><th style="min-width:110px">Số tiền</th>
+</tr></thead>
+<tbody id="tb-b3"><tr><td colspan="9" class="empty-note">Đang tải dữ liệu...</td></tr></tbody>
+<tfoot id="tf-b3"></tfoot>
+</table>
+
+<div class="sec">C. TỔNG HỢP</div>
+
+<div class="sub">1. Dòng tiền trong kỳ</div>
+<table id="tbl-c1" data-plg-sheet="C1 TONG HOP">
+<thead><tr>
+  <th style="width:42px">TT</th><th style="min-width:230px">Nghiệp vụ</th>
+  <th style="min-width:140px">Chuyển khoản (CK)</th><th style="min-width:140px">Tiền mặt (TM)</th><th style="min-width:150px">Tổng cộng</th>
+</tr></thead>
+<tbody id="tb-c1"><tr><td colspan="5" class="empty-note">Đang tải dữ liệu...</td></tr></tbody>
+</table>
+
+<div class="sub">2. Theo chi nhánh</div>
+<table id="tbl-c2" data-plg-sheet="C2 THEO CHI NHANH">
+<thead><tr>
+  <th style="width:70px">CN</th>
+  <th style="min-width:120px">Thu TM</th><th style="min-width:120px">Thu CK</th><th style="min-width:130px">Tổng thu</th>
+  <th style="min-width:120px">Chi TM</th><th style="min-width:120px">Chi CK</th><th style="min-width:130px">Tổng chi</th>
+  <th style="min-width:130px">Chênh lệch</th>
+</tr></thead>
+<tbody id="tb-c2"><tr><td colspan="8" class="empty-note">Đang tải dữ liệu...</td></tr></tbody>
+<tfoot id="tf-c2"></tfoot>
+</table>
+
+<div class="sub">3. Cơ cấu theo nhóm</div>
+<table id="tbl-c3" data-plg-sheet="C3 CO CAU NHOM">
+<thead><tr>
+  <th style="min-width:240px">Nhóm</th><th style="width:90px">Số phiếu</th>
+  <th style="min-width:130px">Tiền mặt</th><th style="min-width:130px">Chuyển khoản</th><th style="min-width:140px">Tổng cộng</th>
+</tr></thead>
+<tbody id="tb-c3"><tr><td colspan="5" class="empty-note">Đang tải dữ liệu...</td></tr></tbody>
+<tfoot id="tf-c3"></tfoot>
+</table>
+
+<div class="sign-date" id="sign-date"></div>
+<div class="sign-row">
+  <div class="sign-col"><div class="t">NGƯỜI LẬP BIỂU</div><div class="h">(Ký, họ tên)</div><div class="n">...............................</div></div>
+  <div class="sign-col"><div class="t">KẾ TOÁN</div><div class="h">(Ký, họ tên)</div><div class="n">...............................</div></div>
+  <div class="sign-col"><div class="t">GIÁM ĐỐC</div><div class="h">(Ký, họ tên, đóng dấu)</div><div class="n">...............................</div></div>
+</div>
+
+</div><!-- /page -->
+
+<script>
+/* ============================================================================
+ * BÁO CÁO THU CHI — PHI LONG AUTO
+ * ----------------------------------------------------------------------------
+ * 25/10/2026 — viết lại từ bản cũ (vtanh1986/APP/philongauto.baocaothuchi.html).
+ * Hai lỗi của bản cũ đã xử lý dứt điểm:
+ *   [1] Link AppSheet ghép dữ liệu vào URL (&tbh=&tk=&cncc=&ck=) dài ~34.000 ký
+ *       tự -> GitHub Pages trả HTTP 414 (đã đo: 8.000 ký tự còn mở được,
+ *       9.000 ký tự đã 414). Bản mới KHÔNG nhận dữ liệu qua URL nữa, chỉ cần
+ *       ?tungay=&denngay=&chinhanh= (hoặc ?ngay=dd/MM/yy - dd/MM/yy).
+ *   [2] Chuỗi app gửi chỉ có 5 cột (ngày / THU-CHI / số phiếu / số tiền / hình
+ *       thức) trong khi trang cũ đọc theo 8 cột -> lệch cột, mất tên khách và
+ *       diễn giải, bảng "Chi nhà cung cấp" luôn rỗng vì &cncc= trống.
+ * Nguồn số: API Apps Script đọc tab THU_CHI của file BÁO CÁO NGÀY.
+ * ==========================================================================*/
+
+var API = '__API_URL__';
+
+var rowsAll = [];     /* toàn bộ dòng của kỳ (đã lọc chi nhánh ở API) */
+var dangNap = false;
+var META = {};
+
+/* ───────────────────────── TIỆN ÍCH ───────────────────────── */
+function fmt(n){ n=Math.round(n||0); return n===0?'':n.toLocaleString('vi-VN'); }
+function fmt0(n){ return Math.round(n||0).toLocaleString('vi-VN'); }
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function kd(s){
+  return String(s==null?'':s).normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/đ/g,'d').replace(/Đ/g,'D').toUpperCase().replace(/\s+/g,' ').trim();
+}
+function p2(n){ return (n<10?'0':'')+n; }
+function d2s(d){ return p2(d.getDate())+'/'+p2(d.getMonth()+1)+'/'+d.getFullYear(); }
+function d2iso(d){ return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate()); }
+function s2d(s){
+  var m=String(s||'').match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+  if(m){ var y=+m[3]; if(y<100)y+=2000; return new Date(y,+m[2]-1,+m[1]); }
+  m=String(s||'').match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if(m) return new Date(+m[1],+m[2]-1,+m[3]);
+  return null;
+}
+
+/* ─────────────── PHÂN NHÓM 6 BẢNG (theo phan_nhom thật của app) ─────────────── */
+var TU_KHOA_VAN_HANH = ['CHI VAN HANH','TIEN LUONG','TIEN DIEN','TIEN NUOC','TIEN INTERNET',
+  'TIEN THUE NHA','TIEN KHAU HAO','XANG','QUY CONG DOAN','TRICH HOA HONG','GIAO NHAN XE',
+  'NHA XE','CHANH PHONG','KIM MANH','BAO HANH DICH VU','CHI BAN'];
+
+function nhomCua(r){
+  var n = kd(r.nhom);
+  if(r.loai==='THU'){
+    if(n.indexOf('THU TIEN BAN HANG')>-1) return 'a1';
+    if(n.indexOf('CONG NO')>-1)           return 'a2';
+    return 'a3';
+  }
+  if(n.indexOf('NCC')>-1 || n.indexOf('NHA CUNG CAP')>-1) return 'b1';
+  for(var i=0;i<TU_KHOA_VAN_HANH.length;i++){
+    if(n.indexOf(TU_KHOA_VAN_HANH[i])>-1) return 'b2';
+  }
+  return 'b3';
+}
+
+var TEN_NHOM = {
+  a1:'A.I — Thu tiền bán hàng', a2:'A.II — Thu công nợ khách hàng', a3:'A.III — Thu khác',
+  b1:'B.I — Trả nhà cung cấp',  b2:'B.II — Chi vận hành & chi phí',  b3:'B.III — Chi khác'
+};
+
+/* ───────────────────────── LỌC ───────────────────────── */
+function locHienHanh(){
+  var ht=document.getElementById('f-ht').value;
+  var q=kd(document.getElementById('f-tim').value||'');
+  return rowsAll.filter(function(r){
+    if(ht && r.ht!==ht) return false;
+    if(q){
+      var s=kd(r.doitac+' '+r.sophieu+' '+r.lydo+' '+r.nhom+' '+r.iddh);
+      if(s.indexOf(q)<0) return false;
+    }
+    return true;
+  });
+}
+function boLoc(){
+  document.getElementById('f-ht').value='';
+  document.getElementById('f-tim').value='';
+  veLai();
+}
+
+/* ───────────────────────── VẼ BẢNG CHI TIẾT ───────────────────────── */
+function donHang(r){
+  if(r.iddh) return r.iddh;
+  var m=String(r.lydo||'').match(/DH[A-Z]*\d+/);
+  return m?m[0]:'';
+}
+
+function veBang(key, rows){
+  var tb=document.getElementById('tb-'+key), tf=document.getElementById('tf-'+key);
+  var soCot = (key==='a1'||key==='a2') ? 8 : 9;
+  if(!rows.length){
+    tb.innerHTML='<tr><td colspan="'+soCot+'" class="empty-note">Không có phiếu nào trong kỳ.</td></tr>';
+    tf.innerHTML=''; return 0;
+  }
+  var tong=0;
+  tb.innerHTML=rows.map(function(r,i){
+    tong+=r.tien;
+    var am = r.tien<0;
+    var c='<tr>'
+      +'<td class="ctr">'+(i+1)+'</td>'
+      +'<td class="ctr">'+esc(r.ngay)+'</td>'
+      +'<td>'+esc(r.sophieu)+'</td>'
+      +'<td>'+esc(r.doitac||'—')+'</td>';
+    if(key==='a1')      c+='<td class="ctr">'+esc(donHang(r))+'</td>';
+    else if(key==='a2') c+='<td>'+esc(r.lydo)+'</td>';
+    else                c+='<td>'+esc(r.nhom)+'</td><td>'+esc(r.lydo)+'</td>';
+    c+='<td class="ctr">'+esc(r.ht)+'</td>'
+      +'<td class="ctr">'+esc(r.cn)+'</td>'
+      +'<td class="num'+(am?' warn-cell':'')+'">'+fmt0(r.tien)+'</td></tr>';
+    return c;
+  }).join('');
+  tf.innerHTML='<tr><td class="ctr" colspan="'+(soCot-1)+'">TỔNG '+esc(TEN_NHOM[key])+' — '+rows.length+' phiếu</td>'
+    +'<td>'+fmt0(tong)+'</td></tr>';
+  return tong;
+}
+
+/* ───────────────────────── VẼ TỔNG HỢP ───────────────────────── */
+function veTongHop(rows){
+  var thuCK=0,thuTM=0,chiCK=0,chiTM=0,ncCK=0,ncTM=0;
+  rows.forEach(function(r){
+    if(r.loai==='THU'){ if(r.ht==='CK') thuCK+=r.tien; else thuTM+=r.tien; }
+    else {
+      if(r.ht==='CK') chiCK+=r.tien; else chiTM+=r.tien;
+      /* khoản không phải chi phí vận hành: trả nhà cung cấp + nộp quỹ ngân hàng */
+      var kn=kd(r.nhom);
+      if(nhomCua(r)==='b1' || kn.indexOf('NOP QUY')>-1){ if(r.ht==='CK') ncCK+=r.tien; else ncTM+=r.tien; }
+    }
+  });
+  var d=function(a,b){ return a-b; };
+  document.getElementById('tb-c1').innerHTML=
+     '<tr><td class="ctr">1</td><td>Tổng THU</td><td class="num">'+fmt0(thuCK)+'</td><td class="num">'+fmt0(thuTM)+'</td><td class="num">'+fmt0(thuCK+thuTM)+'</td></tr>'
+    +'<tr><td class="ctr">2</td><td>Tổng CHI</td><td class="num">'+fmt0(chiCK)+'</td><td class="num">'+fmt0(chiTM)+'</td><td class="num">'+fmt0(chiCK+chiTM)+'</td></tr>'
+    +'<tr class="cl-row"><td class="ctr">3</td><td>Chênh lệch (Thu − Chi)</td><td class="num">'+fmt0(d(thuCK,chiCK))+'</td><td class="num">'+fmt0(d(thuTM,chiTM))+'</td><td class="num">'+fmt0(d(thuCK+thuTM,chiCK+chiTM))+'</td></tr>'
+    +'<tr><td class="ctr">4</td><td>Trong đó: trả nhà cung cấp + nộp quỹ ngân hàng</td><td class="num">'+fmt0(ncCK)+'</td><td class="num">'+fmt0(ncTM)+'</td><td class="num">'+fmt0(ncCK+ncTM)+'</td></tr>'
+    +'<tr class="cl-row"><td class="ctr">5</td><td>Chênh lệch sau khi loại mục 4</td><td class="num">'+fmt0(d(thuCK,chiCK)+ncCK)+'</td><td class="num">'+fmt0(d(thuTM,chiTM)+ncTM)+'</td><td class="num">'+fmt0(d(thuCK+thuTM,chiCK+chiTM)+ncCK+ncTM)+'</td></tr>';
+
+  /* ── theo chi nhánh ── */
+  var cn={};
+  rows.forEach(function(r){
+    var k=r.cn||'(trống)';
+    if(!cn[k]) cn[k]={thuTM:0,thuCK:0,chiTM:0,chiCK:0};
+    if(r.loai==='THU'){ if(r.ht==='CK') cn[k].thuCK+=r.tien; else cn[k].thuTM+=r.tien; }
+    else              { if(r.ht==='CK') cn[k].chiCK+=r.tien; else cn[k].chiTM+=r.tien; }
+  });
+  var ks=Object.keys(cn).sort();
+  var t={thuTM:0,thuCK:0,chiTM:0,chiCK:0};
+  document.getElementById('tb-c2').innerHTML = ks.length ? ks.map(function(k){
+    var v=cn[k]; t.thuTM+=v.thuTM; t.thuCK+=v.thuCK; t.chiTM+=v.chiTM; t.chiCK+=v.chiCK;
+    var tt=v.thuTM+v.thuCK, tc=v.chiTM+v.chiCK;
+    return '<tr><td class="ctr">'+esc(k)+'</td>'
+      +'<td class="num">'+fmt0(v.thuTM)+'</td><td class="num">'+fmt0(v.thuCK)+'</td><td class="num">'+fmt0(tt)+'</td>'
+      +'<td class="num">'+fmt0(v.chiTM)+'</td><td class="num">'+fmt0(v.chiCK)+'</td><td class="num">'+fmt0(tc)+'</td>'
+      +'<td class="num">'+fmt0(tt-tc)+'</td></tr>';
+  }).join('') : '<tr><td colspan="8" class="empty-note">Không có dữ liệu.</td></tr>';
+  document.getElementById('tf-c2').innerHTML = ks.length ?
+    ('<tr><td class="ctr">TỔNG</td><td>'+fmt0(t.thuTM)+'</td><td>'+fmt0(t.thuCK)+'</td><td>'+fmt0(t.thuTM+t.thuCK)+'</td>'
+     +'<td>'+fmt0(t.chiTM)+'</td><td>'+fmt0(t.chiCK)+'</td><td>'+fmt0(t.chiTM+t.chiCK)+'</td>'
+     +'<td>'+fmt0(t.thuTM+t.thuCK-t.chiTM-t.chiCK)+'</td></tr>') : '';
+
+  /* ── cơ cấu theo phân nhóm gốc của app ── */
+  var g={};
+  rows.forEach(function(r){
+    var k=(r.loai==='THU'?'THU · ':'CHI · ')+(r.nhom||'(không ghi nhóm)');
+    if(!g[k]) g[k]={n:0,tm:0,ck:0};
+    g[k].n++; if(r.ht==='CK') g[k].ck+=r.tien; else g[k].tm+=r.tien;
+  });
+  var gk=Object.keys(g).sort(function(a,b){ return (g[b].tm+g[b].ck)-(g[a].tm+g[a].ck); });
+  var gt={n:0,tm:0,ck:0};
+  document.getElementById('tb-c3').innerHTML = gk.length ? gk.map(function(k){
+    var v=g[k]; gt.n+=v.n; gt.tm+=v.tm; gt.ck+=v.ck;
+    return '<tr><td>'+esc(k)+'</td><td class="ctr">'+v.n+'</td>'
+      +'<td class="num">'+fmt0(v.tm)+'</td><td class="num">'+fmt0(v.ck)+'</td><td class="num">'+fmt0(v.tm+v.ck)+'</td></tr>';
+  }).join('') : '<tr><td colspan="5" class="empty-note">Không có dữ liệu.</td></tr>';
+  document.getElementById('tf-c3').innerHTML = gk.length ?
+    ('<tr><td class="ctr">TỔNG CỘNG</td><td class="ctr">'+gt.n+'</td><td>'+fmt0(gt.tm)+'</td><td>'+fmt0(gt.ck)+'</td><td>'+fmt0(gt.tm+gt.ck)+'</td></tr>') : '';
+
+  return {thuCK:thuCK,thuTM:thuTM,chiCK:chiCK,chiTM:chiTM};
+}
+
+/* ───────────────────────── TRA SOÁT DỮ LIỆU ───────────────────────── */
+function traSoat(rows, tong){
+  var dup={}, trung=[], amSo=[], htLa=[], khongNhom=0, khongTen=0;
+  rows.forEach(function(r){
+    if(r.sophieu){ dup[r.sophieu]=(dup[r.sophieu]||0)+1; }
+    if(r.tien<=0) amSo.push(r.sophieu||r.ngay);
+    if(r.ht!=='TM'&&r.ht!=='CK') htLa.push(r.sophieu+' ('+r.ht+')');
+    if(!r.nhom) khongNhom++;
+    if(!r.doitac) khongTen++;
+  });
+  for(var k in dup) if(dup[k]>1) trung.push(k+' ×'+dup[k]);
+
+  var h='<div class="alert info"><b>Nguồn:</b> '+esc(META.nguon)+' — tính lúc '+esc(META.tinhLuc)
+      +'. Kỳ <b>'+esc(META.ky.tu)+' — '+esc(META.ky.den)+'</b>, chi nhánh <b>'+esc(META.chinhanh||'TẤT CẢ')
+      +'</b>, <b>'+META.soDong+'</b> phiếu / '+fmt0(META.tongDong)+' dòng của tab THU_CHI.'
+      +' Tổng thu <b>'+fmt0(tong.thuTM+tong.thuCK)+'</b> đ — tổng chi <b>'+fmt0(tong.chiTM+tong.chiCK)+'</b> đ.</div>';
+
+  var c=[];
+  if(META.boQuaKhongNgay) c.push('<b>'+META.boQuaKhongNgay+'</b> dòng trong tab THU_CHI không đọc được ngày nên bị bỏ qua.');
+  if(trung.length)   c.push('<b>'+trung.length+'</b> số phiếu bị trùng: '+esc(trung.slice(0,8).join(', '))+(trung.length>8?'...':''));
+  if(amSo.length)    c.push('<b>'+amSo.length+'</b> phiếu có số tiền bằng 0 hoặc âm: '+esc(amSo.slice(0,8).join(', '))+(amSo.length>8?'...':''));
+  if(htLa.length)    c.push('<b>'+htLa.length+'</b> phiếu có hình thức thanh toán không phải TM/CK: '+esc(htLa.slice(0,8).join(', ')));
+  if(khongNhom)      c.push('<b>'+khongNhom+'</b> phiếu không ghi phân nhóm (rơi vào bảng "khác").');
+  if(khongTen)       c.push('<b>'+khongTen+'</b> phiếu không có tên đối tác / khách hàng.');
+  if(c.length) h+='<div class="alert warn"><b>&#9888; Tra soát dữ liệu nguồn:</b><ul><li>'+c.join('</li><li>')+'</li></ul></div>';
+
+  document.getElementById('alert-zone').innerHTML=h;
+}
+
+/* ───────────────────────── VẼ LẠI TOÀN TRANG ───────────────────────── */
+function veLai(){
+  var rows=locHienHanh();
+  var nhom={a1:[],a2:[],a3:[],b1:[],b2:[],b3:[]};
+  rows.forEach(function(r){ nhom[nhomCua(r)].push(r); });
+  ['a1','a2','a3','b1','b2','b3'].forEach(function(k){ veBang(k, nhom[k]); });
+  var tong=veTongHop(rows);
+  traSoat(rows, tong);
+  document.getElementById('dem').textContent=rows.length+' / '+rowsAll.length+' phiếu';
+  lenTrenTatCa();
+}
+
+/* ───────────────────────── GỌI API ───────────────────────── */
+function baoLoi(html){ document.getElementById('alert-zone').innerHTML='<div class="alert err">'+html+'</div>'; }
+
+function napAPI(){
+  if(dangNap) return;
+  var tu=document.getElementById('f-tu').value, den=document.getElementById('f-den').value;
+  if(!tu||!den) return;
+  var cn=document.getElementById('f-cn').value;
+  var u=API+'?tungay='+encodeURIComponent(d2s(s2d(tu)))
+          +'&denngay='+encodeURIComponent(d2s(s2d(den)))
+          +'&chinhanh='+encodeURIComponent(cn);
+
+  dangNap=true;
+  document.getElementById('alert-zone').innerHTML='<div class="alert info">Đang tải dữ liệu từ file BÁO CÁO NGÀY (tab THU_CHI)...</div>';
+
+  fetch(u).then(function(r){ return r.json(); }).then(function(j){
+    dangNap=false;
+    if(!j||!j.ok){ baoLoi('<b>API báo lỗi:</b> '+esc(j&&j.loi?j.loi:'không rõ nguyên nhân')); return; }
+    META=j; rowsAll=j.rows||[];
+    document.getElementById('meta-ky').textContent=j.ky.tu+' — '+j.ky.den;
+    document.getElementById('meta-cn').textContent=j.chinhanh||'TẤT CẢ';
+    veLai();
+  }).catch(function(err){
+    dangNap=false;
+    baoLoi('<b>Không gọi được API.</b> '+esc(String(err&&err.message?err.message:err))
+      +'<div style="margin-top:6px">Kiểm tra: Web App đã triển khai ở chế độ <b>Bất kỳ ai</b> chưa, và link API trong trang có đúng không.</div>');
+  });
+}
+
+/* ───────── Chuyển dòng TỔNG (tfoot) lên ngay dưới tiêu đề, nền vàng ───────── */
+function lenTrenTatCa(){
+  ['tbl-a1','tbl-a2','tbl-a3','tbl-b1','tbl-b2','tbl-b3','tbl-c2','tbl-c3'].forEach(function(id){
+    var t=document.getElementById(id); if(!t) return;
+    var tf=t.tFoot, tb=t.tBodies[0];
+    if(!tf||!tb) return;
+    while(tf.rows.length){
+      var r=tf.rows[tf.rows.length-1];
+      r.className=(r.className?r.className+' ':'')+'tong-top';
+      tb.insertBefore(r, tb.firstChild);
+    }
+  });
+}
+
+/* ───────────────────────── KHỞI ĐỘNG ───────────────────────── */
+(function khoiDong(){
+  var qs=window.location.search||'';
+  if((!qs||qs.length<2)&&window.location.hash.indexOf('=')>-1) qs='?'+window.location.hash.slice(1);
+  var p=new URLSearchParams(qs);
+  if(p.get('api')) API=p.get('api');
+
+  var d=new Date();
+  document.getElementById('sign-date').textContent='Ngày '+d.getDate()+' tháng '+(d.getMonth()+1)+' năm '+d.getFullYear();
+
+  /* kỳ: ?tungay=&denngay=  hoặc  ?ngay=18/10/26 - 24/10/26  hoặc  ?ngay=18/10/2026 */
+  var tu=s2d(p.get('tungay')), den=s2d(p.get('denngay'));
+  var ngay=(p.get('ngay')||'').trim();
+  if((!tu||!den)&&ngay){
+    var ph=ngay.split(/\s+-\s+|\s-\s/);
+    if(ph.length>=2){ tu=tu||s2d(ph[0]); den=den||s2d(ph[1]); }
+    else { tu=tu||s2d(ngay); den=den||s2d(ngay); }
+  }
+  if(!den) den=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  if(!tu)  tu=den;
+  document.getElementById('f-tu').value=d2iso(tu);
+  document.getElementById('f-den').value=d2iso(den);
+
+  /* chi nhánh: "CN1" -> chọn; "CN1 , CN2 , CN3" (app gửi cả 3) -> coi như Tất cả */
+  var cnRaw=(p.get('chinhanh')||'').toUpperCase();
+  var ds=cnRaw.split(/[,;|]+/).map(function(s){return s.trim();}).filter(function(s){return s;});
+  if(ds.length===1 && ['CN1','CN2','CN3'].indexOf(ds[0])>-1) document.getElementById('f-cn').value=ds[0];
+
+  if(qs.length>7500){
+    document.getElementById('alert-zone').innerHTML=
+      '<div class="alert warn"><b>&#9888; Link đang dùng rất dài ('+qs.length+' ký tự)</b> — GitHub Pages chỉ nhận tối đa ~8.150 ký tự. '
+      +'Trang này <b>không còn cần dữ liệu trên URL</b>; hãy sửa link bên AppSheet thành dạng gọn: '
+      +'<code>?tungay=&amp;denngay=&amp;chinhanh=</code> hoặc <code>?ngay=&amp;chinhanh=</code>.</div>';
+  }
+
+  window.PLG_EXCEL_OPTIONS={ tenBaoCao:'BÁO CÁO THU CHI', tenFile:'BaoCaoThuChi' };
+  napAPI();
+})();
+</script>
+<!-- ══════════ MODULE XUẤT EXCEL CHUẨN PHI LONG (nhúng sẵn) ══════════ -->
+<script>
+/* ============================================================================
+ * PLG-EXCEL  —  CHUẨN XUẤT FILE EXCEL PHI LONG AUTO
+ * ----------------------------------------------------------------------------
+ * Sinh file .xlsx THẬT (OOXML + ZIP) ngay trên trình duyệt, KHÔNG cần internet,
+ * KHÔNG cần thư viện ngoài. Dùng chung cho toàn bộ biểu mẫu CARDIY5WAY.
+ *
+ * CHUẨN ĐỊNH DẠNG (chốt 22/10/2026):
+ *   - Phông chữ      : Times New Roman
+ *   - Cỡ chữ         : nội dung 12 | tiêu đề 16 đậm | ghi chú 11 nghiêng
+ *   - Màu thương hiệu: #0B5394 (nền tiêu đề bảng, chữ trắng đậm)
+ *   - Dòng tổng cộng : nền #DCE6F1, chữ đậm
+ *   - Khung viền     : thin, màu #000000, toàn bộ ô dữ liệu
+ *   - Định dạng số   : #,##0 (tiền) | 0.0% (phần trăm) | ngày giữ dạng chữ
+ *   - Trang in       : A4, fit 1 trang ngang, lặp dòng tiêu đề bảng
+ *
+ * CÁCH DÙNG: chèn trước thẻ đóng body
+ *   <script src="plg-excel.js"><\/script>
+ * Tuỳ biến (không bắt buộc):
+ *   <script>window.PLG_EXCEL_OPTIONS = { tenBaoCao:'BÁO GIÁ', tenFile:'BaoGia' };<\/script>
+ * Đánh dấu thủ công trong HTML (không bắt buộc):
+ *   <table data-plg-sheet="CÔNG NỢ">   -> đặt tên sheet
+ *   <table data-plg-skip>              -> bỏ qua bảng này
+ *   <div data-plg-info="Biển số">51A-12345</div>
+ * ==========================================================================*/
+(function (global) {
+  'use strict';
+
+  /* ---------------------------------------------------------------- CHUẨN -- */
+  var CHUAN = {
+    font: 'Times New Roman',
+    coChu: 12,
+    coChuTieuDe: 16,
+    mauThuongHieu: '0070C0',   // xanh PLG - nền header bảng
+    mauChuHeader: 'FFFFFF',
+    mauDongTong: 'FFFF00',
+    mauVien: '000000',
+    tenCongTy: 'CÔNG TY TNHH TM DỊCH VỤ Ô TÔ PHI LONG',
+    rongCotMin: 8,
+    rongCotMax: 46
+  };
+
+  /* ====================================================== 1. TIỆN ÍCH ZIP == */
+  var CRC_TABLE = (function () {
+    var t = new Int32Array(256), c, n, k;
+    for (n = 0; n < 256; n++) {
+      c = n;
+      for (k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      t[n] = c;
+    }
+    return t;
+  })();
+
+  function crc32(buf) {
+    var c = -1;
+    for (var i = 0; i < buf.length; i++) c = CRC_TABLE[(c ^ buf[i]) & 0xFF] ^ (c >>> 8);
+    return (c ^ -1) >>> 0;
+  }
+
+  function utf8(str) { return new TextEncoder().encode(str); }
+
+  /* ZIP "stored" (không nén) — Excel đọc bình thường, file nhỏ nên không cần nén */
+  function zip(files) {
+    var parts = [], central = [], offset = 0, i;
+
+    function u16(v) { return [v & 0xFF, (v >>> 8) & 0xFF]; }
+    function u32(v) { return [v & 0xFF, (v >>> 8) & 0xFF, (v >>> 16) & 0xFF, (v >>> 24) & 0xFF]; }
+
+    for (i = 0; i < files.length; i++) {
+      var name = utf8(files[i].name);
+      var data = files[i].data;
+      var crc = crc32(data);
+      var local = [].concat(
+        u32(0x04034b50), u16(20), u16(0x0800), u16(0), u16(0), u16(0),
+        u32(crc), u32(data.length), u32(data.length),
+        u16(name.length), u16(0)
+      );
+      parts.push(new Uint8Array(local), name, data);
+      central.push([].concat(
+        u32(0x02014b50), u16(20), u16(20), u16(0x0800), u16(0), u16(0), u16(0),
+        u32(crc), u32(data.length), u32(data.length),
+        u16(name.length), u16(0), u16(0), u16(0), u16(0), u32(0), u32(offset)
+      ), name);
+      offset += local.length + name.length + data.length;
+    }
+
+    var cdStart = offset, cdSize = 0, flat = [];
+    for (i = 0; i < central.length; i += 2) {
+      var h = new Uint8Array(central[i]);
+      flat.push(h, central[i + 1]);
+      cdSize += h.length + central[i + 1].length;
+    }
+    var eocd = new Uint8Array([].concat(
+      u32(0x06054b50), u16(0), u16(0),
+      u16(files.length), u16(files.length), u32(cdSize), u32(cdStart), u16(0)
+    ));
+
+    var all = parts.concat(flat, [eocd]), total = 0;
+    for (i = 0; i < all.length; i++) total += all[i].length;
+    var out = new Uint8Array(total), p = 0;
+    for (i = 0; i < all.length; i++) { out.set(all[i], p); p += all[i].length; }
+    return out;
+  }
+
+  /* ====================================================== 2. TIỆN ÍCH XML == */
+  function esc(s) {
+    return String(s === null || s === undefined ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&apos;')
+      /* loại ký tự điều khiển Excel không chấp nhận */
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
+  }
+
+  function colName(n) { // 1 -> A
+    var s = '';
+    while (n > 0) { var m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = (n - m - 1) / 26; }
+    return s;
+  }
+
+  /* ================================================ 3. STYLES.XML (CHUẨN) == */
+  /* Chỉ số style dùng trong code:
+     0 mặc định | 1 tiêu đề lớn | 2 tên công ty | 3 HEADER bảng | 4 ô chữ
+     5 ô số #,##0 | 6 ô canh giữa | 7 tổng-chữ | 8 tổng-số | 9 nhãn thông tin
+     10 giá trị thông tin | 11 tiêu đề mục | 12 ghi chú | 13 ô tiền có "đ"
+     14 ô phần trăm                                                            */
+  function stylesXml() {
+    var F = CHUAN.font;
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+      + '<numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0&quot; đ&quot;"/></numFmts>'
+      + '<fonts count="6">'
+      + '<font><sz val="' + CHUAN.coChu + '"/><color rgb="FF000000"/><name val="' + F + '"/></font>'
+      + '<font><b/><sz val="' + CHUAN.coChuTieuDe + '"/><color rgb="FF' + CHUAN.mauThuongHieu + '"/><name val="' + F + '"/></font>'
+      + '<font><b/><sz val="' + CHUAN.coChu + '"/><color rgb="FF000000"/><name val="' + F + '"/></font>'
+      + '<font><b/><sz val="' + CHUAN.coChu + '"/><color rgb="FF' + CHUAN.mauChuHeader + '"/><name val="' + F + '"/></font>'
+      + '<font><i/><sz val="11"/><color rgb="FF595959"/><name val="' + F + '"/></font>'
+      + '<font><b/><sz val="13"/><color rgb="FF' + CHUAN.mauThuongHieu + '"/><name val="' + F + '"/></font>'
+      + '</fonts>'
+      + '<fills count="5">'
+      + '<fill><patternFill patternType="none"/></fill>'
+      + '<fill><patternFill patternType="gray125"/></fill>'
+      + '<fill><patternFill patternType="solid"><fgColor rgb="FF' + CHUAN.mauThuongHieu + '"/><bgColor indexed="64"/></patternFill></fill>'
+      + '<fill><patternFill patternType="solid"><fgColor rgb="FF' + CHUAN.mauDongTong + '"/><bgColor indexed="64"/></patternFill></fill>'
+      + '<fill><patternFill patternType="solid"><fgColor rgb="FFF2F2F2"/><bgColor indexed="64"/></patternFill></fill>'
+      + '</fills>'
+      + '<borders count="2">'
+      + '<border><left/><right/><top/><bottom/><diagonal/></border>'
+      + '<border>'
+      + '<left style="thin"><color rgb="FF' + CHUAN.mauVien + '"/></left>'
+      + '<right style="thin"><color rgb="FF' + CHUAN.mauVien + '"/></right>'
+      + '<top style="thin"><color rgb="FF' + CHUAN.mauVien + '"/></top>'
+      + '<bottom style="thin"><color rgb="FF' + CHUAN.mauVien + '"/></bottom>'
+      + '<diagonal/></border>'
+      + '</borders>'
+      + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+      + '<cellXfs count="15">'
+      /* 0 */ + '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+      /* 1 */ + '<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>'
+      /* 2 */ + '<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>'
+      /* 3 */ + '<xf numFmtId="0" fontId="3" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>'
+      /* 4 */ + '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="left" vertical="center" wrapText="1"/></xf>'
+      /* 5 */ + '<xf numFmtId="3" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>'
+      /* 6 */ + '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>'
+      /* 7 */ + '<xf numFmtId="0" fontId="2" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="left" vertical="center"/></xf>'
+      /* 8 */ + '<xf numFmtId="3" fontId="2" fillId="3" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>'
+      /* 9 */ + '<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="left" vertical="center"/></xf>'
+      /*10 */ + '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="left" vertical="center"/></xf>'
+      /*11 */ + '<xf numFmtId="0" fontId="5" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="left" vertical="center"/></xf>'
+      /*12 */ + '<xf numFmtId="0" fontId="4" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="left" vertical="center"/></xf>'
+      /*13 */ + '<xf numFmtId="164" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>'
+      /*14 */ + '<xf numFmtId="10" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>'
+      + '</cellXfs>'
+      + '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>'
+      + '</styleSheet>';
+  }
+
+  /* ==================================================== 4. DỰNG WORKSHEET == */
+  function sheetXml(sheet) {
+    var rows = sheet.rows, i, j, out = [], maxCol = 1;
+    for (i = 0; i < rows.length; i++) if (rows[i].cells.length > maxCol) maxCol = rows[i].cells.length;
+
+    /* cols */
+    var cols = '<cols>';
+    for (j = 0; j < maxCol; j++) {
+      var w = sheet.widths[j] || CHUAN.rongCotMin;
+      cols += '<col min="' + (j + 1) + '" max="' + (j + 1) + '" width="' + w.toFixed(2) + '" customWidth="1"/>';
+    }
+    cols += '</cols>';
+
+    /* sheetData */
+    for (i = 0; i < rows.length; i++) {
+      var r = rows[i], rn = i + 1, cs = '';
+      for (j = 0; j < r.cells.length; j++) {
+        var c = r.cells[j];
+        if (c === null || c === undefined) continue;
+        var ref = colName(j + 1) + rn;
+        var st = c.s || 0;
+        if (c.t === 'n' && c.v !== null && c.v !== '' && isFinite(c.v)) {
+          cs += '<c r="' + ref + '" s="' + st + '"><v>' + c.v + '</v></c>';
+        } else if (c.v === '' || c.v === null || c.v === undefined) {
+          cs += '<c r="' + ref + '" s="' + st + '"/>';
+        } else {
+          cs += '<c r="' + ref + '" s="' + st + '" t="inlineStr"><is><t xml:space="preserve">'
+              + esc(c.v) + '</t></is></c>';
+        }
+      }
+      out.push('<row r="' + rn + '"' + (r.h ? ' ht="' + r.h + '" customHeight="1"' : '') + '>' + cs + '</row>');
+    }
+
+    /* merges */
+    var merges = '';
+    if (sheet.merges.length) {
+      merges = '<mergeCells count="' + sheet.merges.length + '">';
+      for (i = 0; i < sheet.merges.length; i++) merges += '<mergeCell ref="' + sheet.merges[i] + '"/>';
+      merges += '</mergeCells>';
+    }
+
+    var freeze = '';
+    if (sheet.freezeRow) {
+      freeze = '<pane ySplit="' + sheet.freezeRow + '" topLeftCell="A' + (sheet.freezeRow + 1)
+             + '" activePane="bottomLeft" state="frozen"/>';
+    }
+    var af = sheet.autoFilter ? '<autoFilter ref="' + sheet.autoFilter + '"/>' : '';
+    var landscape = maxCol > 6 ? 'landscape' : 'portrait';
+
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      + '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+      + '<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>'
+      + '<dimension ref="A1:' + colName(maxCol) + Math.max(rows.length, 1) + '"/>'
+      + '<sheetViews><sheetView showGridLines="0" tabSelected="' + (sheet.first ? 1 : 0)
+      + '" workbookViewId="0">' + freeze + '</sheetView></sheetViews>'
+      + '<sheetFormatPr defaultRowHeight="18"/>'
+      + cols
+      + '<sheetData>' + out.join('') + '</sheetData>'
+      + af
+      + merges
+      + '<pageMargins left="0.5" right="0.5" top="0.6" bottom="0.6" header="0.3" footer="0.3"/>'
+      + '<pageSetup paperSize="9" orientation="' + landscape + '" fitToWidth="1" fitToHeight="0"/>'
+      + '</worksheet>';
+  }
+
+  function buildXlsx(sheets) {
+    var files = [], i;
+    var ct = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+      + '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+      + '<Default Extension="xml" ContentType="application/xml"/>'
+      + '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+      + '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>';
+    var wbSheets = '', wbRels = '';
+    for (i = 0; i < sheets.length; i++) {
+      ct += '<Override PartName="/xl/worksheets/sheet' + (i + 1)
+          + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>';
+      wbSheets += '<sheet name="' + esc(sheets[i].name) + '" sheetId="' + (i + 1) + '" r:id="rId' + (i + 1) + '"/>';
+      wbRels += '<Relationship Id="rId' + (i + 1)
+             + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet"'
+             + ' Target="worksheets/sheet' + (i + 1) + '.xml"/>';
+      files.push({ name: 'xl/worksheets/sheet' + (i + 1) + '.xml', data: utf8(sheetXml(sheets[i])) });
+    }
+    ct += '</Types>';
+    wbRels += '<Relationship Id="rIdStyles" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>';
+
+    files.unshift(
+      { name: '[Content_Types].xml', data: utf8(ct) },
+      { name: '_rels/.rels', data: utf8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+          + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+          + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'
+          + '</Relationships>') },
+      { name: 'xl/workbook.xml', data: utf8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+          + '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"'
+          + ' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+          + '<sheets>' + wbSheets + '</sheets></workbook>') },
+      { name: 'xl/_rels/workbook.xml.rels', data: utf8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+          + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+          + wbRels + '</Relationships>') },
+      { name: 'xl/styles.xml', data: utf8(stylesXml()) }
+    );
+    return zip(files);
+  }
+
+  /* ============================================== 5. ĐỌC SỐ KIỂU VIỆT NAM == */
+  function parseSo(raw) {
+    if (raw === null || raw === undefined) return null;
+    var s = String(raw).trim();
+    if (!s) return null;
+
+    var phanTram = /%$/.test(s);
+    var t = s.replace(/[\s ]/g, '').replace(/%$/, '')
+             .replace(/(đ|₫|vnđ|vnd)$/i, '');
+    var am = false;
+    if (/^\(.*\)$/.test(t)) { am = true; t = t.slice(1, -1); }      // (1.000) = âm
+    if (/^-/.test(t)) { am = true; t = t.slice(1); }
+    if (!/^[0-9]+([.,][0-9]+)*$/.test(t)) return null;
+
+    var coP = t.indexOf(',') >= 0, coC = t.indexOf('.') >= 0, v;
+    if (coP && coC) {                                   // dấu xuất hiện sau cùng = thập phân
+      var thapPhan = t.lastIndexOf(',') > t.lastIndexOf('.') ? ',' : '.';
+      var ngan = thapPhan === ',' ? '.' : ',';
+      v = parseFloat(t.split(ngan).join('').replace(thapPhan, '.'));
+    } else if (coP || coC) {
+      var d = coP ? ',' : '.';
+      var khuc = t.split(d);
+      // nhiều dấu, hoặc 1 dấu + đúng 3 chữ số phía sau => dấu ngăn hàng nghìn
+      if (khuc.length > 2 || khuc[khuc.length - 1].length === 3) v = parseFloat(khuc.join(''));
+      else v = parseFloat(khuc.join('.'));
+    } else {
+      v = parseFloat(t);
+    }
+    if (!isFinite(v)) return null;
+    if (am) v = -v;
+    return { v: phanTram ? v / 100 : v, phanTram: phanTram };
+  }
+
+  /* ========================================== 6. THU THẬP DỮ LIỆU TỪ TRANG == */
+  function hien(el) {
+    if (!el) return false;
+    var st = global.getComputedStyle ? global.getComputedStyle(el) : null;
+    if (st && (st.display === 'none' || st.visibility === 'hidden')) return false;
+    return true;
+  }
+
+  function chu(el) {
+    return (el.innerText || el.textContent || '').replace(/\s+/g, ' ').trim();
+  }
+
+  /* Dựng lưới có xử lý colspan / rowspan */
+  function luoiBang(table) {
+    var trs = [], i, j;
+    var all = table.rows;
+    for (i = 0; i < all.length; i++) if (hien(all[i])) trs.push(all[i]);
+
+    var grid = [], merges = [];
+    for (i = 0; i < trs.length; i++) {
+      grid[i] = grid[i] || [];
+      var c = 0;
+      for (j = 0; j < trs[i].cells.length; j++) {
+        while (grid[i][c] !== undefined) c++;
+        var td = trs[i].cells[j];
+        var cs = td.colSpan || 1, rs = td.rowSpan || 1;
+        grid[i][c] = { text: chu(td), th: td.tagName === 'TH', raw: td };
+        if (cs > 1 || rs > 1) merges.push({ r: i, c: c, cs: cs, rs: rs });
+        for (var a = 0; a < rs; a++) {
+          grid[i + a] = grid[i + a] || [];
+          for (var b = 0; b < cs; b++) if (!(a === 0 && b === 0)) grid[i + a][c + b] = { text: '', th: false, spanned: true };
+        }
+        c += cs;
+      }
+    }
+    for (i = 0; i < grid.length; i++) { grid[i] = grid[i] || []; for (j = 0; j < grid[i].length; j++) if (!grid[i][j]) grid[i][j] = { text: '', th: false }; }
+    return { grid: grid, merges: merges, headRows: (table.tHead ? table.tHead.rows.length : 0) };
+  }
+
+  function laBangDuLieu(t) {
+    if (t.hasAttribute('data-plg-skip')) return false;
+    if (!hien(t)) return false;
+    if (t.rows.length < 2) return false;
+    var ths = t.querySelectorAll('th');
+    var cells = t.rows[0] ? t.rows[0].cells.length : 0;
+    return (ths.length >= 2 || cells >= 3);
+  }
+
+  var tieuDeMacDinh = '';
+  function tenSheet(t, idx, dung) {
+    var n = t.getAttribute('data-plg-sheet');
+    if (!n) {
+      var p = t.previousElementSibling, b = 0;
+      while (p && b < 4) {
+        var cls = String(p.className || '');
+        var laTieuDe = /^H[1-6]$/.test(p.tagName)
+          || /(^|[\s_-])(doc-title|section-title|sub-hdr|tieu-de|title|heading)([\s_-]|$)/i.test(cls);
+        if (laTieuDe) {
+          var txt = chu(p);
+          /* bỏ qua thứ trông như "Nhãn: giá trị", ngày tháng, hoặc quá dài */
+          if (txt && txt.indexOf(':') < 0 && !/\d{2}[\/-]\d{2}/.test(txt) && txt.length <= 40) { n = txt; break; }
+        }
+        p = p.previousElementSibling; b++;
+      }
+    }
+    if (!n) n = (tieuDeMacDinh || '') || ('Bảng ' + (idx + 1));
+    n = n.replace(/[\\\/\?\*\[\]:]/g, ' ').trim().slice(0, 28) || ('Bảng ' + (idx + 1));
+    var g = n, k = 2;
+    while (dung[g]) { g = n.slice(0, 26) + ' ' + k; k++; }
+    dung[g] = 1;
+    return g;
+  }
+
+  function thongTinPhieu(doc) {
+    var ra = [], i, seen = {};
+    function them(l, v) {
+      l = String(l || '').replace(/[:：]\s*$/, '').trim();
+      v = String(v || '').trim();
+      if (!l || !v || v === '——' || v === '--' || seen[l]) return;
+      seen[l] = 1; ra.push([l, v]);
+    }
+    var mark = doc.querySelectorAll('[data-plg-info]');
+    for (i = 0; i < mark.length; i++) them(mark[i].getAttribute('data-plg-info'), chu(mark[i]));
+    if (ra.length) return ra;
+
+    /* cặp nhãn/giá trị tường minh */
+    var items = doc.querySelectorAll('.info-item, .info-row, .meta-field, .meta-row, .thong-tin-item, .ir tr');
+    for (i = 0; i < items.length && ra.length < 24; i++) {
+      var el = items[i];
+      if (!hien(el)) continue;
+      var l = el.querySelector('.info-label, .meta-label, .label, th, td:first-child');
+      var v = el.querySelector('.info-value, .meta-value, .value, td:last-child');
+      if (l && v && l !== v) { them(chu(l), chu(v)); continue; }
+      them.apply(null, tachHaiVe(chu(el)));
+    }
+    /* dòng meta kiểu "Chi nhánh: CN3" */
+    var metas = doc.querySelectorAll('.meta span, .meta div, .header-info .meta > *');
+    for (i = 0; i < metas.length && ra.length < 24; i++) {
+      if (!hien(metas[i])) continue;
+      var t = chu(metas[i]);
+      if (t.indexOf(':') > 0) them.apply(null, tachHaiVe(t));
+    }
+    return ra;
+  }
+
+  function tachHaiVe(t) {
+    var k = String(t || '').indexOf(':');
+    return k > 0 ? [t.slice(0, k), t.slice(k + 1)] : ['', ''];
+  }
+
+  /* Khối tổng kết KPI (.sum-item / .sum-row / .sum-box) */
+  function tongKet(doc) {
+    var ra = [], i, seen = {};
+    var items = doc.querySelectorAll('.sum-item, .sum-row, .sum-box');
+    for (i = 0; i < items.length; i++) {
+      var el = items[i];
+      if (!hien(el)) continue;
+      var l = el.querySelector('.sum-label, .label');
+      var v = el.querySelector('.sum-value, .value, input');
+      var lt = l ? chu(l) : '', vt = '';
+      if (v) vt = (v.tagName === 'INPUT') ? (v.value || '') : chu(v);
+      if (!l || !v) {
+        var t = chu(el);
+        if (t.indexOf(':') > 0) { var p2 = tachHaiVe(t); lt = p2[0]; vt = p2[1]; }
+      }
+      lt = String(lt).replace(/[:：]\s*$/, '').trim(); vt = String(vt).trim();
+      if (!lt || !vt || vt === '——' || vt === '--' || seen[lt]) continue;
+      seen[lt] = 1; ra.push([lt, vt]);
+    }
+    return ra;
+  }
+
+  /* =========================================== 7. DỰNG MÔ HÌNH WORKBOOK ==== */
+  function kieuO(text, laTong, laCot1) {
+    var so = parseSo(text);
+    if (so !== null && !laCot1) {
+      if (so.phanTram) return { v: so.v, t: 'n', s: 14 };
+      return { v: so.v, t: 'n', s: laTong ? 8 : 5 };
+    }
+    if (so !== null && laCot1 && /^\d{1,3}$/.test(String(text).trim())) {
+      return { v: so.v, t: 'n', s: 6 };                      // cột STT
+    }
+    return { v: text, t: 's', s: laTong ? 7 : 4 };
+  }
+
+  function dungSheet(name, tieuDe, info, bang, first, tk) {
+    var rows = [], merges = [], i, j;
+    var soCot = 1;
+    for (i = 0; i < bang.grid.length; i++) if (bang.grid[i].length > soCot) soCot = bang.grid[i].length;
+    if (soCot < 3) soCot = 3;
+
+    function dong(cells, h) { rows.push({ cells: cells, h: h }); return rows.length; }
+    function trai(txt, s, h) { var c = [{ v: txt, t: 's', s: s }]; return dong(c, h); }
+
+    /* Khối đầu trang: công ty + tiêu đề */
+    var r = trai(CHUAN.tenCongTy, 2, 20);
+    merges.push('A' + r + ':' + colName(soCot) + r);
+    r = trai(tieuDe, 1, 26);
+    merges.push('A' + r + ':' + colName(soCot) + r);
+    dong([], 6);
+
+    /* Thông tin phiếu: 2 cặp nhãn/giá trị mỗi dòng */
+    for (i = 0; i < info.length; i += 2) {
+      var cells = [
+        { v: info[i][0] + ':', t: 's', s: 9 },
+        { v: info[i][1], t: 's', s: 10 }
+      ];
+      if (info[i + 1]) {
+        while (cells.length < Math.max(2, Math.floor(soCot / 2))) cells.push({ v: '', s: 0 });
+        cells.push({ v: info[i + 1][0] + ':', t: 's', s: 9 });
+        cells.push({ v: info[i + 1][1], t: 's', s: 10 });
+      }
+      dong(cells, 18);
+    }
+    if (info.length) dong([], 6);
+
+    /* Khối TỔNG KẾT (nếu trang có) */
+    if (tk && tk.length) {
+      trai('TỔNG KẾT', 11, 20);
+      for (i = 0; i < tk.length; i++) {
+        var so = parseSo(tk[i][1]);
+        var oGiaTri = so !== null
+          ? { v: so.phanTram ? so.v : so.v, t: 'n', s: so.phanTram ? 14 : 5 }
+          : { v: tk[i][1], t: 's', s: 4 };
+        var cTK = [{ v: tk[i][0], t: 's', s: 7 }, oGiaTri];
+        dong(cTK, 18);
+        merges.push('B' + rows.length + ':' + colName(Math.min(3, soCot)) + rows.length);
+      }
+      dong([], 6);
+    }
+
+    /* Bảng dữ liệu */
+    var headRows = bang.headRows || 1;
+    var startRow = rows.length + 1;
+    for (i = 0; i < bang.grid.length; i++) {
+      var g = bang.grid[i], cells = [], laHead = i < headRows;
+      var dauDong = g[0] ? g[0].text : '';
+      var laTong = !laHead && /tổng|cộng|total|thành tiền cuối/i.test(dauDong);
+      for (j = 0; j < soCot; j++) {
+        var cell = g[j];
+        var txt = cell ? cell.text : '';
+        if (laHead) cells.push({ v: txt, t: 's', s: 3 });
+        else cells.push(kieuO(txt, laTong, j === 0));
+      }
+      dong(cells, laHead ? 26 : 0);
+    }
+    var endRow = rows.length;
+
+    /* Merge trong bảng */
+    for (i = 0; i < bang.merges.length; i++) {
+      var m = bang.merges[i];
+      if (m.cs <= 1 && m.rs <= 1) continue;
+      var r1 = startRow + m.r, r2 = r1 + m.rs - 1;
+      var c1 = m.c + 1, c2 = Math.min(m.c + m.cs, soCot);
+      if (c2 > c1 || r2 > r1) merges.push(colName(c1) + r1 + ':' + colName(c2) + r2);
+    }
+
+    /* Ghi chú chân trang */
+    dong([], 6);
+    r = trai('Xuất từ hệ thống Phi Long Auto — ' + new Date().toLocaleString('vi-VN'), 12, 16);
+
+    /* Độ rộng cột theo nội dung */
+    var widths = [];
+    for (j = 0; j < soCot; j++) {
+      var max = CHUAN.rongCotMin;
+      for (i = 0; i < rows.length; i++) {
+        var c = rows[i].cells[j];
+        if (!c || c.v === undefined || c.v === null) continue;
+        var len = String(c.v).length;
+        if (rows[i].cells.length === 1) continue;            // bỏ qua dòng tiêu đề merge
+        if (len > max) max = len;
+      }
+      widths[j] = Math.min(CHUAN.rongCotMax, Math.max(CHUAN.rongCotMin, max * 1.15 + 2));
+    }
+
+    var headerRowIdx = startRow + headRows - 1;
+    var soDongDL = endRow - headerRowIdx;
+
+    return {
+      name: name, rows: rows, merges: merges, widths: widths, first: !!first,
+      freezeRow: headerRowIdx,
+      autoFilter: soDongDL >= 3 ? ('A' + headerRowIdx + ':' + colName(soCot) + endRow) : null
+    };
+  }
+
+  /* ====================================================== 8. XUẤT FILE ===== */
+  function tenFileAnToan(s) {
+    return String(s || 'BaoCao')
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/đ/g, 'd').replace(/Đ/g, 'D')
+      .replace(/[^A-Za-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 60) || 'BaoCao';
+  }
+
+  function xuat(opt) {
+    opt = opt || {};
+    var doc = global.document;
+    var cfg = global.PLG_EXCEL_OPTIONS || {};
+    var tieuDe = opt.tenBaoCao || cfg.tenBaoCao
+      || chu(doc.querySelector('h1, .title, .header-title, .doc-title') || {})
+      || (doc.title || 'BÁO CÁO').split('-')[0].trim();
+    tieuDe = tieuDe.toUpperCase();
+
+    tieuDeMacDinh = tieuDe;
+    var info = thongTinPhieu(doc);
+    var tk = tongKet(doc);
+    var tables = doc.querySelectorAll('table'), ds = [], i;
+    for (i = 0; i < tables.length; i++) if (laBangDuLieu(tables[i])) ds.push(tables[i]);
+
+    if (!ds.length) {
+      alert('Không tìm thấy bảng dữ liệu nào trong phiếu này để xuất Excel.');
+      return null;
+    }
+
+    var dung = {}, sheets = [];
+    for (i = 0; i < ds.length; i++) {
+      sheets.push(dungSheet(tenSheet(ds[i], i, dung), tieuDe, info, luoiBang(ds[i]), i === 0, i === 0 ? tk : null));
+    }
+
+    var bytes = buildXlsx(sheets);
+    var d = new Date(), p2 = function (n) { return (n < 10 ? '0' : '') + n; };
+    var stamp = d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate()) + '_' + p2(d.getHours()) + p2(d.getMinutes());
+    var ten = tenFileAnToan(opt.tenFile || cfg.tenFile || tieuDe) + '_' + stamp + '.xlsx';
+
+    var blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    var url = URL.createObjectURL(blob);
+    var a = doc.createElement('a');
+    a.href = url; a.download = ten; doc.body.appendChild(a); a.click();
+    setTimeout(function () { doc.body.removeChild(a); URL.revokeObjectURL(url); }, 1500);
+    return ten;
+  }
+
+  /* ====================================================== 9. NÚT BẤM ======= */
+  function ganNut() {
+    var doc = global.document;
+    if (doc.getElementById('plg-excel-btn')) return;
+    var css = doc.createElement('style');
+    css.textContent =
+      '#plg-excel-btn{position:fixed;right:20px;bottom:20px;z-index:99999;'
+      + 'background:#' + CHUAN.mauThuongHieu + ';color:#fff;border:none;border-radius:8px;'
+      + 'padding:12px 20px;font:600 15px/1.2 "Segoe UI",Arial,sans-serif;cursor:pointer;'
+      + 'box-shadow:0 4px 14px rgba(0,0,0,.25);display:flex;align-items:center;gap:8px}'
+      + '#plg-excel-btn:hover{background:#09406f}'
+      + '#plg-excel-btn:active{transform:translateY(1px)}'
+      + '@media print{#plg-excel-btn{display:none!important}}';
+    doc.head.appendChild(css);
+
+    var b = doc.createElement('button');
+    b.id = 'plg-excel-btn';
+    b.type = 'button';
+    b.innerHTML = '<span style="font-size:17px">⬇</span> Xuất Excel';
+    b.onclick = function () {
+      b.disabled = true;
+      var cu = b.innerHTML;
+      b.innerHTML = 'Đang xuất...';
+      setTimeout(function () {
+        try { xuat(); }
+        catch (e) { alert('Lỗi xuất Excel: ' + e.message); }
+        b.innerHTML = cu; b.disabled = false;
+      }, 30);
+    };
+    doc.body.appendChild(b);
+  }
+
+  var API = { xuat: xuat, tongKet: tongKet, thongTinPhieu: thongTinPhieu, buildXlsx: buildXlsx, dungSheet: dungSheet, parseSo: parseSo, CHUAN: CHUAN };
+  global.PLGExcel = API;
+  if (typeof module !== 'undefined' && module.exports) module.exports = API;
+
+  if (typeof global.document !== 'undefined' && global.document.createElement) {
+    if (global.document.readyState === 'loading')
+      global.document.addEventListener('DOMContentLoaded', ganNut);
+    else ganNut();
+  }
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+
+</body>
+</html>
