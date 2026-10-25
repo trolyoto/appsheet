@@ -1358,10 +1358,13 @@ body.only-2 #doc .page + .page{page-break-before:auto}
   /* Link API mặc định — nhúng sẵn để xưởng KHÔNG phải dán tay trên từng máy.
      Thứ tự ưu tiên: ?api= trên link  >  link đã lưu trong máy  >  link mặc định này. */
   var API_MAC_DINH='https://script.google.com/macros/s/AKfycbzJLpIZ1AnzKLV3R_PdwHH9MYhUGLJKi3VDMhXPxkiUMsbI4kjmFQ6BAX8Lc-YxxMIS/exec';
+  var API_KEY = 'PLGKT2026';
   function syncUrl(){
-    var u='';
-    try{ u=new URL(window.location.href).searchParams.get('api')||''; }catch(e){}
-    return (u || lsGet(SYNC_KEY) || API_MAC_DINH || '').trim();
+    var u = '';
+    try{ u = new URL(window.location.href).searchParams.get('api')||''; }catch(e){}
+    u = (u || lsGet(SYNC_KEY) || API_MAC_DINH || '').trim();
+    if(u && u.indexOf('key' + '=') < 0){ u += (u.indexOf('?') < 0 ? '?' : '&') + 'key' + '=' + API_KEY; }
+    return u;
   }
   function syncAutoOn(){ return lsGet(SYNC_AUTO)!=='0'; }
 
