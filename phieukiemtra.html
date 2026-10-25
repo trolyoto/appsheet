@@ -133,7 +133,7 @@
   .barh .d i{ width:48mm; border-bottom:.4pt dotted #555; height:3.6mm; margin-left:1.5mm; font-style:normal;}
   .svc{ margin-top:1.2mm; }
   .svc th{ background:var(--g); color:#fff; font-weight:700; font-size:7pt; padding:1.1mm .8mm; border:.5pt solid var(--g); text-align:center;}
-  .svc td{ border:.5pt solid var(--bd); height:7.2mm; padding:0 1.2mm; font-size:7pt; }
+  .svc td{ border:.5pt solid var(--bd); height:var(--svch,7.2mm); padding:0 1.2mm; font-size:7pt; }
   .svc td.stt{ text-align:center; width:9mm; color:#333;}
   .svc .tot td{ background:var(--gl); font-weight:700; color:var(--g); text-align:right; height:6mm;}
   .policy{ border:.6pt solid var(--bd); padding:1.8mm 2mm; margin-top:1.6mm; font-size:6.3pt; line-height:1.45; text-align:justify; color:#333;}
@@ -185,6 +185,12 @@
       <div class="f"><b>Cấp bảo dưỡng:</b><i class="lvwrap"><span class="lvtxt"></span><select id="lvSel" class="lvsel"><option value="">— tự chọn theo số km —</option><option value="1">Cấp Nhỏ (5K·15K·25K·35K)</option><option value="2">Cấp Trung bình (10K·30K·50K)</option><option value="3">Cấp T.bình lớn (20K·60K·100K)</option><option value="4">Cấp Lớn (40K·80K·120K)</option></select></i></div>
       <div class="f"><b>Hãng xe:</b><i></i></div>
       <div class="f"><b>Ngày vào xưởng:</b><i></i></div>
+    </div>
+    <div class="row">
+      <div class="f"><b>Nhiên liệu:</b><i class="lvwrap"><span class="lvtxt" data-mirror="fuelSel"></span><select id="fuelSel" class="lvsel"><option value="">— chọn —</option><option value="XANG">Xăng</option><option value="DIESEL">Diesel</option></select></i></div>
+      <div class="f"><b>Hộp số:</b><i class="lvwrap"><span class="lvtxt" data-mirror="gbxSel"></span><select id="gbxSel" class="lvsel"><option value="">— chọn —</option><option value="MT">Số sàn</option><option value="AT">Tự động</option></select></i></div>
+      <div class="f sp"></div>
+      <div class="f sp"></div>
     </div>
   </div>
 
@@ -542,6 +548,13 @@ body.delmode #doc table tr:hover{background:#FDE7E5}
   font-size:9.5pt!important;line-height:1.05;white-space:nowrap}
 @media print{ .lvsel{display:none!important} .lvtxt{display:inline!important} }
 @media screen{ body.editing .lvsel:hover{background:#EDF3FE;border-radius:.6mm} }
+.info .f.sp{border:0}
+.xn{font-weight:700;letter-spacing:.2pt}
+.xn.r{color:#D0342C}
+.xn.a{color:#B7791F}
+.xn.i{color:#1F6FB2}
+tr.agen td{background:#FCFCF7}
+@media print{ tr.agen td{background:transparent} }
 
 .svc .tot .sum{text-align:right!important;white-space:nowrap}
 .svc .tot td{background:#FFFBE6!important}
@@ -862,6 +875,7 @@ body.only-2 #doc .page + .page{page-break-before:auto}
     var selPage=document.getElementById('selPage');
     if(selPage) selPage.value=state.m||'';
     bindLevelSelector();
+    bindVehicleSelectors();
     var lv=doc.querySelector('#lvSel'); if(lv) lv.value=state.l||'';
     bind(); setEditable(!body.classList.contains('delmode'));
     normalizeExclusiveTicks(doc);
@@ -1167,7 +1181,8 @@ body.only-2 #doc .page + .page{page-break-before:auto}
   }
   function applyLevel(lv, quiet){
     doc.querySelectorAll('.safe .box.sug').forEach(function(b){ b.classList.remove('ticked','sug'); });
-    if(!lv) { var t0=doc.querySelector('.lvtxt'); if(t0) t0.textContent='';
+    if(!lv) { var t0=doc.querySelector('.lvwrap .lvtxt:not([data-mirror])'); if(t0) t0.textContent='';
+      fillRepairTable(0);
       if(!quiet) toast('Chưa chọn cấp bảo dưỡng'); return; }
     var nR=0,nA=0;
     doc.querySelectorAll('table.safe tr').forEach(function(tr){
@@ -1178,8 +1193,9 @@ body.only-2 #doc .page + .page{page-break-before:auto}
         if(b && !b.classList.contains('ticked')){ b.classList.add('ticked','sug'); code==='R'?nR++:nA++; }
       }
     });
-    var tx=doc.querySelector('.lvtxt'); if(tx) tx.textContent=LVS[lv-1];
-    if(!quiet) toast(LV[lv-1]+' — gợi ý '+nR+' mục THAY THẾ, '+nA+' mục CHÚ Ý (bấm lại để đổi)');
+    var tx=doc.querySelector('.lvwrap .lvtxt:not([data-mirror])'); if(tx) tx.textContent=LVS[lv-1];
+    var nF=fillRepairTable(lv);
+    if(!quiet) toast(LV[lv-1]+' — đã đổ '+nF+' hạng mục vào bảng SỬA CHỮA · gợi ý '+nR+' mục THAY THẾ, '+nA+' mục CHÚ Ý');
   }
   var lvSel;
   function bindLevelSelector(){
@@ -1197,7 +1213,235 @@ body.only-2 #doc .page + .page{page-break-before:auto}
     var lv=levelFromKm(km);
     var sel=doc.querySelector('#lvSel'); if(!sel) return;
     if(lv && sel.value!==String(lv)){ snapshot(); sel.value=String(lv); applyLevel(lv); }
+    else if(lv){ fillRepairTable(lv); }
   });
+
+
+  /* ===== Tự đổ HẠNG MỤC SỬA CHỮA theo cấp bảo dưỡng =====
+     Nguồn: tab "Các cấp bảo dưỡng" — file BÁO CÁO NGÀY (Michelin Car Service)
+     Mã: I = kiểm tra & xử lý theo tình trạng · R = thay thế · A = vệ sinh / căn chỉnh
+     Thứ tự cột: [Cấp Nhỏ, Cấp Trung bình, Cấp Trung bình lớn, Cấp Lớn]            */
+  var BD=[
+    /* Level 1 — Dịch vụ cơ bản (bắt buộc với Michelin Car Service) */
+    {n:'Kiểm tra an toàn',          g:1, c:['I','I','I','I']},
+    {n:'Dầu động cơ',               g:1, c:['R','R','R','R']},
+    {n:'Lọc dầu động cơ',           g:1, c:['', 'R','R','R']},
+    {n:'Lọc gió động cơ',           g:1, c:['I','I','R','R']},
+    {n:'Dầu phanh',                 g:1, c:['I','I','I','R']},
+    {n:'Nước rửa kính',             g:1, c:['I','I','I','I']},
+    {n:'Ắc quy',                    g:1, c:['I','I','R','R']},
+    {n:'Gạt mưa',                   g:1, c:['I','R','R','R']},
+    {n:'Lọc gió máy lạnh',          g:1, c:['I','I','R','R']},
+    {n:'Phanh',                     g:1, c:['I','A','A','A']},
+    {n:'Đảo lốp',                   g:1, c:['', 'A','A','A']},
+    {n:'Cân bằng động',             g:1, c:['', 'A','A','A']},
+    {n:'Góc đặt bánh xe',           g:1, c:['I','A','A','A']},
+    /* Level 2 — Dịch vụ mở rộng */
+    {n:'Rotuyn (lái, trụ)',         g:2, c:['I','I','I','I']},
+    {n:'Phuộc',                     g:2, c:['I','I','I','I']},
+    {n:'Bạc đạn bánh xe',           g:2, c:['I','I','I','I']},
+    {n:'Dầu hộp số thường',         g:2, c:['', '', 'I','R'], gbx:'MT'},
+    {n:'Dầu hộp số tự động',        g:2, c:['', '', 'I','R'], gbx:'AT'},
+    {n:'Dầu vi sai / cầu',          g:2, c:['', '', 'I','R']},
+    {n:'V-belt',                    g:2, c:['I','I','I','I']},
+    {n:'Bugi',                      g:2, c:['', '', '', ''], km:40000, km2:100000, kmcode:'R',
+     note:'R: mỗi 40.000 km (loại thường) / 100.000 km (điện cực hợp kim)'},
+    {n:'Dầu trợ lực lái',           g:2, c:['I','I','I','R']},
+    {n:'Lọc nhiên liệu (diesel)',   g:2, c:['', '', 'R','R'], fuel:'DIESEL'},
+    {n:'Lọc nhiên liệu động cơ xăng',g:2,c:['', '', '', 'R'], fuel:'XANG'},
+    {n:'Bóng đèn',                  g:2, c:['I','I','I','I']},
+    /* Dịch vụ gia tăng giá trị */
+    {n:'Vệ sinh giàn lạnh',         g:3, c:['', '', 'A','A']},
+    {n:'Vệ sinh hệ thống nhiên liệu',g:3,c:['A','A','A','A']},
+    {n:'Vệ sinh kim phun trực tiếp',g:3, c:['', '', '', ''], km:30000, kmcode:'A',
+     note:'A: mỗi 30.000 km hoặc 18 tháng'},
+    {n:'Súc rửa động cơ',           g:3, c:['', 'A','A','A']},
+    {n:'Phụ gia nâng cấp nhớt',     g:3, c:['A','A','A','A']},
+    {n:'Vệ sinh họng ga',           g:3, c:['', '', 'A','A']}
+  ];
+  var FILL_CODES={'R':1,'A':1};   /* chỉ đổ việc phải làm, bỏ mã I (đã có ở bảng KIỂM TRA AN TOÀN trang 1) */
+  var MINROWS=6;
+
+  function infoVal(re){
+    var out='';
+    doc.querySelectorAll('.info .f').forEach(function(f){
+      var b=f.querySelector('b'); if(!b || !re.test(b.textContent)) return;
+      var i=f.querySelector('i'); if(i) out=i.textContent.trim();
+    });
+    return out;
+  }
+  function getKm(){ var v=infoVal(/S. km/i); return parseInt(v.replace(/[^0-9]/g,''),10)||0; }
+  function selVal(id){ var e=doc.querySelector('#'+id); return e? e.value : ''; }
+
+  function buildList(lv){
+    var out=[], km=getKm(), moc=km?Math.round(km/5000)*5000:0;
+    var fuel=selVal('fuelSel'), gbx=selVal('gbxSel');
+    BD.forEach(function(it){
+      var code=it.c[lv-1]||'';
+      if(!code && it.km && moc){
+        if(moc%it.km===0 || (it.km2 && moc%it.km2===0)) code=it.kmcode;
+      }
+      if(!FILL_CODES[code]) return;
+      if(it.fuel && fuel && it.fuel!==fuel) return;
+      if(it.gbx  && gbx  && it.gbx !==gbx ) return;
+      out.push({n:it.n, code:code});
+    });
+    return out;
+  }
+
+  function repairTable(){
+    var t=null;
+    doc.querySelectorAll('.barh').forEach(function(bh){
+      var b=bh.querySelector('.b');
+      if(b && b.textContent.trim()==='HẠNG MỤC SỬA CHỮA'){
+        var nx=bh.nextElementSibling;
+        if(nx && nx.tagName==='TABLE' && nx.classList.contains('svc')) t=nx;
+      }
+    });
+    return t;
+  }
+  function cellTxt(c){ return c? c.textContent.trim() : ''; }
+  function blankRow(t){
+    var tr=document.createElement('tr');
+    var n=t.rows[0].cells.length, h='<td class="stt"></td>';
+    for(var k=1;k<n;k++) h+='<td></td>';
+    tr.innerHTML=h; return tr;
+  }
+
+  function fillRepairTable(lv){
+    var t=repairTable(); if(!t || !t.rows.length) return 0;
+    var tb=t.tBodies[0];
+    var iIT=colIdxByName(t,'HẠNG MỤC'), iSL=colIdxByName(t,'SL'),
+        iDG=colIdxByName(t,'ĐƠN GIÁ'), iXN=colIdxByName(t,'XÁC NHẬN');
+    if(iIT<0) return 0;
+
+    var head=tb.rows[0], tot=t.querySelector('tr.tot');
+    var body=[].slice.call(tb.rows).filter(function(r){ return r!==head && !r.classList.contains('tot'); });
+
+    /* giữ lại dòng cố vấn tự gõ + nhớ SL/ĐƠN GIÁ của dòng tự đổ theo tên hạng mục */
+    var money={}, manual=[];
+    body.forEach(function(r){
+      var nm=cellTxt(cellAt(r,iIT)), sl=cellTxt(cellAt(r,iSL)), dg=cellTxt(cellAt(r,iDG));
+      if(r.classList.contains('agen')){
+        if(nm && (sl||dg)) money[nm]={sl:sl,dg:dg};
+        r.parentNode.removeChild(r);
+      }else if(!nm && !sl && !dg){
+        r.parentNode.removeChild(r);
+      }else{
+        manual.push(r);
+      }
+    });
+
+    var list = lv ? buildList(lv) : [];
+    var ref  = manual.length ? manual[0] : tot;
+    list.forEach(function(it){
+      var tr=blankRow(t);
+      tr.className='agen';
+      var cIT=cellAt(tr,iIT); if(cIT) cIT.textContent=it.n;
+      if(iXN>=0){ var cXN=cellAt(tr,iXN);
+        if(cXN) cXN.innerHTML='<span class="xn '+it.code.toLowerCase()+'">'+it.code+'</span>'; }
+      var m=money[it.n];
+      if(m){ var a=cellAt(tr,iSL), b2=cellAt(tr,iDG);
+        if(a) a.textContent=m.sl; if(b2) b2.textContent=m.dg; }
+      tb.insertBefore(tr, ref);
+    });
+
+    /* bù cho đủ số dòng tối thiểu */
+    var count=[].slice.call(tb.rows).filter(function(r){ return r!==head && !r.classList.contains('tot'); }).length;
+    while(count<MINROWS){ tb.insertBefore(blankRow(t), tot); count++; }
+
+    /* đánh lại STT */
+    var n=0;
+    [].slice.call(tb.rows).forEach(function(r){
+      if(r===head || r.classList.contains('tot')) return;
+      n++; var c=r.querySelector('td.stt'); if(c) c.textContent=(n<10?'0':'')+n;
+    });
+
+    bind(); recalc(t,null); autoFitPage(t);
+    return list.length;
+  }
+
+  /* Trang A4 cố định (overflow:hidden) — bảng dài sẽ bị cắt mất khối KIỂM TRA CUỐI.
+     Thu chiều cao dòng của các bảng dịch vụ cho tới khi vừa trang.                 */
+  function tableByTitle(title){
+    var t=null;
+    doc.querySelectorAll('.barh').forEach(function(bh){
+      var b=bh.querySelector('.b');
+      if(b && b.textContent.trim()===title){
+        var nx=bh.nextElementSibling;
+        if(nx && nx.tagName==='TABLE' && nx.classList.contains('svc')) t=nx;
+      }
+    });
+    return t;
+  }
+  function bodyRows(t){
+    var tb=t.tBodies[0], head=tb.rows[0];
+    return [].slice.call(tb.rows).filter(function(r){ return r!==head && !r.classList.contains('tot'); });
+  }
+  function rowEmpty(r){
+    for(var k=1;k<r.cells.length;k++) if(r.cells[k].textContent.trim()) return false;
+    return true;
+  }
+  function renumber(t){
+    var n=0;
+    bodyRows(t).forEach(function(r){ n++; var c=r.querySelector('td.stt');
+      if(c) c.textContent=(n<10?'0':'')+n; });
+  }
+  /* Số dòng trống của bảng PHÁT SINH — chỉ cắt/thêm dòng TRỐNG ở cuối, không đụng dòng đã ghi */
+  function setSpareRows(t,n){
+    if(!t) return;
+    var tot=t.querySelector('tr.tot'), rows=bodyRows(t);
+    while(rows.length>n){
+      var last=rows[rows.length-1];
+      if(!rowEmpty(last)) break;
+      last.parentNode.removeChild(last); rows.pop();
+    }
+    while(rows.length<n){
+      var tr=blankRow(t); t.tBodies[0].insertBefore(tr,tot); rows.push(tr);
+    }
+    renumber(t);
+  }
+  /* Trang A4 cố định (overflow:hidden) — bảng dài sẽ bị cắt mất khối KIỂM TRA CUỐI.
+     Ưu tiên giữ dòng cao dễ đọc, sau đó mới bớt dòng trống của bảng PHÁT SINH.      */
+  function autoFitPage(t){
+    var pg=t&&t.closest?t.closest('.page'):null; if(!pg) return true;
+    var ps=tableByTitle('HẠNG MỤC SỬA CHỮA PHÁT SINH');
+    var hs=[7.2,6.8,6.4,6.0,5.6,5.2,4.8,4.4], ns=[10,9,8,7,6];
+    for(var i=0;i<hs.length;i++){
+      pg.style.setProperty('--svch',hs[i]+'mm');
+      for(var j=0;j<ns.length;j++){
+        if(ps) setSpareRows(ps,ns[j]);
+        if(pg.scrollHeight<=pg.clientHeight+1){ if(ps) bind(); return true; }
+      }
+    }
+    if(ps) bind();
+    return false;
+  }
+
+  function bindVehicleSelectors(){
+    ['fuelSel','gbxSel'].forEach(function(id){
+      var sel=doc.querySelector('#'+id); if(!sel || sel.dataset.bound) return;
+      sel.dataset.bound='1';
+      sel.addEventListener('change',function(){
+        snapshot();
+        var sp=doc.querySelector('[data-mirror="'+id+'"]');
+        if(sp) sp.textContent=this.selectedIndex>0?this.options[this.selectedIndex].text:'';
+        var lv=parseInt(selVal('lvSel'),10)||0;
+        if(lv) fillRepairTable(lv);
+        scheduleUrlUpdate();
+      });
+      sel.addEventListener('mousedown',function(e){ if(body.classList.contains('delmode')) e.preventDefault(); });
+    });
+    /* khôi phục giá trị select sau khi nạp lại phiếu từ link */
+    ['fuelSel','gbxSel'].forEach(function(id){
+      var sel=doc.querySelector('#'+id), sp=doc.querySelector('[data-mirror="'+id+'"]');
+      if(!sel||!sp) return;
+      var txt=sp.textContent.trim(); if(!txt){ sel.value=''; return; }
+      for(var i=0;i<sel.options.length;i++)
+        if(sel.options[i].text.trim()===txt){ sel.value=sel.options[i].value; break; }
+    });
+  }
+  bindVehicleSelectors();
 
   /* ===== Tự tính THÀNH TIỀN và TỔNG TIỀN ===== */
   function colIdxByName(t,name){ var hs=t.rows[0].cells,i=0;
