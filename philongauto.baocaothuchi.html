@@ -530,7 +530,13 @@ function lenTrenTatCa(){
   /* chi nhánh: "CN1" -> chọn; "CN1 , CN2 , CN3" (app gửi cả 3) -> coi như Tất cả */
   var cnRaw=(p.get('chinhanh')||'').toUpperCase();
   var ds=cnRaw.split(/[,;|]+/).map(function(s){return s.trim();}).filter(function(s){return s;});
-  if(ds.length===1 && ['CN1','CN2','CN3'].indexOf(ds[0])>-1) document.getElementById('f-cn').value=ds[0];
+  var sel=document.getElementById('f-cn');
+  if(ds.length===1 && ['CN1','CN2','CN3'].indexOf(ds[0])>-1) sel.value=ds[0];
+  else if(ds.length>1 && ds.length<3){
+    /* app gửi 2 chi nhánh -> thêm hẳn một lựa chọn gộp để không tự nhảy về "Tất cả" */
+    var o=document.createElement('option'); o.value=ds.join(','); o.textContent=ds.join(' + ');
+    sel.appendChild(o); sel.value=o.value;
+  }
 
   if(qs.length>7500){
     document.getElementById('alert-zone').innerHTML=
