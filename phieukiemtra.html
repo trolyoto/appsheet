@@ -33,6 +33,12 @@
   .info .f{ flex:1; display:flex; align-items:flex-end; font-size:7.4pt; }
   .info .f b{ font-weight:400; white-space:nowrap; }
   .info .f i{ flex:1; border-bottom:.4pt dotted #444; height:3.6mm; margin-left:1mm; font-style:normal;}
+  /* 2 ô chọn Nhiên liệu / Hộp số: chiếm đúng chỗ cần, không bóp các ô khác */
+  .info .f.nho{ flex:0 0 auto; }
+  .info .f.nho i{ flex:0 0 13mm; }
+  .info .f.caplv{ flex:1.15; }
+  .info .f.caplv i{ overflow:hidden; }
+  .info .f.caplv .lvsel{ max-width:100%; }
 
   /* ---------- LEGEND BAR ---------- */
   .legend{ display:flex; align-items:stretch; margin-top:1mm; gap:1.2mm; }
@@ -229,12 +235,14 @@
       <div class="f"><b>Điện thoại:</b><i></i></div>
       <div class="f"><b>Model xe:</b><i></i></div>
       <div class="f"><b>Số km đã chạy:</b><i></i></div>
+      <div class="f"><b>Ngày vào xưởng:</b><i></i></div>
     </div>
     <div class="row">
       <div class="f"><b>Biển số xe:</b><i></i></div>
-      <div class="f"><b>Cấp bảo dưỡng:</b><i class="lvwrap"><span class="lvtxt"></span><select id="lvSel" class="lvsel"><option value="">— tự chọn theo số km —</option><option value="1">Cấp Nhỏ (5K·15K·25K·35K)</option><option value="2">Cấp Trung bình (10K·30K·50K)</option><option value="3">Cấp T.bình lớn (20K·60K·100K)</option><option value="4">Cấp Lớn (40K·80K·120K)</option></select></i></div>
+      <div class="f caplv"><b>Cấp bảo dưỡng:</b><i class="lvwrap"><span class="lvtxt"></span><select id="lvSel" class="lvsel"><option value="">— tự chọn theo số km —</option><option value="1" title="5K · 15K · 25K · 35K">Cấp Nhỏ</option><option value="2" title="10K · 30K · 50K · 70K">Cấp Trung bình</option><option value="3" title="20K · 60K · 100K">Cấp T.bình lớn</option><option value="4" title="40K · 80K · 120K">Cấp Lớn</option></select></i></div>
       <div class="f"><b>Hãng xe:</b><i></i></div>
-      <div class="f"><b>Ngày vào xưởng:</b><i></i></div>
+      <div class="f nho"><b>Nhiên liệu:</b><i class="lvwrap"><span class="lvtxt" id="flTxt"></span><select id="flSel" class="lvsel"><option value="">— chọn —</option><option value="Xăng">Xăng</option><option value="Diesel">Diesel</option></select></i></div>
+      <div class="f nho"><b>Hộp số:</b><i class="lvwrap"><span class="lvtxt" id="gbTxt"></span><select id="gbSel" class="lvsel"><option value="">— chọn —</option><option value="Số sàn">Số sàn</option><option value="Tự động">Tự động</option></select></i></div>
     </div>
   </div>
 
@@ -730,7 +738,7 @@ body.only-2 #doc .page + .page{page-break-before:auto}
 </div></div>
 <div id="pkgBox"><div class="c">
   <h3>Hạng mục tự điền theo cấp bảo dưỡng</h3>
-  <p>Chọn nhóm dịch vụ sẽ tự điền vào bảng <b>HẠNG MỤC SỮA CHỮA PHÁT SINH</b> ở trang 2.
+  <p>Chọn nhóm dịch vụ sẽ tự điền vào bảng <b>HẠNG MỤC SỬA CHỮA PHÁT SINH</b> ở trang 2.
      Cột <b>XÁC NHẬN</b> hiện mã I / R / A theo đúng cấp. Dòng nào không cần thì xoá bằng nút ✕.</p>
   <label class="ck"><input type="checkbox" class="pkgg" value="1" checked> <b>Level 1</b> — Dịch vụ cơ bản <i>(bắt buộc với Michelin Car Service)</i></label>
   <label class="ck"><input type="checkbox" class="pkgg" value="2"> <b>Level 2</b> — Dịch vụ mở rộng</label>
@@ -896,7 +904,9 @@ body.only-2 #doc .page + .page{page-break-before:auto}
     return sel ? sel.value : '';
   }
   function urlCurrentState(){
-    return {v:1,h:urlNormalizedHtml(),c:urlCssState(),m:urlViewState(),l:urlLevelState()};
+    return {v:1,h:urlNormalizedHtml(),c:urlCssState(),m:urlViewState(),l:urlLevelState(),
+            fl:(doc.querySelector('#flSel')||{}).value||'',
+            gb:(doc.querySelector('#gbSel')||{}).value||''};
   }
   function urlHasChanges(state){
     return state.h!==urlBaseHtml || JSON.stringify(state.c||[])!==JSON.stringify(urlBaseCss) ||
@@ -959,6 +969,9 @@ body.only-2 #doc .page + .page{page-break-before:auto}
     if(selPage) selPage.value=state.m||'';
     bindLevelSelector();
     var lv=doc.querySelector('#lvSel'); if(lv) lv.value=state.l||'';
+    var fl=doc.querySelector('#flSel'); if(fl) fl.value=state.fl||'';
+    var gb=doc.querySelector('#gbSel'); if(gb) gb.value=state.gb||'';
+    if(typeof veFuelGear==='function') veFuelGear();
     bind(); setEditable(!body.classList.contains('delmode'));
     normalizeExclusiveTicks(doc);
     recalcAll();
@@ -1342,10 +1355,13 @@ body.only-2 #doc .page + .page{page-break-before:auto}
   function lsGet(k){ try{ return window.localStorage.getItem(k); }catch(e){ return null; } }
   function lsSet(k,v){ try{ window.localStorage.setItem(k,v); }catch(e){} }
 
+  /* Link API mặc định — nhúng sẵn để xưởng KHÔNG phải dán tay trên từng máy.
+     Thứ tự ưu tiên: ?api= trên link  >  link đã lưu trong máy  >  link mặc định này. */
+  var API_MAC_DINH='https://script.google.com/macros/s/AKfycbzJLpIZ1AnzKLV3R_PdwHH9MYhUGLJKi3VDMhXPxkiUMsbI4kjmFQ6BAX8Lc-YxxMIS/exec';
   function syncUrl(){
     var u='';
     try{ u=new URL(window.location.href).searchParams.get('api')||''; }catch(e){}
-    return (u || lsGet(SYNC_KEY) || '').trim();
+    return (u || lsGet(SYNC_KEY) || API_MAC_DINH || '').trim();
   }
   function syncAutoOn(){ return lsGet(SYNC_AUTO)!=='0'; }
 
@@ -1359,8 +1375,33 @@ body.only-2 #doc .page + .page{page-break-before:auto}
     else syncState('on','\u0110\u00e3 li\u00ean k\u1EBFt Google Sheet \u2014 t\u1EF1 g\u1EEDi khi \u0111i\u1EC1n xong');
   }
 
+  /* ---- gom số liệu phiếu: đủ 25 cột của tab PHIEU_KT_LOG ---- */
+  function qsParam(k){ try{ return new URL(location.href).searchParams.get(k)||''; }catch(e){ return ''; } }
+  function svcTables(){ return [].slice.call(doc.querySelectorAll('table.svc')); }
+  function svcTong(t){ if(!t) return 0; var c=t.querySelector('tr.tot .sum'); return c?num(c.textContent):0; }
+  function svcDong(t){
+    if(!t) return [];
+    var iN=colIdxByName(t,'HẠNG MỤC'), iD=colIdxByName(t,'DIỄN GIẢI'),
+        iS=colIdxByName(t,'SL'), iG=colIdxByName(t,'ĐƠN GIÁ'),
+        iT=colIdxByName(t,'THÀNH TIỀN'), iX=colIdxByName(t,'XÁC NHẬN'), out=[];
+    dataRows(t).forEach(function(tr){
+      function v(i){ var c=i>=0?cellAt(tr,i):null; return c?c.textContent.trim():''; }
+      var ten=v(iN); if(!ten) return;
+      out.push({ ten:ten, dien_giai:v(iD), sl:v(iS), don_gia:v(iG), thanh_tien:v(iT), xac_nhan:v(iX) });
+    });
+    return out;
+  }
+  function demTick(){
+    var a=0,r=0;
+    doc.querySelectorAll('table.safe .box.b2.ticked, table.gam .box.b2.ticked').forEach(function(){ a++; });
+    doc.querySelectorAll('table.safe .box.b3.ticked, table.gam .box.b3.ticked').forEach(function(){ r++; });
+    return { a:a, r:r };
+  }
   function syncPayload(){
     var noEl=doc.querySelector('.hd .no span');
+    var recEl=doc.querySelector('.rec i');
+    var ts=svcTables(), t1=ts[0]||null, t2=ts[1]||null;
+    var d1=svcDong(t1), d2=svcDong(t2), tick=demTick();
     var p={
       bien_so:      p1Field(/Bi.n s. xe/i),
       hang_xe:      p1Field(/H.ng xe/i),
@@ -1370,20 +1411,42 @@ body.only-2 #doc .page + .page{page-break-before:auto}
       dien_thoai:   p1Field(/.i.n tho.i/i),
       ngay_vao_xuong: p1Field(/Ng.y v.o x..ng/i),
       so_phieu:     noEl?noEl.textContent.trim():'',
+      nhien_lieu:   (doc.querySelector('#flSel')||{}).value||'',
+      hop_so:       (doc.querySelector('#gbSel')||{}).value||'',
+      so_hm_sua_chua:      d1.length,
+      tong_tien_sua_chua:  svcTong(t1),
+      so_hm_phat_sinh:     d2.length,
+      tong_tien_phat_sinh: svcTong(t2),
+      so_muc_chu_y:    tick.a,
+      so_muc_thay_the: tick.r,
+      khuyen_nghi:  recEl?recEl.textContent.trim():'',
+      chi_nhanh:    qsParam('cn')||qsParam('chinhanh'),
+      nguoi_lap:    qsParam('nv')||qsParam('nguoi_lap'),
+      hang_muc_json: JSON.stringify({ sua_chua:d1, phat_sinh:d2 }),
+      kiem_tra_json: JSON.stringify(tickItems()),
       link_phieu:   syncLink()
     };
     var sel=doc.querySelector('#lvSel');
     if(sel){ var o=sel.options[sel.selectedIndex]; p.cap_bao_duong=(sel.value&&o)?o.textContent.trim():''; }
+    /* khoá nhận dạng 1 lượt vào xưởng -> Apps Script upsert, không đẻ dòng trùng */
+    p.id_phieu=(bksSach(p.bien_so)+'_'+p.ngay_vao_xuong+'_'+p.so_phieu)
+                 .replace(/[^0-9A-Za-z_]/g,'');
     return p;
   }
   function syncLink(){
     var u=(typeof urlLastHref!=='undefined' && urlLastHref) ? urlLastHref : location.href;
-    return u.length>45000 ? u.slice(0,45000) : u;
+    if(u.length<=8000) return u;                       /* GitHub Pages lỗi 414 khi link > ~8.150 ký tự */
+    try{ var o=new URL(u); o.searchParams.delete('d'); o.searchParams.delete('data'); return o.toString(); }
+    catch(e){ return u.slice(0,8000); }
   }
   /* khoá so sánh: CHỈ các trường nghiệp vụ, bỏ link (link đổi theo mọi ký tự gõ ở bất kỳ đâu) */
   function syncKey(p){
     return [p.bien_so,p.hang_xe,p.model_xe,p.so_km,p.ten_kh,p.dien_thoai,
-            p.ngay_vao_xuong,p.cap_bao_duong,p.so_phieu].join('|');
+            p.ngay_vao_xuong,p.cap_bao_duong,p.so_phieu,
+            p.nhien_lieu,p.hop_so,
+            /* có cả kết quả kiểm tra: tick xong là gửi lại, không bị kẹt ở lần gửi đầu */
+            p.so_muc_chu_y,p.so_muc_thay_the,p.so_hm_sua_chua,p.so_hm_phat_sinh,
+            p.tong_tien_sua_chua,p.tong_tien_phat_sinh,p.khuyen_nghi].join('|');
   }
   function bksSach(v){ return String(v||'').toUpperCase().replace(/[^0-9A-Z]/g,''); }
   function bksHopLe(v){ return /^[0-9]{2}[A-Z]{1,2}[0-9]{4,6}$/.test(bksSach(v)); }
@@ -1393,6 +1456,8 @@ body.only-2 #doc .page + .page{page-break-before:auto}
     if(!url){ if(tay){ syncOpen(); } return; }
     var p=syncPayload();
     if(!bksHopLe(p.bien_so)){
+      /* KHÔNG im lặng nữa: nút đổi màu báo chưa gửi được */
+      syncState('err','Ch\u01b0a g\u1EEDi \u0111\u01b0\u1EE3c \u2014 Bi\u1EC3n s\u1ED1 xe ch\u01b0a \u0111\u00fang d\u1EA1ng (vd 51K-123.45)');
       if(tay) toast('C\u1EA7n \u0111i\u1EC1n Bi\u1EC3n s\u1ED1 xe \u0111\u00fang d\u1EA1ng (vd 51K-123.45) tr\u01b0\u1EDBc khi g\u1EEDi');
       return;
     }
@@ -1400,16 +1465,26 @@ body.only-2 #doc .page + .page{page-break-before:auto}
     if(!tay && key===syncLast) return;
     if(syncBusy) return;
     syncBusy=true; syncState('busy','\u0110ang g\u1EEDi sang Google Sheet\u2026');
-    fetch(url,{ method:'POST', mode:'no-cors', cache:'no-store',
+    /* BỎ mode:'no-cors' — chế độ đó luôn chạy vào .then() nên phiếu báo
+       "Đã gửi" kể cả khi Sheet không ghi được dòng nào. Giờ đọc phản hồi thật. */
+    fetch(url,{ method:'POST', cache:'no-store', redirect:'follow',
                 headers:{'Content-Type':'text/plain;charset=utf-8'},
                 body:JSON.stringify(p) })
-      .then(function(){
-        syncLast=key; syncBusy=false; syncRefresh();
-        toast('\u0110\u00e3 g\u1EEDi '+bksSach(p.bien_so)+' sang Google Sheet');
+      .then(function(r){ return r.text().then(function(tx){ return {ok:r.ok, tx:tx||''}; }); })
+      .then(function(res){
+        syncBusy=false;
+        var loi=!res.ok || /\"?(error|exception)\"?\s*[:=]/i.test(res.tx.slice(0,300));
+        if(loi){
+          syncState('err','Sheet ch\u01b0a ghi \u0111\u01b0\u1EE3c \u2014 b\u1EA5m \u0111\u1EC3 ki\u1EC3m tra l\u1EA1i link');
+          if(tay) toast('Sheet tr\u1EA3 l\u1ED7i, CH\u01afA ghi \u0111\u01b0\u1EE3c d\u00f2ng n\u00e0o');
+          return;
+        }
+        syncLast=key; syncRefresh();
+        toast('\u0110\u00e3 ghi '+bksSach(p.bien_so)+' v\u00e0o Google Sheet');
       })
       .catch(function(err){
-        syncBusy=false; syncState('err','L\u1ED7i g\u1EEDi sang Sheet \u2014 b\u1EA5m \u0111\u1EC3 ki\u1EC3m tra l\u1EA1i link');
-        if(tay) toast('Kh\u00f4ng g\u1EEDi \u0111\u01b0\u1EE3c: '+err.message);
+        syncBusy=false; syncState('err','Kh\u00f4ng g\u1EEDi \u0111\u01b0\u1EE3c \u2014 b\u1EA5m \u0111\u1EC3 ki\u1EC3m tra l\u1EA1i link');
+        if(tay) toast('Kh\u00f4ng g\u1EEDi \u0111\u01b0\u1EE3c (Web App ph\u1EA3i deploy ch\u1EBF \u0111\u1ED9 "B\u1EA5t k\u1EF3 ai"): '+err.message);
       });
   }
   function syncSchedule(){
@@ -1707,9 +1782,16 @@ body.only-2 #doc .page + .page{page-break-before:auto}
     });
     if(!lv) { pkgEnsureRow(t); renumber(t); return 0; }
     var gr=pkgGroups(), items=[];
+    var fuel=(doc.querySelector('#flSel')||{}).value||'';
+    var gear=(doc.querySelector('#gbSel')||{}).value||'';
     PKG.forEach(function(it){
       if(gr.indexOf(it.g)<0) return;
-      var code=it.c[lv-1]; if(!code) return;
+      /* 2 cặp loại trừ nhau: chỉ giữ đúng 1 dòng theo Nhiên liệu / Hộp số */
+      if(fuel==='Xăng'    && it.n.indexOf('Lọc nhiên liệu (diesel)')===0) return;
+      if(fuel==='Diesel'  && it.n.indexOf('Lọc nhiên liệu động cơ xăng')===0) return;
+      if(gear==='Số sàn'  && it.n.indexOf('Dầu hộp số tự động')===0) return;
+      if(gear==='Tự động' && it.n.indexOf('Dầu hộp số thường')===0) return;
+      var code=it.c[lv-1]; if(!code||code==='I') return;   /* chỉ đổ R + A */
       items.push({n:it.n+(it.note?' ('+it.note+')':''), c:code, g:it.g});
     });
     if(!items.length){ pkgEnsureRow(t); renumber(t); return 0; }
@@ -1887,6 +1969,22 @@ body.only-2 #doc .page + .page{page-break-before:auto}
     lvSel.addEventListener('mousedown',function(e){ if(body.classList.contains('delmode')) e.preventDefault(); });
   }
   bindLevelSelector();
+  function veFuelGear(){
+    [['#flSel','#flTxt'],['#gbSel','#gbTxt']].forEach(function(a){
+      var s1=doc.querySelector(a[0]), t1=doc.querySelector(a[1]);
+      if(s1&&t1) t1.textContent=s1.value||'';   /* để bản IN/PDF vẫn thấy giá trị */
+    });
+  }
+  veFuelGear();
+  ['#flSel','#gbSel'].forEach(function(q){
+    var el=doc.querySelector(q); if(!el) return;
+    el.addEventListener('change',function(){
+      snapshot(); veFuelGear();
+      applyLevel(parseInt((doc.querySelector('#lvSel')||{}).value,10)||0, true);
+      scheduleUrlUpdate();
+    });
+    el.addEventListener('mousedown',function(e){ if(body.classList.contains('delmode')) e.preventDefault(); });
+  });
   doc.addEventListener('input',function(e){
     var el=e.target.closest('.info .f i'); if(!el) return;
     var lb=el.parentNode.querySelector('b');
