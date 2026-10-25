@@ -658,6 +658,7 @@ body.only-2 #doc .page + .page{page-break-before:auto}
     <option value="">Cả 2 trang</option><option value="only-1">Chỉ trang 1</option><option value="only-2">Chỉ trang 2</option>
   </select>
   <span class="sp"></span>
+  <button id="bSave" class="ic" title="Lưu phiếu vào hệ thống (giữ Shift để đổi link API)">💾</button>
   <button id="bLink" class="ic" title="Sao chép link phiếu">🔗</button>
   <button id="bPdf" class="go">⬇ Tải PDF</button>
   <button id="bPrint" class="ic" title="In giấy">🖨</button>
@@ -1442,6 +1443,120 @@ body.only-2 #doc .page + .page{page-break-before:auto}
     });
   }
   bindVehicleSelectors();
+
+
+  /* ===== Lưu phiếu vào hệ thống (Apps Script Web App) =====
+     Ghi vào file BÁO CÁO NGÀY: PHIEU_KT_LOG (lịch sử) · MARS_XE_LIVE (upsert theo biển số)
+     · NHAC_LICH (hạn bảo dưỡng kế tiếp)                                              */
+  var API_URL   = 'CHUA_CAU_HINH';   /* hoac dan thang link Web App vao day */
+  var API_TOKEN = 'PLG-PKT-2026-7f3a9c';
+  var API_KEY_LS= 'plg_api_phieukiemtra';
+
+  /* Lay link Web App theo thu tu: ?api= tren link  >  da luu tren may  >  hang so o tren */
+  function apiUrl_(){
+    var u='';
+    try{ u=new URL(location.href).searchParams.get('api')||''; }catch(e){}
+    if(u){ try{ localStorage.setItem(API_KEY_LS,u); }catch(e){} return u; }
+    try{ u=localStorage.getItem(API_KEY_LS)||''; }catch(e){}
+    if(!u && String(API_URL).indexOf('http')===0) u=API_URL;
+    return u;
+  }
+  function hoiApiUrl_(cu){
+    var u=window.prompt('Dan link Web App "API PHIEU KIEM TRA - PHI LONG"\n(chi can dan 1 lan tren may nay):', cu||'');
+    if(!u) return '';
+    u=u.trim();
+    if(u.indexOf('http')!==0){ toast('Link khong hop le'); return ''; }
+    try{ localStorage.setItem(API_KEY_LS,u); }catch(e){}
+    return u;
+  }
+
+  function sgn_(i){ var a=doc.querySelectorAll('.signname'); return a[i]?a[i].textContent.trim():''; }
+  function one_(sel){ var e=doc.querySelector(sel); return e?e.textContent.trim():''; }
+  function selTxt_(id){ var e=doc.querySelector('#'+id);
+    return (e && e.selectedIndex>0) ? e.options[e.selectedIndex].text.trim() : ''; }
+
+  function docRows_(title){
+    var t=tableByTitle(title); if(!t) return {rows:[],tong:0};
+    var iIT=colIdxByName(t,'HẠNG MỤC'), iSL=colIdxByName(t,'SL'),
+        iDG=colIdxByName(t,'ĐƠN GIÁ'), iTT=colIdxByName(t,'THÀNH TIỀN'),
+        iXN=colIdxByName(t,'XÁC NHẬN');
+    var rows=[], tong=0;
+    bodyRows(t).forEach(function(r){
+      var nm=cellTxt(cellAt(r,iIT)); if(!nm) return;
+      var tt=num(cellTxt(cellAt(r,iTT))); tong+=tt;
+      rows.push({ nhom:title, hm:nm, sl:cellTxt(cellAt(r,iSL)), dg:cellTxt(cellAt(r,iDG)),
+                  tt:tt, xn:cellTxt(cellAt(r,iXN)) });
+    });
+    return {rows:rows, tong:tong};
+  }
+  function docKiemTra_(){
+    var out=[], MUC=['','TOT','CHU Y','THAY THE'];
+    doc.querySelectorAll('table.safe tr').forEach(function(tr){
+      if(!tr.cells || tr.cells.length<4) return;
+      var nm=tr.cells[0].textContent.trim();
+      if(!nm || nm.toUpperCase().indexOf('HẠNG MỤC')===0) return;
+      for(var k=1;k<=3;k++){
+        var b=tr.querySelector('.box.b'+k);
+        if(b && b.classList.contains('ticked')) out.push({hm:nm, kq:MUC[k]});
+      }
+    });
+    return out;
+  }
+  function thuThap_(){
+    var sc=docRows_('HẠNG MỤC SỬA CHỮA'), ps=docRows_('HẠNG MỤC SỬA CHỮA PHÁT SINH');
+    var kt=docKiemTra_(), lvv=parseInt(selVal('lvSel'),10)||0, cn='';
+    try{ cn=new URL(location.href).searchParams.get('chinhanh')||''; }catch(e){}
+    function dem(k){ var n=0; kt.forEach(function(x){ if(x.kq===k) n++; }); return n; }
+    return {
+      token:API_TOKEN,
+      so_phieu: one_('.hd .no span'),
+      ngay_vao_xuong: infoVal(/v.o x/i),
+      bien_so: infoVal(/Bi.n s/i),
+      ten_kh:  infoVal(/T.n kh/i),
+      dien_thoai: infoVal(/tho/i),
+      hang_xe: infoVal(/H.ng xe/i),
+      model_xe: infoVal(/Model/i),
+      so_km: getKm(),
+      nhien_lieu: selTxt_('fuelSel'),
+      hop_so: selTxt_('gbxSel'),
+      cap_bao_duong: lvv?LV[lvv-1]:'',
+      so_hm_sua_chua: sc.rows.length, tong_tien_sua_chua: sc.tong,
+      so_hm_phat_sinh: ps.rows.length, tong_tien_phat_sinh: ps.tong,
+      so_muc_chu_y: dem('CHU Y'), so_muc_thay_the: dem('THAY THE'),
+      khuyen_nghi: one_('.rec i'),
+      nguoi_lap: sgn_(1),
+      chi_nhanh: cn,
+      link_phieu: location.href,
+      hang_muc: sc.rows.concat(ps.rows),
+      kiem_tra: kt
+    };
+  }
+  var bSave=document.getElementById('bSave');
+  if(bSave) bSave.onclick=function(ev){
+    var API=apiUrl_();
+    if(!API || (ev && ev.shiftKey)) API=hoiApiUrl_(API);
+    if(!API){ toast('Chưa có link API — chưa lưu được (giữ Shift + bấm 💾 để đổi link)'); return; }
+    var d=thuThap_();
+    if(!d.bien_so){ toast('Chưa nhập Biển số xe — không lưu được'); return; }
+    if(!d.so_km)  { toast('Chưa nhập Số km đã chạy — không tính được hạn bảo dưỡng'); return; }
+    toast('Đang lưu phiếu...');
+    bSave.disabled=true;
+    fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+                   body:JSON.stringify(d)})
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        bSave.disabled=false;
+        if(j && j.ok) toast('Đã lưu ' + j.bien_so + ' · hạn BD kế tiếp ' + j.han +
+                            ' hoặc ' + (j.km_ke_tiep||'-') + ' km · lần thứ ' + j.so_lan);
+        else toast('Lỗi khi lưu: ' + ((j&&j.err)||'không rõ'));
+      })
+      .catch(function(){
+        try{ fetch(API,{method:'POST',mode:'no-cors',
+             headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(d)}); }catch(e){}
+        bSave.disabled=false;
+        toast('Đã gửi nhưng không đọc được phản hồi — kiểm tra lại trên Sheet');
+      });
+  };
 
   /* ===== Tự tính THÀNH TIỀN và TỔNG TIỀN ===== */
   function colIdxByName(t,name){ var hs=t.rows[0].cells,i=0;
