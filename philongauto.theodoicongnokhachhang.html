@@ -537,10 +537,16 @@ function khoiDong(){
     var p=ngay.split('-');
     tu=tu||s2d(p[0].trim()); den=den||s2d(p[1].trim());
   }
+  /* 25/10/2026 - SUA LOI: link co ky thi phai goi API dung ky do.
+     Truoc day lanDau=true nen lan goi dau tien khong gui ngay -> API luon tra
+     ky dang dat trong file BAO CAO NGAY, bo qua ky nguoi dung chon ben app. */
+  var coKyTuLink = !!(tu && den);
+  if(coKyTuLink && tu.getTime() > den.getTime()){ var tmp=tu; tu=den; den=tmp; }
   if(!den) den=new Date(d.getFullYear(),d.getMonth(),d.getDate());
   if(!tu)  tu=new Date(den.getFullYear(),den.getMonth(),1);
   document.getElementById('f-tu').value=d2iso(tu);
   document.getElementById('f-den').value=d2iso(den);
+  if(coKyTuLink) lanDau=false;
 
   var cn=(params.get('chinhanh')||'').trim().toUpperCase();
   if(cn==='CN1'||cn==='CN2'||cn==='CN3') document.getElementById('f-cn').value=cn;
