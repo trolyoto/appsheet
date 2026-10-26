@@ -35,8 +35,10 @@
   .info .f i{ flex:1; border-bottom:.4pt dotted #444; height:3.6mm; margin-left:1mm; font-style:normal;}
   /* 2 ô chọn Nhiên liệu / Hộp số: chiếm đúng chỗ cần, không bóp các ô khác */
   .info .f.nho{ flex:0 0 auto; }
-  .info .f.nho i{ flex:0 0 13mm; }
-  .info .f.caplv{ flex:1.15; }
+  .info .f.nho i{ flex:0 0 16mm; }
+  .info .f.caplv{ flex:0.95; }
+  /* ô Tên khách hàng cần rộng hơn để tên không bị xuống dòng */
+  .info .row:first-child .f:first-child{ flex:1.6; }
   .info .f.caplv i{ overflow:hidden; }
   .info .f.caplv .lvsel{ max-width:100%; }
 
@@ -164,6 +166,32 @@
     border:1.5px solid #C6CEDA; background:#fff; font-family:inherit; }
   #syncBox .r button.y{ background:#124A95; border-color:#124A95; color:#fff; font-weight:600; }
   @media print{ #syncBox{ display:none!important; } }
+  /* ===== hộp ẢNH HIỆN TRẠNG XE ===== */
+  #anhBox{ position:fixed; inset:0; background:rgba(11,46,99,.45); z-index:12000;
+    display:none; align-items:center; justify-content:center; }
+  #anhBox.show{ display:flex; }
+  #anhBox .c{ background:#fff; width:min(680px,94vw); max-height:92vh; overflow:auto;
+    border-radius:10px; padding:18px 20px 16px; box-shadow:0 18px 50px rgba(0,0,0,.3);
+    font-size:13px; color:#223; }
+  #anhBox h3{ margin:0 0 8px; font-size:16px; color:#0B2E63; }
+  #anhBox p{ margin:0 0 10px; line-height:1.5; color:#555; }
+  #anhBox .bs{ font-weight:700; color:#0B2E63; margin:0 0 10px; }
+  #anhBox .luoi{ display:grid; grid-template-columns:repeat(auto-fit,minmax(118px,1fr)); gap:10px; }
+  #anhBox .o{ border:1.5px solid #C6CEDA; border-radius:8px; padding:8px; text-align:center; }
+  #anhBox .o b{ display:block; font-size:12px; color:#0B2E63; margin-bottom:6px; }
+  #anhBox .o .tm{ display:flex; flex-wrap:wrap; gap:4px; justify-content:center; min-height:54px; margin-bottom:6px; }
+  #anhBox .o .tm img{ width:52px; height:52px; object-fit:cover; border-radius:4px; border:1px solid #DDE3EC; }
+  #anhBox .o button{ width:100%; padding:6px 4px; font-size:12px; border-radius:6px; cursor:pointer;
+    border:1.5px solid #124A95; background:#124A95; color:#fff; font-family:inherit; }
+  #anhBox #anhInfo{ min-height:18px; margin:10px 0 2px; font-size:12px; color:#1F9D55; }
+  #anhBox #anhInfo.bad{ color:#D0342C; }
+  #anhBox .cu{ display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+  #anhBox .cu img{ width:64px; height:64px; object-fit:cover; border-radius:4px; border:1px solid #DDE3EC; }
+  #anhBox .r{ display:flex; justify-content:flex-end; gap:8px; margin-top:12px; }
+  #anhBox .r button{ padding:8px 16px; font-size:13px; border-radius:6px; cursor:pointer;
+    border:1.5px solid #C6CEDA; background:#fff; font-family:inherit; }
+  #anhBox .r button.y{ background:#124A95; border-color:#124A95; color:#fff; font-weight:600; }
+  @media print{ #anhBox,#anhFile{ display:none!important; } }
   #pkgBox{ position:fixed; inset:0; background:rgba(11,46,99,.45); z-index:12000;
     display:none; align-items:center; justify-content:center; }
   #pkgBox.show{ display:flex; }
@@ -233,7 +261,7 @@
     <div class="row">
       <div class="f"><b>Tên khách hàng:</b><i></i></div>
       <div class="f"><b>Điện thoại:</b><i></i></div>
-      <div class="f"><b>Model xe:</b><i></i></div>
+      <div class="f"><b>Dòng xe:</b><i></i></div>
       <div class="f"><b>Số km đã chạy:</b><i></i></div>
       <div class="f"><b>Ngày vào xưởng:</b><i></i></div>
     </div>
@@ -243,6 +271,12 @@
       <div class="f"><b>Hãng xe:</b><i></i></div>
       <div class="f nho"><b>Nhiên liệu:</b><i class="lvwrap"><span class="lvtxt" id="flTxt"></span><select id="flSel" class="lvsel"><option value="">— chọn —</option><option value="Xăng">Xăng</option><option value="Diesel">Diesel</option></select></i></div>
       <div class="f nho"><b>Hộp số:</b><i class="lvwrap"><span class="lvtxt" id="gbTxt"></span><select id="gbSel" class="lvsel"><option value="">— chọn —</option><option value="Số sàn">Số sàn</option><option value="Tự động">Tự động</option></select></i></div>
+    </div>
+    <div class="row">
+      <div class="f"><b>Đời xe:</b><i></i></div>
+      <div class="f"><b>Số khung (VIN):</b><i></i></div>
+      <div class="f"><b>Size lốp:</b><i></i></div>
+      <div class="f"><b>Ngày đăng ký lần đầu:</b><i></i></div>
     </div>
   </div>
 
@@ -709,6 +743,7 @@ body.only-2 #doc .page + .page{page-break-before:auto}
   </select>
   <span class="sp"></span>
   <button id="bSync" class="ic sync off" title="Liên kết Google Sheet">☁</button>
+  <button id="bAnh" class="ic" title="Ảnh hiện trạng xe (lưu theo biển số)">📷</button>
   <button id="bLink" class="ic" title="Sao chép link phiếu">🔗</button>
   <button id="bPdf" class="go">⬇ Tải PDF</button>
   <button id="bPrint" class="ic" title="In giấy">🖨</button>
@@ -719,6 +754,7 @@ body.only-2 #doc .page + .page{page-break-before:auto}
   <button id="mPrintPdf">Lưu PDF bằng hộp in (nét hơn)</button>
   <button id="mPkg">Hạng mục theo cấp bảo dưỡng…</button>
   <button id="mSync">Liên kết Google Sheet…</button>
+  <button id="mAnh">Ảnh hiện trạng xe…</button>
   <button id="mClear">Xoá nội dung đã nhập</button>
   <button id="mDel1" class="d">Xoá hẳn trang 1</button>
   <button id="mDel2" class="d">Xoá hẳn trang 2</button>
@@ -728,7 +764,7 @@ body.only-2 #doc .page + .page{page-break-before:auto}
   <p>Dán link <b>Ứng dụng web</b> của Apps Script (dạng đuôi <code>/exec</code>).
      Mỗi lần điền xong Biển số xe, phiếu sẽ tự gửi dữ liệu sang Sheet.</p>
   <input id="syncUrl" type="text" spellcheck="false" placeholder="https://script.google.com/macros/s/..../exec">
-  <label class="ck" style="display:block;margin:10px 0 4px">Mã khoá API (lưu trong máy này, KHÔNG nằm trong file):</label>
+  <label class="ck" style="display:block;margin:10px 0 4px">Mã khoá API (hỏi quản trị — lưu trong máy này, không nằm trong file):</label>
   <input id="syncKeyIn" type="text" spellcheck="false" placeholder="Mã khoá">
   <label class="ck"><input id="syncAuto" type="checkbox" checked> Tự gửi khi điền xong (không cần bấm)</label>
   <div id="syncInfo"></div>
@@ -738,6 +774,28 @@ body.only-2 #doc .page + .page{page-break-before:auto}
     <button class="y" id="syncSave">Lưu</button>
   </div>
 </div></div>
+<div id="anhBox"><div class="c">
+  <h3>📷 Ảnh hiện trạng xe</h3>
+  <p>Chụp 4 góc xe lúc nhận xe, kèm ảnh <b>cà vẹt / sổ đăng kiểm</b>. Ảnh lưu vào
+     <b>Google Drive theo biển số</b> — mỗi xe một thư mục riêng, lần sau xe vào lại vẫn xem được ảnh cũ.
+     <b>Ảnh không in trên phiếu.</b></p>
+  <div id="anhBS" class="bs"></div>
+  <div class="luoi">
+    <div class="o" data-vt="Trước"><b>Trước</b><div class="tm"></div><button class="chup">📷 Chụp</button></div>
+    <div class="o" data-vt="Sau"><b>Sau</b><div class="tm"></div><button class="chup">📷 Chụp</button></div>
+    <div class="o" data-vt="Hông trái"><b>Hông trái</b><div class="tm"></div><button class="chup">📷 Chụp</button></div>
+    <div class="o" data-vt="Hông phải"><b>Hông phải</b><div class="tm"></div><button class="chup">📷 Chụp</button></div>
+    <div class="o" data-vt="Cà vẹt"><b>Cà vẹt / Đăng kiểm</b><div class="tm"></div><button class="chup">📷 Chụp</button></div>
+    <div class="o" data-vt="Ảnh thêm"><b>Ảnh thêm</b><div class="tm"></div><button class="chup">📷 Chụp</button></div>
+  </div>
+  <div id="anhInfo"></div>
+  <div id="anhCuDs" class="cu"></div>
+  <div class="r">
+    <button class="n" id="anhCu">Xem ảnh đã lưu của xe</button>
+    <button class="y" id="anhDong">Đóng</button>
+  </div>
+</div></div>
+<input id="anhFile" type="file" accept="image/*" capture="environment" style="display:none">
 <div id="pkgBox"><div class="c">
   <h3>Hạng mục tự điền theo cấp bảo dưỡng</h3>
   <p>Chọn nhóm dịch vụ sẽ tự điền vào bảng <b>HẠNG MỤC SỬA CHỮA PHÁT SINH</b> ở trang 2.
@@ -1361,7 +1419,8 @@ body.only-2 #doc .page + .page{page-break-before:auto}
      Thứ tự ưu tiên: ?api= trên link  >  link đã lưu trong máy  >  link mặc định này. */
   var API_MAC_DINH='https://script.google.com/macros/s/AKfycbzJLpIZ1AnzKLV3R_PdwHH9MYhUGLJKi3VDMhXPxkiUMsbI4kjmFQ6BAX8Lc-YxxMIS/exec';
   /* Mã khoá API: KHÔNG nhúng vào file (repo công khai ai cũng đọc được).
-     Lấy theo thứ tự: ?key= trên link  >  mã đã lưu trong máy (hộp ☁). */
+     Lấy theo thứ tự: ?key= trên link  >  mã đã lưu trong máy (hộp ☁).
+     Thiếu mã thì Sheet trả "SAI MA KHOA" và KHÔNG ghi gì. */
   var KEY_LS='plg_api_key';
   function apiKey(){
     var k='';
@@ -1415,7 +1474,11 @@ body.only-2 #doc .page + .page{page-break-before:auto}
     var p={
       bien_so:      p1Field(/Bi.n s. xe/i),
       hang_xe:      p1Field(/H.ng xe/i),
-      model_xe:     p1Field(/Model xe/i),
+      model_xe:     p1Field(/D.ng xe|Model xe/i),
+      doi_xe:       p1Field(/\u0110.i xe/i),
+      so_vin:       p1Field(/S. khung/i),
+      size_lop:     p1Field(/Size l.p/i),
+      ngay_dang_ky: p1Field(/Ng.y \u0111.ng k./i),
       so_km:        p1Field(/S. km/i),
       ten_kh:       p1Field(/T.n kh.ch h.ng/i),
       dien_thoai:   p1Field(/.i.n tho.i/i),
@@ -1542,6 +1605,194 @@ body.only-2 #doc .page + .page{page-break-before:auto}
   };
   syncBox.addEventListener('click', function(e){ if(e.target===syncBox) syncBox.classList.remove('show'); });
   syncRefresh();
+
+  /* ============ ẢNH HIỆN TRẠNG XE — lưu Drive theo biển số, KHÔNG in ============ */
+  var anhBox=document.getElementById('anhBox'),
+      anhFile=document.getElementById('anhFile'),
+      anhInfoEl=document.getElementById('anhInfo'),
+      anhViTri='';
+  function anhTin(t,xau){ anhInfoEl.textContent=t||''; anhInfoEl.className=xau?'bad':''; }
+  function anhBienSo(){ return p1Field(/Bi.n s. xe/i); }
+  function anhMo(){
+    var bs=anhBienSo();
+    document.getElementById('anhBS').textContent =
+      bksHopLe(bs) ? ('Xe: '+bs) : 'Chưa điền Biển số xe — điền trước khi chụp';
+    anhTin(''); anhBox.classList.add('show');
+  }
+  document.getElementById('bAnh').onclick=anhMo;
+  document.getElementById('mAnh').onclick=function(){ more.classList.remove('show'); anhMo(); };
+  document.getElementById('anhDong').onclick=function(){ anhBox.classList.remove('show'); };
+  anhBox.addEventListener('click',function(e){ if(e.target===anhBox) anhBox.classList.remove('show'); });
+  anhBox.addEventListener('click',function(e){
+    var b=e.target.closest('.chup'); if(!b) return;
+    if(!bksHopLe(anhBienSo())){
+      anhTin('Cần điền Biển số xe đúng dạng (vd 51K-123.45) trước khi chụp',1); return; }
+    var o=b.closest('.o');
+    anhViTri=o?(o.getAttribute('data-vt')||'Khác'):'Khác';
+    anhFile.value=''; anhFile.click();
+  });
+
+  /* nén ảnh trước khi gửi: cạnh dài tối đa 1280px, JPEG 72% */
+  function anhNen(file,xong){
+    var fr=new FileReader();
+    fr.onload=function(){
+      var im=new Image();
+      im.onload=function(){
+        var M=1280, w=im.naturalWidth||im.width, h=im.naturalHeight||im.height;
+        var s=Math.min(1, M/Math.max(w,h));
+        var c=document.createElement('canvas');
+        c.width=Math.max(1,Math.round(w*s)); c.height=Math.max(1,Math.round(h*s));
+        c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+        xong(c.toDataURL('image/jpeg',0.72));
+      };
+      im.onerror=function(){ anhTin('Không đọc được ảnh',1); };
+      im.src=fr.result;
+    };
+    fr.onerror=function(){ anhTin('Không đọc được file ảnh',1); };
+    fr.readAsDataURL(file);
+  }
+
+  function anhThem(vt,src,link){
+    var o=anhBox.querySelector('.o[data-vt="'+vt+'"]'); if(!o) return;
+    var tm=o.querySelector('.tm'); if(!tm) return;
+    var a=document.createElement('a');
+    a.href=link||'#'; a.target='_blank'; a.rel='noopener';
+    var im=document.createElement('img'); im.src=src; a.appendChild(im);
+    if(vt!=='Ảnh thêm') tm.innerHTML='';
+    tm.appendChild(a);
+  }
+
+  /* Máy chủ đã bật nhánh ảnh chưa? Chưa bật mà cứ gửi thì phiếu sẽ bị ghi
+     thành một dòng rác trong PHIEU_KT_LOG — nên dò trước, chưa sẵn thì KHÔNG gửi. */
+  var anhSan=null;
+  function anhDo(xong){
+    if(anhSan!==null){ xong(anhSan); return; }
+    var url=syncUrl(); if(!url){ xong(false); return; }
+    fetch(url+(url.indexOf('?')>=0?'&':'?')+'anh=__do__&key='+encodeURIComponent(apiKey()),{cache:'no-store'})
+      .then(function(r){ return r.text(); })
+      .then(function(tx){ var j=null; try{ j=JSON.parse(tx); }catch(e){}
+        anhSan=!!(j&&j.ok&&j.anh); xong(anhSan); })
+      .catch(function(){ anhSan=false; xong(false); });
+  }
+
+  anhFile.onchange=function(){
+    var f=anhFile.files&&anhFile.files[0]; if(!f) return;
+    var vt=anhViTri, url=syncUrl();
+    if(!url){ anhTin('Chưa có link API — bấm ☁ để cài đặt',1); return; }
+    anhTin('Đang kiểm tra máy chủ…');
+    anhDo(function(san){
+      if(!san){ anhTin('Máy chủ CHƯA bật chức năng lưu ảnh — chưa gửi gì cả, tránh làm hỏng dữ liệu phiếu. Báo quản trị cập nhật API.',1); return; }
+      anhGui(f,vt);
+    });
+  };
+  function anhGui(f,vt){
+    var url=syncUrl();
+    anhTin('Đang nén ảnh…');
+    anhNen(f,function(durl){
+      var bs=anhBienSo(), p=null;
+      try{ p=syncPayload(); }catch(e){}
+      anhTin('Đang tải ảnh lên Google Drive…');
+      fetch(url,{ method:'POST', cache:'no-store',
+                  headers:{'Content-Type':'text/plain;charset=utf-8'},
+                  body:JSON.stringify({ loai:'anh', bien_so:bs, vi_tri:vt, mime:'image/jpeg',
+                    ten_file:bksSach(bs)+'_'+vt.replace(/\s+/g,'')+'_'+Date.now()+'.jpg',
+                    data:durl.split(',')[1], key:apiKey(),
+                    id_phieu:(p&&p.id_phieu)||'', nguoi_lap:(p&&p.nguoi_lap)||'' }) })
+        .then(function(r){ return r.text(); })
+        .then(function(tx){
+          var j=null; try{ j=JSON.parse(tx); }catch(e){}
+          if(!j||!j.ok){ anhTin('Tải ảnh thất bại'+((j&&j.error)?(': '+j.error):' — kiểm tra lại link API'),1); return; }
+          anhThem(vt,durl,j.link_xem);
+          anhTin('Đã lưu ảnh '+vt+' vào Drive của xe '+bksSach(bs));
+        })
+        .catch(function(err){ anhTin('Không tải được ảnh: '+err.message,1); });
+    });
+  }
+
+  /* ====== NẠP HỒ SƠ XE CŨ TỪ MARS_CHUAN THEO BIỂN SỐ ====== */
+  var xeDaNap='';
+  function datO(re,v){
+    if(!v) return 0;
+    var f=doc.querySelectorAll('.info .f');
+    for(var i=0;i<f.length;i++){
+      var lb=f[i].querySelector('b'), el=f[i].querySelector('i');
+      if(lb && re.test(lb.textContent) && el && !el.textContent.trim()){ el.textContent=String(v); return 1; }
+    }
+    return 0;
+  }
+  function demOTrong(){
+    var re=/T.n kh.ch h.ng|.i.n tho.i|D.ng xe|H.ng xe|Đ.i xe|S. khung|Size l.p|Ng.y đ.ng k.|S. km/i;
+    var f=doc.querySelectorAll('.info .f'), n=0, thieu=[];
+    for(var i=0;i<f.length;i++){
+      var lb=f[i].querySelector('b'), el=f[i].querySelector('i');
+      if(lb && re.test(lb.textContent) && el && !el.textContent.trim()){
+        n++; thieu.push(lb.textContent.replace(':','').trim());
+      }
+    }
+    return {n:n, ten:thieu};
+  }
+  function napXe(){
+    var bs=p1Field(/Bi.n s. xe/i); if(!bksHopLe(bs)) return;
+    var k=bksSach(bs); if(k===xeDaNap) return;
+    var url=syncUrl(); if(!url) return;
+    xeDaNap=k;
+    fetch(url+(url.indexOf('?')>=0?'&':'?')+'xe='+encodeURIComponent(k)
+             +'&key='+encodeURIComponent(apiKey()),{cache:'no-store'})
+      .then(function(r){ return r.text(); })
+      .then(function(tx){
+        var j=null; try{ j=JSON.parse(tx); }catch(e){}
+        if(!j||!j.ok||!j.xe){ return; }
+        var x=j.xe, n=0;
+        n+=datO(/T.n kh.ch h.ng/i,x.ten_kh);
+        n+=datO(/.i.n tho.i/i,x.dien_thoai);
+        n+=datO(/H.ng xe/i,x.hang_xe);
+        n+=datO(/D.ng xe|Model xe/i,x.dong_xe);
+        n+=datO(/Đ.i xe/i,x.doi_xe);
+        n+=datO(/S. khung/i,x.so_vin);
+        n+=datO(/Size l.p/i,x.size_lop);
+        n+=datO(/Ng.y đ.ng k./i,x.ngay_dang_ky);
+        var fl=doc.querySelector('#flSel'), gb=doc.querySelector('#gbSel');
+        if(fl&&!fl.value&&x.nhien_lieu){ fl.value=x.nhien_lieu; n++; }
+        if(gb&&!gb.value&&x.hop_so){ gb.value=x.hop_so; n++; }
+        if(typeof veFuelGear==='function') veFuelGear();
+        var t=demOTrong();
+        toast('Hồ sơ xe '+k+': đã nạp '+n+' ô'+(t.n?(' · CÒN THIẾU '+t.n+': '+t.ten.join(', ')):' · ĐỦ THÔNG TIN'));
+        scheduleUrlUpdate();
+      })
+      .catch(function(){});
+  }
+  var napTimer=null;
+  doc.addEventListener('input',function(e){
+    var el=e.target.closest('.info .f i'); if(!el) return;
+    var lb=el.parentNode.querySelector('b');
+    if(!lb || !/Bi.n s. xe/i.test(lb.textContent)) return;
+    clearTimeout(napTimer); napTimer=setTimeout(napXe,1200);
+  });
+
+  document.getElementById('anhCu').onclick=function(){
+    var bs=anhBienSo();
+    if(!bksHopLe(bs)){ anhTin('Cần điền Biển số xe đúng dạng trước khi xem',1); return; }
+    var url=syncUrl(); if(!url){ anhTin('Chưa có link API',1); return; }
+    anhTin('Đang lấy ảnh đã lưu của xe…');
+    fetch(url+(url.indexOf('?')>=0?'&':'?')+'anh='+encodeURIComponent(bksSach(bs))
+              +'&key='+encodeURIComponent(apiKey()),{cache:'no-store'})
+      .then(function(r){ return r.text(); })
+      .then(function(tx){
+        var j=null; try{ j=JSON.parse(tx); }catch(e){}
+        var ds=document.getElementById('anhCuDs'); ds.innerHTML='';
+        if(!j||!j.ok){ anhTin('Không đọc được danh sách ảnh',1); return; }
+        if(!j.anh||!j.anh.length){ anhTin('Xe này chưa có ảnh nào được lưu'); return; }
+        j.anh.forEach(function(x){
+          var a=document.createElement('a');
+          a.href=x.xem; a.target='_blank'; a.rel='noopener';
+          a.title=(x.vi_tri||'')+' · '+(x.ngay||'');
+          var im=document.createElement('img'); im.src=x.anh; im.loading='lazy';
+          a.appendChild(im); ds.appendChild(a);
+        });
+        anhTin('Có '+j.anh.length+' ảnh đã lưu của xe '+bksSach(bs));
+      })
+      .catch(function(err){ anhTin('Lỗi: '+err.message,1); });
+  };
 
   /* ---- hộp chọn nhóm hạng mục ---- */
   var pkgBox=document.getElementById('pkgBox');
