@@ -55,14 +55,16 @@ td.ctr{text-align:center}
 tbody tr:nth-child(even) td{background:#f7fafd}
 tfoot td{background:#DCE6F1;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
 tfoot td.ctr{text-align:center}
-
-/* ───── 26/10/2026 — ƯU TIÊN KH CÓ PHÁT SINH NỢ / CÒN NỢ ───── */
-.btn.on{background:#0070C0;color:#fff;border:1px solid #0070C0}
-tbody tr.r-ps-no td{background:#FFF1C9!important}   /* có phát sinh nợ trong kỳ + còn dư nợ */
-tbody tr.r-no-cu td{background:#FFF8E7!important}   /* nợ cũ, không phát sinh trong kỳ */
 .warn-cell{color:#b0531a;font-weight:700}
 .has-lech::after{content:' \26A0';color:#b0531a;font-weight:700}
 .empty-note{text-align:center;padding:34px;color:#7a8ea4;font-style:italic}
+tr.nhom-row td{background:#DDEBF7;color:#1b3a63;font-weight:700;border-top:2px solid #0070C0;
+  font-size:12.5px;letter-spacing:.01em}
+tr.nhom-row td.nhom-ten{text-align:left}
+tr.nhom-row td.num{text-align:right}
+tr.nhom-row .nhom-ghi{font-weight:400;font-style:italic;color:#44607f}
+tr.nhom-1 td.nhom-ten{color:#8a2b00}
+@media print{tr.nhom-row td{background:#DDEBF7!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 .grp-row td{background:#eaf1fa!important;font-weight:700}
 
 
@@ -89,8 +91,6 @@ thead{display:table-header-group}
 thead th{background:#0070C0!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 tfoot td{background:#DCE6F1!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 tbody tr:nth-child(even) td{background:#f7fafd!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-tbody tr.r-ps-no td{background:#FFF1C9!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-tbody tr.r-no-cu td{background:#FFF8E7!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .grp-row td{background:#eaf1fa!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     tr.tong-top td{background:#FFFF00!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 tr{page-break-inside:avoid}
@@ -118,6 +118,7 @@ thead th{font-size:9.5px}
     <option value="CN1">CN1</option>
     <option value="CN2">CN2</option>
     <option value="CN3">CN3</option>
+    <option value="CN5">CN5</option>
   </select>
   <span class="tb-label">Lọc KH:</span>
   <div class="combo-wrap" id="combo-wrap">
@@ -127,8 +128,6 @@ thead th{font-size:9.5px}
     <div class="combo-dropdown" id="combo-dropdown"></div>
   </div>
   <button class="btn ghost" onclick="resetFilter()">Bỏ lọc</button>
-  <button class="btn ghost" id="btn-conno" onclick="toggleConNo()"
-          title="Bật: chỉ hiện khách hàng còn dư nợ cuối kỳ (ẩn KH đã thu hết)">Chỉ KH còn nợ</button>
   <span class="count" id="filter-count"></span>
   <button class="btn" onclick="window.print()">In báo cáo</button>
 </div>
@@ -170,7 +169,6 @@ thead th{font-size:9.5px}
 <tbody id="tb-th"><tr><td colspan="9" class="empty-note">Đang tải dữ liệu...</td></tr></tbody>
 <tfoot id="tf-th"></tfoot>
 </table>
-<div style="font-size:12px;font-style:italic;margin-top:6px" id="th-note"></div>
 </div>
 
 <!-- ══ BẢNG CHI TIẾT CHỨNG TỪ ══ -->
@@ -233,7 +231,6 @@ var API = 'https://script.google.com/macros/s/AKfycbwGozRg3JPKx_PJ2rmNXDbaM-fCQp
 var view = 'th';
 var khRows = [], ctRows = [], khList = [], activeKH = '';
 var daNapCT = false, dangNap = false, lanDau = true;
-var chiConNo = false;   /* 26/10/2026 - nut "Chi KH con no" */
 
 /* ───── SỐ & NGÀY ───── */
 /* Chịu được: 1.132.346.628 | 1,132,346,628 | 1132346628 | 3.5 | (1.000) | -1.000 */
@@ -285,47 +282,80 @@ function d2iso(d){
   return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
 }
 
-/* ───── ƯU TIÊN HIỂN THỊ (26/10/2026) ─────
- * Tracy chốt: ưu tiên KH CÒN NỢ, không xếp theo tên nữa.
- *   nhóm 1 = có phát sinh nợ trong kỳ VÀ còn dư nợ cuối kỳ  (xếp dư nợ giảm dần)
- *   nhóm 2 = nợ cũ: còn dư nợ nhưng không phát sinh nợ trong kỳ (dư nợ giảm dần)
- *   nhóm 3 = có phát sinh nợ nhưng đã thu hết trong kỳ      (phát sinh giảm dần)
- *   nhóm 4 = còn lại, gồm KH dư Có (thu nhiều hơn nợ)       (số tiền giảm dần)
- * Sắp ở TRANG, không sắp ở API, để đúng cho cả 2 chế độ: lấy thẳng tab
- * BC TỔNG NỢ 3 CHI NHÁNH (đang để nguyên thứ tự sheet) và tính lại từ sổ.
- */
-function nhomUuTien(r){
-  var ps=r.ps||0, ck=r.cuoiKy||0;
-  if(ck>0.5) return ps>0?1:2;
-  return ps>0?3:4;
+/* ───── BẢNG TỔNG HỢP ───── */
+/* ─── 26/10/2026 — ƯU TIÊN: khách còn nợ lên đầu ───
+   Nhóm 1 có phát sinh & còn nợ · Nhóm 2 không phát sinh nhưng còn nợ cũ
+   Nhóm 3 có phát sinh đã thu hết · Nhóm 4 không phát sinh không nợ      */
+var TEN_NHOM=[
+  {t:'NHÓM 1 — CÓ PHÁT SINH &amp; CÒN NỢ CUỐI KỲ', g:'ưu tiên thu hồi'},
+  {t:'NHÓM 2 — KHÔNG PHÁT SINH, CÒN NỢ CŨ',       g:'nợ tồn đọng từ kỳ trước'},
+  {t:'NHÓM 3 — CÓ PHÁT SINH, ĐÃ THU HẾT',          g:'không còn nợ'},
+  {t:'NHÓM 4 — KHÔNG PHÁT SINH, KHÔNG CÒN NỢ',     g:''}
+];
+function nhomKH(r){
+  var coPS=((r.ps||0)+(r.thu||0))>0.5;
+  var conNo=Math.abs(r.cuoiKy||0)>0.5;
+  if(coPS&&conNo) return 0;
+  if(!coPS&&conNo) return 1;
+  if(coPS) return 2;
+  return 3;
 }
-function sapXep(rows){
+function sapUuTien(rows){
   return rows.slice().sort(function(a,b){
-    var na=nhomUuTien(a), nb=nhomUuTien(b);
+    var na=nhomKH(a), nb=nhomKH(b);
     if(na!==nb) return na-nb;
-    if(na<=2) return (b.cuoiKy||0)-(a.cuoiKy||0);
-    if(na===3) return (b.ps||0)-(a.ps||0);
-    var va=Math.abs(a.cuoiKy||0), vb=Math.abs(b.cuoiKy||0);
-    if(Math.abs(va-vb)>0.5) return vb-va;
+    var ca=Math.abs(a.cuoiKy||0), cb=Math.abs(b.cuoiKy||0);
+    if(ca!==cb) return cb-ca;
+    var pa=a.ps||0, pb=b.ps||0;
+    if(pa!==pb) return pb-pa;
     return String(a.ten||'').localeCompare(String(b.ten||''),'vi');
   });
 }
+function dongNhom(idx, ds){
+  var t={dkT:0,dkD:0,ps:0,thu:0,ckT:0,ckD:0};
+  ds.forEach(function(r){
+    if(r.dauKy>0) t.dkT+=r.dauKy; else t.dkD+=-r.dauKy;
+    t.ps+=r.ps; t.thu+=r.thu;
+    if(r.cuoiKy>0) t.ckT+=r.cuoiKy; else t.ckD+=-r.cuoiKy;
+  });
+  var n=TEN_NHOM[idx];
+  return '<tr class="nhom-row nhom-'+(idx+1)+'">'
+    +'<td class="nhom-ten" colspan="3">'+n.t+' — '+ds.length+' KH'
+      +(n.g?' <span class="nhom-ghi">('+n.g+')</span>':'')+'</td>'
+    +'<td class="num">'+fmt(t.dkT)+'</td><td class="num">'+fmt(t.dkD)+'</td>'
+    +'<td class="num">'+fmt(t.ps)+'</td><td class="num">'+fmt(t.thu)+'</td>'
+    +'<td class="num">'+fmt(t.ckT)+'</td><td class="num">'+fmt(t.ckD)+'</td></tr>';
+}
 
-/* ───── BẢNG TỔNG HỢP ───── */
-function renderTH(rows){
+function renderTH(rowsGoc){
   var tb=document.getElementById('tb-th'), tf=document.getElementById('tf-th');
-  if(!rows.length){
-    tb.innerHTML='<tr><td colspan="9" class="empty-note">Không có dữ liệu phù hợp.</td></tr>';
+  if(!rowsGoc.length){
+    var cnDang=document.getElementById('f-cn').value;
+    tb.innerHTML='<tr><td colspan="9" class="empty-note">Không có dữ liệu phù hợp.'
+      +(cnDang?'<br>Đang lọc chi nhánh <b>'+esc(cnDang)+'</b> — thử chọn lại “Tất cả” để đối chiếu.':'')
+      +'</td></tr>';
     tf.innerHTML=''; return;
   }
+  var rows=sapUuTien(rowsGoc);
+  var theoNhom=[[],[],[],[]];
+  rows.forEach(function(r){ theoNhom[nhomKH(r)].push(r); });
+  var nhomTruoc=-1;
   tb.innerHTML=rows.map(function(r,i){
+    var mo='';
+    var nh=nhomKH(r);
+    if(nh!==nhomTruoc){ mo=dongNhom(nh, theoNhom[nh]); nhomTruoc=nh; }
+    return mo+renderDongTH(r,i);
+  }).join('');
+  renderTongTH(rows, tf);
+}
+
+function renderDongTH(r,i){
+  return (function(r,i){
     var dkT=r.dauKy>0?r.dauKy:0, dkD=r.dauKy<0?-r.dauKy:0;
     var ckT=r.cuoiKy>0?r.cuoiKy:0, ckD=r.cuoiKy<0?-r.cuoiKy:0;
     var lech=(r.app===null||r.app===undefined)?0:(r.app-r.cuoiKy);
     var coLech=Math.abs(lech)>1;
-    var nh=nhomUuTien(r);
-    var clsTr=nh===1?' class="r-ps-no"':(nh===2?' class="r-no-cu"':'');
-    return '<tr'+clsTr+'>'
+    return '<tr>'
       +'<td class="ctr">'+(i+1)+'</td>'
       +'<td'+(r.gc?' class="has-lech" title="'+esc(r.gc)+'"':(coLech?' class="has-lech" title="Lệch '+fmt0(lech)+' so với nợ hiện tại trên APP"':''))+'>'+esc(r.ten)+'</td>'
       +'<td class="ctr">'+esc(r.cn||'')+'</td>'
@@ -334,35 +364,22 @@ function renderTH(rows){
       +'<td class="num'+(coLech?' warn-cell':'')+'">'+fmt(ckT)+'</td>'
       +'<td class="num'+(coLech?' warn-cell':'')+'">'+fmt(ckD)+'</td>'
       +'</tr>';
-  }).join('');
+  })(r,i);
+}
 
+function renderTongTH(rows, tf){
   var t={dkT:0,dkD:0,ps:0,thu:0,ckT:0,ckD:0};
+  var soConNo=0;
   rows.forEach(function(r){
     if(r.dauKy>0) t.dkT+=r.dauKy; else t.dkD+=-r.dauKy;
     t.ps+=r.ps; t.thu+=r.thu;
     if(r.cuoiKy>0) t.ckT+=r.cuoiKy; else t.ckD+=-r.cuoiKy;
+    if(Math.abs(r.cuoiKy||0)>0.5) soConNo++;
   });
-  tf.innerHTML='<tr><td class="ctr" colspan="3">TỔNG CỘNG ('+rows.length+' khách hàng)</td>'
+  tf.innerHTML='<tr><td class="ctr" colspan="3">TỔNG CỘNG ('+rows.length+' khách hàng — '+soConNo+' KH còn nợ)</td>'
     +'<td>'+fmt(t.dkT)+'</td><td>'+fmt(t.dkD)+'</td>'
     +'<td>'+fmt(t.ps)+'</td><td>'+fmt(t.thu)+'</td>'
     +'<td>'+fmt(t.ckT)+'</td><td>'+fmt(t.ckD)+'</td></tr>';
-
-  var note=document.getElementById('th-note');
-  if(note){
-    var g=[0,0,0,0,0], duCo=0, tongDuCo=0;
-    rows.forEach(function(r){
-      g[nhomUuTien(r)]++;
-      if((r.cuoiKy||0)<-0.5){ duCo++; tongDuCo+=-r.cuoiKy; }
-    });
-    var tx='Thứ tự ưu tiên: <b>có phát sinh nợ &amp; còn dư nợ ('+g[1]+')</b> → '
-      +'nợ cũ không phát sinh trong kỳ ('+g[2]+') → đã thu hết trong kỳ ('+g[3]+') → khác ('+g[4]+'). '
-      +'Dòng tô vàng đậm = nhóm 1, vàng nhạt = nợ cũ. '
-      +'<b>Còn phải thu cuối kỳ: '+fmt0(t.ckT)+' đ / '+(g[1]+g[2])+' KH.</b>';
-    if(chiConNo) tx+=' Đang bật nút <b>Chỉ KH còn nợ</b> — đã ẩn KH đã thu hết.';
-    if(duCo) tx+=' <b style="color:#b0531a">&#9888; '+duCo+' KH dư Có '+fmt0(tongDuCo)
-      +' đ (đã thu nhiều hơn nợ) — cần tra soát: thu trước, hoặc đơn hàng ghi khác ngày / thiếu phát sinh trong sổ.</b>';
-    note.innerHTML=tx;
-  }
 }
 
 /* ───── BẢNG CHI TIẾT HÀNG HOÁ ───── */
@@ -473,26 +490,10 @@ function applyFilter(){
   var f=locHam();
   var th=f?khRows.filter(function(r){return f(r.ten);}):khRows;
   var ct=f?ctRows.filter(function(r){return f(r.kh);}):ctRows;
-  if(chiConNo){
-    th=th.filter(function(r){ return (r.cuoiKy||0)>0.5; });
-    var ten={}; th.forEach(function(r){ ten[khongDau(r.ten)]=1; });
-    ct=ct.filter(function(r){ return ten[khongDau(r.kh)]; });
-  }
-  th=sapXep(th);
   renderTH(th); renderCT(ct);
-  var sNo=0, tNo=0;
-  th.forEach(function(r){ if((r.cuoiKy||0)>0.5){ sNo++; tNo+=r.cuoiKy; } });
   document.getElementById('filter-count').textContent=
-    th.length+' KH'+(sNo?(' · '+sNo+' KH còn nợ '+fmt0(tNo)+' đ'):'')
-    +(ctRows.length?(' / '+ct.length+' chứng từ'):'');
+    th.length+' KH'+(ctRows.length?(' / '+ct.length+' chứng từ'):'');
 }
-function capNhatNutConNo(){
-  var b=document.getElementById('btn-conno');
-  if(!b) return;
-  b.className=chiConNo?'btn on':'btn ghost';
-  b.textContent=chiConNo?'Đang xem: KH còn nợ':'Chỉ KH còn nợ';
-}
-function toggleConNo(){ chiConNo=!chiConNo; capNhatNutConNo(); applyFilter(); }
 function buildDropdown(q){
   var dd=document.getElementById('combo-dropdown');
   var qq=khongDau(q||'');
@@ -506,7 +507,7 @@ function buildDropdown(q){
 function openDropdown(){ buildDropdown(document.getElementById('kh-input').value); document.getElementById('combo-dropdown').classList.add('open'); }
 function onComboInput(){ activeKH=''; openDropdown(); applyFilter(); }
 function selectKH(el){ activeKH=el.dataset.val; document.getElementById('kh-input').value=activeKH||''; document.getElementById('combo-dropdown').classList.remove('open'); applyFilter(); }
-function resetFilter(){ activeKH=''; document.getElementById('kh-input').value=''; document.getElementById('combo-dropdown').classList.remove('open'); chiConNo=false; capNhatNutConNo(); applyFilter(); }
+function resetFilter(){ activeKH=''; document.getElementById('kh-input').value=''; document.getElementById('combo-dropdown').classList.remove('open'); applyFilter(); }
 document.addEventListener('click',function(e){
   var w=document.getElementById('combo-wrap');
   if(w&&!w.contains(e.target)) document.getElementById('combo-dropdown').classList.remove('open');
@@ -567,6 +568,7 @@ function napAPI(kemCT){
     applyFilter();
 
     var html='<div class="alert info">Nguồn: '+esc(j.nguon)+' — tính lúc '+esc(j.tinhLuc)+'.';
+    if(window.__ghiChuCN) html+='<br>'+window.__ghiChuCN;
     if(j.cheDo==='BC'){
       var tongDC=0, soGC=0;
       khRows.forEach(function(r){ tongDC+=(r.dc||0); if(r.gc) soGC++; });
@@ -620,13 +622,27 @@ function khoiDong(){
   document.getElementById('f-den').value=d2iso(den);
   if(coKyTuLink) lanDau=false;
 
-  var cn=(params.get('chinhanh')||'').trim().toUpperCase();
-  if(cn==='CN1'||cn==='CN2'||cn==='CN3') document.getElementById('f-cn').value=cn;
-
-  /* 26/10/2026 - mo san che do chi xem KH con no: &conno=1 */
-  var pc=(params.get('conno')||params.get('chiconno')||'').trim();
-  if(pc==='1'||pc.toUpperCase()==='TRUE'||pc.toUpperCase()==='Y'){ chiConNo=true; }
-  capNhatNutConNo();
+  /* 26/10/2026 — link bên app gửi dạng "CN1 , CN2 , CN3"; tách thành danh sách */
+  var cnThô=(params.get('chinhanh')||'').trim().toUpperCase();
+  var dsCN=cnThô.split(/[,;+\/|]/).map(function(x){return x.replace(/\s+/g,'');}).filter(Boolean);
+  var selCN=document.getElementById('f-cn');
+  var ghiChuCN='';
+  if(dsCN.length===1 && ['CN1','CN2','CN3','CN5'].indexOf(dsCN[0])>-1){
+    selCN.value=dsCN[0];
+  }else if(dsCN.length>=1){
+    var duCa3 = dsCN.indexOf('CN1')>-1 && dsCN.indexOf('CN2')>-1 && dsCN.indexOf('CN3')>-1;
+    if(duCa3){
+      selCN.value='';
+      ghiChuCN='Link chọn <b>'+esc(dsCN.join(' + '))+'</b> → trang hiển thị <b>TẤT CẢ chi nhánh</b> '
+             +'để không bỏ sót khách của CN5 và khách chưa gắn chi nhánh.';
+    }else{
+      var gt=dsCN.join(',');
+      var op=document.createElement('option');
+      op.value=gt; op.textContent=dsCN.join(' + ');
+      selCN.appendChild(op); selCN.value=gt;
+    }
+  }
+  window.__ghiChuCN=ghiChuCN;
 
   var kh=(params.get('kh')||'').trim();
   if(kh){ activeKH=''; document.getElementById('kh-input').value=kh; }
