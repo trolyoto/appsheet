@@ -1736,13 +1736,13 @@ body.only-2 #doc .page + .page{page-break-before:auto}
     var k=bksSach(bs); if(k===xeDaNap) return;
     var url=syncUrl(); if(!url) return;
     xeDaNap=k;
-    fetch(url+(url.indexOf('?')>=0?'&':'?')+'xe='+encodeURIComponent(k)
+    fetch(url+(url.indexOf('?')>=0?'&':'?')+'bs='+encodeURIComponent(k)
              +'&key='+encodeURIComponent(apiKey()),{cache:'no-store'})
       .then(function(r){ return r.text(); })
       .then(function(tx){
         var j=null; try{ j=JSON.parse(tx); }catch(e){}
-        if(!j||!j.ok||!j.xe){ return; }
-        var x=j.xe, n=0;
+        if(!j||!j.ok||!j.co_du_lieu){ return; }
+        var x=j, n=0;
         n+=datO(/T.n kh.ch h.ng/i,x.ten_kh);
         n+=datO(/.i.n tho.i/i,x.dien_thoai);
         n+=datO(/H.ng xe/i,x.hang_xe);
@@ -1750,13 +1750,18 @@ body.only-2 #doc .page + .page{page-break-before:auto}
         n+=datO(/Đ.i xe/i,x.doi_xe);
         n+=datO(/S. khung/i,x.so_vin);
         n+=datO(/Size l.p/i,x.size_lop);
-        n+=datO(/Ng.y đ.ng k./i,x.ngay_dang_ky);
+        n+=datO(/Ng.y đ.ng k./i,x.ngay_dk);
         var fl=doc.querySelector('#flSel'), gb=doc.querySelector('#gbSel');
         if(fl&&!fl.value&&x.nhien_lieu){ fl.value=x.nhien_lieu; n++; }
         if(gb&&!gb.value&&x.hop_so){ gb.value=x.hop_so; n++; }
         if(typeof veFuelGear==='function') veFuelGear();
         var t=demOTrong();
-        toast('Hồ sơ xe '+k+': đã nạp '+n+' ô'+(t.n?(' · CÒN THIẾU '+t.n+': '+t.ten.join(', ')):' · ĐỦ THÔNG TIN'));
+        /* KHÔNG tự điền Số km — km phải là số đọc MỚI trên đồng hồ. Chỉ nhắc lần trước. */
+        var cu='';
+        if(x.so_km) cu=' · lần trước '+Number(String(x.so_km).replace(/[^0-9]/g,'')||0).toLocaleString('vi-VN')+' km';
+        if(x.lan_gan_nhat) cu+=' ('+x.lan_gan_nhat+(x.cap_da_lam?(' · '+x.cap_da_lam):'')+')';
+        toast('Hồ sơ xe '+k+': đã nạp '+n+' ô'+cu
+              +(t.n?(' · CÒN THIẾU '+t.n+': '+t.ten.join(', ')):' · ĐỦ THÔNG TIN'));
         scheduleUrlUpdate();
       })
       .catch(function(){});
