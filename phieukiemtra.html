@@ -276,7 +276,7 @@
       <div class="f"><b>Đời xe:</b><i></i></div>
       <div class="f"><b>Số khung (VIN):</b><i></i></div>
       <div class="f"><b>Size lốp:</b><i></i></div>
-      <div class="f"><b>Số chỗ ngồi:</b><i></i></div>
+      <div class="f"><b>Ngày đăng ký lần đầu:</b><i></i></div>
     </div>
   </div>
 
@@ -777,7 +777,7 @@ body.only-2 #doc .page + .page{page-break-before:auto}
 <div id="anhBox"><div class="c">
   <h3>📷 Ảnh hiện trạng xe</h3>
   <p>Chụp 4 góc xe lúc nhận xe, kèm ảnh <b>cà vẹt / sổ đăng kiểm</b>. Ảnh lưu vào
-     <b>Google Drive theo biển số</b> — mỗi xe một thư mục riêng, lần sau xe vào lại vẫn xem được ảnh cũ.
+     <b>Tab ANH_XE trong BÁO CÁO NGÀY</b> — lưu theo biển số, lần sau xe vào lại vẫn xem được ảnh cũ.
      <b>Ảnh không in trên phiếu.</b></p>
   <div id="anhBS" class="bs"></div>
   <div class="luoi">
@@ -1608,7 +1608,7 @@ body.only-2 #doc .page + .page{page-break-before:auto}
   syncBox.addEventListener('click', function(e){ if(e.target===syncBox) syncBox.classList.remove('show'); });
   syncRefresh();
 
-  /* ============ ẢNH HIỆN TRẠNG XE — lưu Drive theo biển số, KHÔNG in ============ */
+  /* ====== ẢNH HIỆN TRẠNG XE — lưu tab ANH_XE (BÁO CÁO NGÀY) theo biển số, KHÔNG in ====== */
   var anhBox=document.getElementById('anhBox'),
       anhFile=document.getElementById('anhFile'),
       anhInfoEl=document.getElementById('anhInfo'),
@@ -1693,19 +1693,20 @@ body.only-2 #doc .page + .page{page-break-before:auto}
     anhNen(f,function(durl){
       var bs=anhBienSo(), p=null;
       try{ p=syncPayload(); }catch(e){}
-      anhTin('Đang tải ảnh lên Google Drive…');
+      anhTin('Đang lưu ảnh vào BÁO CÁO NGÀY…');
       fetch(url,{ method:'POST', cache:'no-store',
                   headers:{'Content-Type':'text/plain;charset=utf-8'},
                   body:JSON.stringify({ loai:'anh', bien_so:bs, vi_tri:vt, mime:'image/jpeg',
                     ten_file:bksSach(bs)+'_'+vt.replace(/\s+/g,'')+'_'+Date.now()+'.jpg',
-                    data:durl.split(',')[1], key:apiKey(),
-                    id_phieu:(p&&p.id_phieu)||'', nguoi_lap:(p&&p.nguoi_lap)||'' }) })
+                    anh:durl.split(',')[1], data:durl.split(',')[1], key:apiKey(),
+                    id_phieu:(p&&p.id_phieu)||'', nguoi_lap:(p&&p.nguoi_lap)||'',
+                    nguoi_chup:(p&&p.nguoi_lap)||'' }) })
         .then(function(r){ return r.text(); })
         .then(function(tx){
           var j=null; try{ j=JSON.parse(tx); }catch(e){}
           if(!j||!j.ok){ anhTin('Tải ảnh thất bại'+((j&&j.error)?(': '+j.error):' — kiểm tra lại link API'),1); return; }
           anhThem(vt,durl,j.link_xem);
-          anhTin('Đã lưu ảnh '+vt+' vào Drive của xe '+bksSach(bs));
+          anhTin('Đã lưu ảnh '+vt+' vào tab ANH_XE của xe '+bksSach(bs));
         })
         .catch(function(err){ anhTin('Không tải được ảnh: '+err.message,1); });
     });
