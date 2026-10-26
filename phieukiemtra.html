@@ -728,6 +728,8 @@ body.only-2 #doc .page + .page{page-break-before:auto}
   <p>Dán link <b>Ứng dụng web</b> của Apps Script (dạng đuôi <code>/exec</code>).
      Mỗi lần điền xong Biển số xe, phiếu sẽ tự gửi dữ liệu sang Sheet.</p>
   <input id="syncUrl" type="text" spellcheck="false" placeholder="https://script.google.com/macros/s/..../exec">
+  <label class="ck" style="display:block;margin:10px 0 4px">Mã khoá API (lưu trong máy này, KHÔNG nằm trong file):</label>
+  <input id="syncKeyIn" type="text" spellcheck="false" placeholder="Mã khoá">
   <label class="ck"><input id="syncAuto" type="checkbox" checked> Tự gửi khi điền xong (không cần bấm)</label>
   <div id="syncInfo"></div>
   <div class="r">
@@ -1358,13 +1360,18 @@ body.only-2 #doc .page + .page{page-break-before:auto}
   /* Link API mặc định — nhúng sẵn để xưởng KHÔNG phải dán tay trên từng máy.
      Thứ tự ưu tiên: ?api= trên link  >  link đã lưu trong máy  >  link mặc định này. */
   var API_MAC_DINH='https://script.google.com/macros/s/AKfycbzJLpIZ1AnzKLV3R_PdwHH9MYhUGLJKi3VDMhXPxkiUMsbI4kjmFQ6BAX8Lc-YxxMIS/exec';
-  var API_KEY = 'PLGKT2026';
+  /* Mã khoá API: KHÔNG nhúng vào file (repo công khai ai cũng đọc được).
+     Lấy theo thứ tự: ?key= trên link  >  mã đã lưu trong máy (hộp ☁). */
+  var KEY_LS='plg_api_key';
+  function apiKey(){
+    var k='';
+    try{ k=new URL(window.location.href).searchParams.get('key')||''; }catch(e){}
+    return (k || lsGet(KEY_LS) || '').trim();
+  }
   function syncUrl(){
-    var u = '';
-    try{ u = new URL(window.location.href).searchParams.get('api')||''; }catch(e){}
-    u = (u || lsGet(SYNC_KEY) || API_MAC_DINH || '').trim();
-    if(u && u.indexOf('key' + '=') < 0){ u += (u.indexOf('?') < 0 ? '?' : '&') + 'key' + '=' + API_KEY; }
-    return u;
+    var u='';
+    try{ u=new URL(window.location.href).searchParams.get('api')||''; }catch(e){}
+    return (u || lsGet(SYNC_KEY) || API_MAC_DINH || '').trim();
   }
   function syncAutoOn(){ return lsGet(SYNC_AUTO)!=='0'; }
 
@@ -1425,6 +1432,7 @@ body.only-2 #doc .page + .page{page-break-before:auto}
       khuyen_nghi:  recEl?recEl.textContent.trim():'',
       chi_nhanh:    qsParam('cn')||qsParam('chinhanh'),
       nguoi_lap:    qsParam('nv')||qsParam('nguoi_lap'),
+      key:          apiKey(),
       hang_muc_json: JSON.stringify({ sua_chua:d1, phat_sinh:d2 }),
       kiem_tra_json: JSON.stringify(tickItems()),
       link_phieu:   syncLink()
@@ -1499,6 +1507,7 @@ body.only-2 #doc .page + .page{page-break-before:auto}
 
   function syncOpen(){
     syncUrlEl.value=lsGet(SYNC_KEY)||'';
+    var ki=document.getElementById('syncKeyIn'); if(ki) ki.value=lsGet(KEY_LS)||'';
     syncAutoEl.checked=syncAutoOn();
     syncInfo.textContent=''; syncInfo.className='';
     syncBox.classList.add('show');
@@ -1517,6 +1526,7 @@ body.only-2 #doc .page + .page{page-break-before:auto}
       return;
     }
     lsSet(SYNC_KEY,v); lsSet(SYNC_AUTO, syncAutoEl.checked?'1':'0');
+    var ki=document.getElementById('syncKeyIn'); if(ki) lsSet(KEY_LS,(ki.value||'').trim());
     syncBox.classList.remove('show'); syncLast=''; syncRefresh();
     toast(v?'\u0110\u00e3 li\u00ean k\u1EBFt Google Sheet':'\u0110\u00e3 b\u1ECF li\u00ean k\u1EBFt');
   };
