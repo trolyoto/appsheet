@@ -675,12 +675,12 @@ gross += (qty !== null && price !== null) ? qty * price : (v || 0);
 });
 var ck = gross - net;
 if (!(ck > 0.5)) ck = 0;
-document.getElementById('el-tongcong').textContent = formatMoney(net);
+document.getElementById('el-tongcong').textContent = formatMoney(gross);
 document.getElementById('el-ck').textContent = formatMoney(ck);
 updatePaymentTotal(net);
 }
 function updatePaymentTotal(net) {
-if (typeof net !== 'number') net = parseNumber(document.getElementById('el-tongcong').textContent) || 0;
+if (typeof net !== 'number') net = (parseNumber(document.getElementById('el-tongcong').textContent) || 0) - (parseNumber(document.getElementById('el-ck').textContent) || 0);
 var noCu = (inNocu ? parseNumber(inNocu.value) : parseNumber(p.get('nocu'))) || 0;
 var daTT = (inDatt ? parseNumber(inDatt.value) : parseNumber(p.get('datt'))) || 0;
 var pct = inVat ? parsePercent(inVat.value) : null;
