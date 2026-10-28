@@ -186,6 +186,16 @@
             text-align: right;
         }
 
+        .grand-total td {
+            font-size: 15px;
+            font-weight: 800;
+            color: #000;
+            border-top: 1.5px solid #333;
+            border-bottom: 1.5px solid #333;
+            background: #efefef;
+            padding: 6px 4px;
+        }
+
         .first-summary {
             border-top: 0.5px solid #ccc;
         }
@@ -375,6 +385,7 @@
         const thanhToan        = urlParams.get('thanhtoan');
         const khachTrao        = urlParams.get('khachtrao');
         const conNo            = urlParams.get('conno');
+        const noCuParam        = urlParams.get('nocu');        // ← NỢ CŨ (công nợ trước đó của khách)
         const noiDungChietKhau = urlParams.get('noidungchietkhau');
         const ghiChu           = urlParams.get('ghichu');
         const qrcodeUrl        = urlParams.get('qrcode');
@@ -474,46 +485,68 @@
             
             if (stt > 0) {
                 let chiTietChietKhau = chietKhau ? (parseInt(chietKhau) || 0) : 0;
-                let chiTietThanhToan = thanhToan ? (parseInt(thanhToan) || 0) : (tongTien - chiTietChietKhau);
+                let noCu             = (noCuParam && noCuParam !== 'null')
+                                       ? (parseInt(decodeURIComponent(noCuParam)) || 0) : 0;
+
+                // Số phải thu của RIÊNG phiếu này (ưu tiên số app gửi sang qua &thanhtoan=)
+                let phaiThuPhieu     = thanhToan ? (parseInt(thanhToan) || 0) : (tongTien - chiTietChietKhau);
+                let dieuChinh        = phaiThuPhieu - (tongTien - chiTietChietKhau);
+
+                // TỔNG THANH TOÁN = Tổng tiền − Chiết khấu + Nợ cũ
+                let chiTietThanhToan = phaiThuPhieu + noCu;
+
+                const khachTraSo     = (khachTrao && khachTrao !== 'null')
+                                       ? (parseInt(decodeURIComponent(khachTrao)) || 0) : 0;
+                let conLai           = chiTietThanhToan - khachTraSo;
+
                 const rawGhiChu     = ghiChu || noiDungChietKhau;
                 let noiDungChiTiet  = (rawGhiChu && rawGhiChu !== 'null')
                                       ? decodeURIComponent(rawGhiChu).trim() : "";
                 let noiDungThuc     = noiDungChiTiet.replace(/^Ghi\s*chú\s*:\s*/i, '').trim();
 
+                const addRow = (label, value, cls, style) => {
+                    const tr = document.createElement('tr');
+                    tr.className = cls || 'summary-row';
+                    if (style) tr.setAttribute('style', style);
+                    tr.innerHTML = `<td colspan="2">${label}</td><td style="text-align:right;white-space:nowrap">${value}</td>`;
+                    tableBody.appendChild(tr);
+                };
+
+                // 1. Tổng tiền
                 const trTongTien = document.createElement('tr');
                 trTongTien.className = 'summary-row first-summary';
                 trTongTien.innerHTML = `<td colspan="2">Tổng tiền</td><td style="text-align:right;white-space:nowrap">${tongTien.toLocaleString('vi-VN')}đ</td>`;
                 tableBody.appendChild(trTongTien);
-                
-                if (chiTietChietKhau >= 0) {
-                    const trCK = document.createElement('tr');
-                    trCK.className = 'summary-row';
-                    trCK.innerHTML = `<td colspan="2">Chiết khấu</td><td style="text-align:right;white-space:nowrap">-${chiTietChietKhau.toLocaleString('vi-VN')}đ</td>`;
-                    tableBody.appendChild(trCK);
-                }
-                
-                const trTT = document.createElement('tr');
-                trTT.className = 'summary-row';
-                trTT.innerHTML = `<td colspan="2">Phải thu khách</td><td style="text-align:right;white-space:nowrap">${chiTietThanhToan.toLocaleString('vi-VN')}đ</td>`;
-                tableBody.appendChild(trTT);
 
-                if (khachTrao && khachTrao !== 'null') {
-                    const kt = parseInt(decodeURIComponent(khachTrao)) || 0;
-                    if (kt > 0) {
-                        const trKT = document.createElement('tr');
-                        trKT.className = 'summary-row';
-                        trKT.innerHTML = `<td colspan="2">Khách trả</td><td style="text-align:right;white-space:nowrap">${kt.toLocaleString('vi-VN')}đ</td>`;
-                        tableBody.appendChild(trKT);
-                    }
+                // 2. Chiết khấu (ẩn khi = 0)
+                if (chiTietChietKhau > 0) {
+                    addRow('Chiết khấu', '-' + chiTietChietKhau.toLocaleString('vi-VN') + 'đ');
                 }
 
-                if (conNo && conNo !== 'null') {
-                    const cn = parseInt(decodeURIComponent(conNo)) || 0;
-                    const trCN = document.createElement('tr');
-                    trCN.className = 'summary-row';
-                    trCN.style.color = '#e53935';
-                    trCN.innerHTML = `<td colspan="2">Còn nợ</td><td style="text-align:right;white-space:nowrap">${cn.toLocaleString('vi-VN')}đ</td>`;
-                    tableBody.appendChild(trCN);
+                // 3. Điều chỉnh / làm tròn (chỉ hiện khi số app gửi lệch với Tổng tiền − CK)
+                if (dieuChinh !== 0) {
+                    addRow('Điều chỉnh / làm tròn',
+                           (dieuChinh > 0 ? '+' : '-') + Math.abs(dieuChinh).toLocaleString('vi-VN') + 'đ');
+                }
+
+                // 4. Nợ cũ (ẩn khi = 0)
+                if (noCu !== 0) {
+                    addRow('Nợ cũ', (noCu > 0 ? '+' : '-') + Math.abs(noCu).toLocaleString('vi-VN') + 'đ',
+                           'summary-row', 'color:#e53935');
+                }
+
+                // 5. TỔNG THANH TOÁN
+                addRow('TỔNG THANH TOÁN', chiTietThanhToan.toLocaleString('vi-VN') + 'đ', 'summary-row grand-total');
+
+                // 6. Khách trả
+                if (khachTraSo > 0) {
+                    addRow('Khách trả', khachTraSo.toLocaleString('vi-VN') + 'đ');
+                }
+
+                // 7. Còn nợ = Tổng thanh toán − Khách trả
+                if (conLai !== 0) {
+                    addRow('Còn nợ', conLai.toLocaleString('vi-VN') + 'đ',
+                           'summary-row', 'color:#e53935;font-weight:bold');
                 }
 
                 if (noiDungThuc !== "") {
