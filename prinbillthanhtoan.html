@@ -1,562 +1,257 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hóa Đơn Thanh Toán</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f5f5;
-            padding: 20px;
-            position: relative;
-            min-height: 100vh;
-        }
-        
-        .print-button-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 5px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        
-        .print-button {
-            background: #4CAF50;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 4px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            width: 100%;
-            justify-content: center;
-        }
-        
-        .print-button:hover {
-            background: #45a049;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.25);
-        }
-        
-        .invoice {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            padding: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .header {
-            text-align: center;
-            border-bottom: 0.5px solid #ccc;
-            padding-bottom: 8px;
-            margin-bottom: 8px;
-        }
-        
-        .header img {
-            max-width: 100%;
-            max-height: 120px;
-            display: block;
-            margin: 0 auto;
-            border: 6px solid #fff;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PHIẾU NHẬN DỊCH VỤ - PHI LONG (A5)</title>
+<style>
+  @page { size: A5 portrait; margin: 6mm; }
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin:0; background:#eceff1; font-family:"Times New Roman", Times, serif; color:#000; }
 
-        /* ===== DÒNG LOẠI PHIẾU ===== */
-        .loai-phieu {
-            text-align: center;
-            font-size: 15px;
-            font-weight: 700;
-            color: #333;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            padding: 5px 0 3px 0;
-            margin-bottom: 4px;
-            border-bottom: 1px dashed #bbb;
-        }
-        
-        .info-section {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            margin-bottom: 8px;
-            padding: 5px 10px;
-            background: #f9f9f9;
-            border-radius: 5px;
-        }
-        
-        .info-item { font-size: 14px; line-height: 1.3; }
-        .info-label { font-weight: bold; color: #333; }
-        .info-value { color: #666; }
-        
-        /* ===== TABLE - layout 2 dòng cho mỗi sản phẩm ===== */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 8px;
-        }
-        
-        thead {
-            border-bottom: 0.5px solid #ccc;
-        }
+  .sheet {
+    width:148mm; min-height:210mm; padding:6mm; margin:10px auto; background:#fff;
+    display:flex; flex-direction:column;
+  }
 
-        thead tr th {
-            padding: 6px 4px;
-            font-size: 13px;
-            font-weight: 600;
-            white-space: nowrap;
-        }
+  /* ---------- HEADER ---------- */
+  .hd { display:flex; align-items:center; justify-content:space-between; border-bottom:1.2pt solid #0b4ea2; padding-bottom:1.5mm; }
+  .hd .logo { width:62mm; flex:none; }
+  .hd .logo img { width:100%; display:block; }
+  .logo-fb { line-height:1; }
+  .logo-fb .b1 { font-family:Arial Black, Arial, sans-serif; font-size:28pt; font-weight:900; color:#0b4ea2; letter-spacing:-.5px; }
+  .logo-fb .b2 { font-family:Arial, sans-serif; font-size:8.4pt; font-weight:700; color:#0b4ea2; letter-spacing:.2px; margin-top:1px; }
+  .logo-fb .b2 span { background:#f7941d; color:#fff; padding:0 3px; }
+  .hd .qr { width:20mm; flex:none; text-align:center; }
+  .hd .qr img, .hd .qr .ph { width:20mm; height:20mm; border:.5pt solid #999; display:block; }
+  .hd .qr .cap { font-family:Arial, sans-serif; font-size:5.6pt; font-weight:700; margin-top:.5mm; letter-spacing:.3px; }
 
-        th.col-tt   { width: 22px;  text-align: center; }
-        th.col-name { text-align: center; }
-        th.col-tt2  { width: 80px;  text-align: center; }
+  h1 { text-align:center; font-size:15pt; font-weight:700; margin:2.5mm 0 1mm; letter-spacing:.5px; }
+  .no { text-align:center; font-family:Arial, sans-serif; font-size:8pt; margin-bottom:2mm; }
+  .no b { color:#c00; }
 
-        tr.item-row-1 td {
-            padding: 5px 4px 0px 4px;
-            font-size: 13px;
-            border-bottom: none;
-        }
+  /* ---------- THÔNG TIN XE ---------- */
+  .kh { width:100%; border-collapse:collapse; font-size:9.5pt; margin-bottom:1.5mm; }
+  .kh td { padding:.6mm 0; vertical-align:bottom; }
+  .lb { white-space:nowrap; padding-right:1mm !important; }
+  .fill { border-bottom:.5pt dotted #333; width:100%; }
+  .fill input { width:100%; border:0; outline:0; font:inherit; background:transparent; padding:0 1px; }
+  .fill input.bold { font-weight:700; }
 
-        tr.item-row-1 td.cell-tt {
-            text-align: center;
-            font-weight: bold;
-            vertical-align: top;
-            width: 22px;
-        }
+  /* ---------- BẢNG ---------- */
+  table.tb { width:100%; border-collapse:collapse; font-size:9pt; }
+  table.tb th, table.tb td { border:.8pt solid #000; padding:.7mm 1mm; }
+  table.tb th { background:#ffe600; font-weight:700; text-align:center; font-size:8.4pt; line-height:1.1; }
+  table.tb td { height:6mm; }
+  .c { text-align:center; } .r { text-align:right; }
+  table.tb td input { width:100%; border:0; outline:0; font:inherit; background:transparent; }
+  table.tb td input.c { text-align:center; } table.tb td input.r { text-align:right; }
+  col.stt{width:7mm} col.dvt{width:10mm} col.sl{width:8mm} col.dg{width:20mm} col.ckc{width:9mm} col.tt{width:23mm}
 
-        tr.item-row-1 td.cell-name {
-            text-align: left;
-            word-break: break-word;
-            font-weight: 500;
-        }
+  .sum { width:100%; border-collapse:collapse; font-size:9.5pt; }
+  .sum td { padding:.7mm 1.2mm; }
+  .sum td.l { text-align:right; }
+  .sum td.v { text-align:right; width:24mm; border-bottom:.5pt solid #000; font-weight:700; }
+  .sum tr.big td { font-size:10.5pt; }
+  .sum input { width:100%; border:0; outline:0; font:inherit; text-align:right; background:transparent; }
+  .chu { font-size:8.5pt; font-style:italic; margin-top:.8mm; }
 
-        tr.item-row-1 td.cell-sub-total {
-            text-align: right;
-            font-weight: 600;
-            color: #222;
-            white-space: nowrap;
-            vertical-align: top;
-        }
+  /* ---------- KỸ THUẬT ---------- */
+  .kt { border:.8pt solid #000; margin-top:1.5mm; }
+  .kt .hdr { background:#ffe600; font-weight:700; font-size:9pt; padding:.7mm 1.2mm; border-bottom:.8pt solid #000; }
+  .kt .ln { border-bottom:.5pt dotted #555; height:5.2mm; margin:1.6mm 1.5mm 0; }
 
-        tr.item-row-2 td {
-            padding: 0px 4px 5px 4px;
-            font-size: 13px;
-            border-bottom: 1px solid #e8e8e8;
-            color: #555;
-        }
+  /* ---------- KÝ ---------- */
+  .sign { display:flex; margin-top:3mm; text-align:center; font-family:Arial, sans-serif; }
+  .sign div { flex:1; }
+  .sign .t { font-size:9.5pt; font-weight:700; }
+  .sign .s { font-size:7.5pt; font-style:italic; }
+  .sign .sp { height:14mm; }
 
-        tr.item-row-2 td.cell-sub-sl {
-            text-align: left;
-        }
+  .ft { margin-top:auto; border-top:.5pt solid #999; padding-top:1mm; font-family:Arial, sans-serif; font-size:6.6pt; text-align:center; color:#333; line-height:1.4; }
 
-        tr.item-row-2 td.cell-sub-total {
-            text-align: right;
-            font-weight: 600;
-            color: #222;
-            white-space: nowrap;
-        }
-        
-        .summary-row {
-            background: #f7f7f7;
-            font-weight: bold;
-            font-size: 13px;
-            border-bottom: 1px solid #e8e8e8;
-        }
-        
-        .summary-row td {
-            padding: 3px 4px;
-        }
-
-        .summary-row td:last-child {
-            text-align: right;
-        }
-
-        .grand-total td {
-            font-size: 15px;
-            font-weight: 800;
-            color: #000;
-            border-top: 1.5px solid #333;
-            border-bottom: 1.5px solid #333;
-            background: #efefef;
-            padding: 6px 4px;
-        }
-
-        .first-summary {
-            border-top: 0.5px solid #ccc;
-        }
-        
-        .discount-reason {
-            font-size: 13px;
-            color: #333;
-            border-bottom: 1px solid #ddd;
-        }
-        .discount-reason td {
-            padding: 5px 4px;
-            text-align: left;
-        }
-        
-        .qrcode-section {
-            text-align: center;
-            margin: 8px 0 6px 0;
-            padding: 8px 0;
-            border-top: 1px dashed #ccc;
-        }
-        
-        .qrcode-container {
-            display: inline-block;
-            padding: 10px;
-            background: white;
-            border: 1px solid #eee;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
-        
-        .qrcode-container img { display: block; max-width: 150px; height: auto; }
-        .qrcode-text { font-size: 12px; color: #666; margin-top: 8px; }
-        
-        .footer {
-            text-align: center;
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px dashed #999;
-            color: #666;
-            font-size: 14px;
-        }
-        
-        .print-status {
-            position: fixed; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.8); color: white;
-            padding: 20px 30px; border-radius: 10px;
-            z-index: 10000; display: none;
-            text-align: center; font-size: 18px;
-        }
-        
-        /* ===== PRINT ===== */
-        @media print {
-            @page { margin: 0mm; padding: 0; size: auto; }
-            html, body { margin: 0 !important; padding: 0 !important; background: white !important; }
-            .print-button-container, .print-status { display: none !important; }
-            .invoice {
-                box-shadow: none !important; margin: 0 !important;
-                padding: 10px 15px 15px 15px !important;
-                max-width: 100% !important; width: 100% !important;
-                position: absolute !important; top: 0 !important; left: 0 !important;
-            }
-        }
-
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 768px) {
-            body { padding: 10px; padding-top: 80px; }
-            .print-button-container { position: fixed; top: 10px; right: 10px; left: 10px; }
-            .print-button { width: 100%; justify-content: center; }
-            .invoice { padding: 20px; margin-top: 10px; max-width: 100%; }
-        }
-    </style>
+  .bar { max-width:148mm; margin:10px auto; text-align:center; font-family:Arial, sans-serif; }
+  .bar button { font-size:14px; padding:8px 16px; margin:0 4px; cursor:pointer; }
+  @media print { .bar { display:none; } body { background:#fff; } .sheet { margin:0; box-shadow:none; } }
+</style>
 </head>
 <body>
-    <div class="print-status" id="printStatus">
-        <p>Đang mở hộp thoại in...</p>
-        <p>Vui lòng chọn máy in và nhấn "In"</p>
+
+<div class="bar">
+  <button onclick="window.print()">🖨 In / Lưu PDF (A5)</button>
+  <button onclick="addRow()">+ Thêm dòng</button>
+</div>
+
+<div class="sheet">
+
+  <div class="hd">
+    <div class="logo">
+      <!-- Để file LOGO.png cùng thư mục (hoặc dán link ảnh vào src) là tự hiện -->
+      <img src="LOGO.png" alt="" onerror="this.style.display='none';document.getElementById('logoFb').style.display='block'">
+      <div class="logo-fb" id="logoFb" style="display:none">
+        <div class="b1">PHI LONG</div>
+        <div class="b2">TYRE PLUS + CAR SERVICE <span>AUTO.COM</span></div>
+      </div>
     </div>
-    
-    <div class="print-button-container">
-        <button class="print-button" onclick="printInvoice()">
-            <span>🖨️</span>
-            <span>In hóa đơn</span>
-        </button>
+    <div class="qr">
+      <!-- Để file QR.png cùng thư mục (hoặc dán link ảnh vào src) -->
+      <img src="QR.png" alt="" onerror="this.style.display='none';document.getElementById('qrPh').style.display='block'">
+      <div class="ph" id="qrPh" style="display:none"></div>
+      <div class="cap">ĐẶT LỊCH NGAY</div>
     </div>
-    
-    <div class="invoice">
-        <div class="header">
-            <img id="logoShop" src="https://i.ibb.co/JwHMkPXc/logo-PHILONG1.jpg" alt="Logo">
-        </div>
+  </div>
 
-        <!-- DÒNG LOẠI PHIẾU (ẩn mặc định, hiện khi có param loaiphieu) -->
-        <div class="loai-phieu" id="loaiPhieu" style="display:none"></div>
-        
-        <div class="info-section">
-            <div class="info-item">
-                <span class="info-label">Thời gian:</span>
-                <span class="info-value" id="thoiGian">08/12/2025 14:30</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Tên KH:</span>
-                <span class="info-value" id="ban">B05</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Số phiếu:</span>
-                <span class="info-value" id="soPhieu">#HD001234</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Thu ngân:</span>
-                <span class="info-value" id="thuNgan">Nguyễn Văn A</span>
-            </div>
-        </div>
-        
-        <table>
-            <thead>
-                <tr>
-                    <th class="col-tt">TT</th>
-                    <th class="col-name">Tên hàng</th>
-                    <th class="col-tt2">Thành tiền</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody">
-                <!-- Ví dụ mặc định -->
-                <tr class="item-row-1">
-                    <td class="cell-tt">1</td>
-                    <td class="cell-name">Cà phê đen</td>
-                    <td class="cell-sub-total">50,000đ</td>
-                </tr>
-                <tr class="item-row-2">
-                    <td></td>
-                    <td class="cell-sub-sl" colspan="2">2.0 x 25,000</td>
-                </tr>
-                <tr class="item-row-1">
-                    <td class="cell-tt">2</td>
-                    <td class="cell-name">Cà phê sữa</td>
-                    <td class="cell-sub-total">30,000đ</td>
-                </tr>
-                <tr class="item-row-2">
-                    <td></td>
-                    <td class="cell-sub-sl" colspan="2">1.0 x 30,000</td>
-                </tr>
-            </tbody>
-        </table>
-        
-        <div class="qrcode-section" id="qrcodeSection">
-            <div class="qrcode-container">
-                <img id="qrcodeImage" src="" alt="QR Code">
-            </div>
-            <div class="qrcode-text" id="qrcodeText"></div>
-        </div>
-        
-        <div class="footer">
-            <p id="footerText">Cảm ơn quý khách và hẹn gặp lại!</p>
-            <p>---===---</p>
-        </div>
-    </div>
+  <h1>PHIẾU NHẬN DỊCH VỤ</h1>
+  <div class="no">Số phiếu: <b id="sophieu">..................</b> &nbsp;·&nbsp; Ngày: <span id="ngay">..../..../20....</span></div>
 
-    <script>
-        function printInvoice() {
-            document.getElementById('printStatus').style.display = 'block';
-            setTimeout(() => {
-                window.print();
-                setTimeout(() => {
-                    document.getElementById('printStatus').style.display = 'none';
-                }, 2000);
-            }, 500);
-        }
-        
-        function autoPrint() {
-            setTimeout(() => {
-                const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.get('noautoprint') !== 'true') printInvoice();
-            }, 1000);
-        }
-        
-        window.addEventListener('load', autoPrint);
-        
-        const urlParams = new URLSearchParams(window.location.search);
-        
-        const soPhieu          = urlParams.get('sophieu');
-        const thoiGian         = urlParams.get('thoigian');
-        const ban              = urlParams.get('ban');
-        const data             = urlParams.get('data');
-        const thuNgan          = urlParams.get('thungan');
-        const footerText       = urlParams.get('footer');
-        const chietKhau        = urlParams.get('chietkhau');
-        const thanhToan        = urlParams.get('thanhtoan');
-        const khachTrao        = urlParams.get('khachtrao');
-        const conNo            = urlParams.get('conno');
-        const noCuParam        = urlParams.get('nocu');        // ← NỢ CŨ (công nợ trước đó của khách)
-        const noiDungChietKhau = urlParams.get('noidungchietkhau');
-        const ghiChu           = urlParams.get('ghichu');
-        const qrcodeUrl        = urlParams.get('qrcode');
-        const qrcodeContent    = urlParams.get('qrcodecontent');
-        const qrcodeText       = urlParams.get('qrcodetext');
-        const showQrcode       = urlParams.get('showqrcode');
-        const loaiPhieu        = urlParams.get('loaiphieu');   // ← THAM SỐ MỚI
-        const logoUrl          = urlParams.get('logo');         // ← cho phép đổi logo qua URL nếu cần
-        
-        if (soPhieu)    document.getElementById('soPhieu').textContent    = decodeURIComponent(soPhieu);
-        if (thoiGian)   document.getElementById('thoiGian').textContent   = decodeURIComponent(thoiGian);
-        if (ban)        document.getElementById('ban').textContent        = decodeURIComponent(ban);
-        if (thuNgan)    document.getElementById('thuNgan').textContent    = decodeURIComponent(thuNgan);
-        if (footerText) document.getElementById('footerText').textContent = decodeURIComponent(footerText);
-        if (logoUrl)    document.getElementById('logoShop').src           = decodeURIComponent(logoUrl);
+  <table class="kh">
+    <tr>
+      <td class="lb">Tên khách hàng:</td><td class="fill"><input id="kh" class="bold"></td>
+      <td class="lb" style="padding-left:3mm">Điện thoại:</td><td class="fill" style="width:38mm"><input id="sdt"></td>
+    </tr>
+    <tr>
+      <td class="lb">Biển số xe:</td><td class="fill"><input id="bs" class="bold"></td>
+      <td class="lb" style="padding-left:3mm">Loại xe:</td><td class="fill"><input id="xe"></td>
+    </tr>
+    <tr>
+      <td class="lb">Thời gian vào:</td><td class="fill"><input id="nhan"></td>
+      <td class="lb" style="padding-left:3mm">Số Km:</td><td class="fill"><input id="km"></td>
+    </tr>
+    <tr>
+      <td class="lb">Thời gian giao:</td><td class="fill"><input id="giao"></td>
+      <td class="lb" style="padding-left:3mm">Cố vấn dịch vụ:</td><td class="fill"><input id="cvdv"></td>
+    </tr>
+    <tr>
+      <td class="lb">Kỹ thuật viên:</td><td class="fill"><input id="ktv"></td>
+      <td class="lb" style="padding-left:3mm">Yêu cầu khách:</td><td class="fill"><input id="ycau"></td>
+    </tr>
+  </table>
 
-        // ===== LOẠI PHIẾU =====
-        // Truyền qua URL: ?loaiphieu=PHIẾU TẠM TÍNH  hoặc  ?loaiphieu=H%C3%93A%20%C4%90%C6%A0N
-        if (loaiPhieu && loaiPhieu.trim() !== '') {
-            const el = document.getElementById('loaiPhieu');
-            el.textContent = decodeURIComponent(loaiPhieu).trim();
-            el.style.display = 'block';
-        }
-        
-        // QR Code
-        const qrcodeSection     = document.getElementById('qrcodeSection');
-        const qrcodeImage       = document.getElementById('qrcodeImage');
-        const qrcodeTextEl      = document.getElementById('qrcodeText');
-        const shouldShowQrcode  = showQrcode !== 'false';
-        
-        if (shouldShowQrcode) {
-            if (qrcodeUrl) {
-                qrcodeImage.src = decodeURIComponent(qrcodeUrl);
-            } else if (qrcodeContent) {
-                const content = decodeURIComponent(qrcodeContent);
-                qrcodeImage.src = `https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=${encodeURIComponent(content)}&choe=UTF-8`;
-            } else {
-                qrcodeSection.style.display = 'none';
-            }
-            qrcodeTextEl.textContent = qrcodeText ? decodeURIComponent(qrcodeText) : "Quét mã QR để thanh toán";
-        } else {
-            qrcodeSection.style.display = 'none';
-        }
-        
-        // ===== Render bảng hàng hóa theo layout 2 dòng =====
-        if (data) {
-            const tableBody = document.getElementById('tableBody');
-            tableBody.innerHTML = '';
-            
-            const rows = data.split('_b_');
-            const productMap = new Map();
-            let tongTien = 0;
-            
-            rows.forEach((row) => {
-                const trimmedRow = row.trim();
-                if (trimmedRow) {
-                    const cols = trimmedRow.split('_a_').map(c => c.trim());
-                    if (cols.length >= 3) {
-                        const tenHang   = cols[0].replace(/_c_([^_]*)/g, '<br><s>$1</s>');
-                        const donGia    = parseInt(cols[1]) || 0;
-                        const soLuong   = parseFloat(cols[2]) || 0;
-                        const productKey = `${cols[0]}_${donGia}`;
-                        if (productMap.has(productKey)) {
-                            const p = productMap.get(productKey);
-                            p.soLuong   += soLuong;
-                            p.thanhTien  = p.soLuong * p.donGia;
-                        } else {
-                            productMap.set(productKey, { tenHang, soLuong, donGia, thanhTien: soLuong * donGia });
-                        }
-                    }
-                }
-            });
-            
-            let stt = 0;
-            productMap.forEach((product) => {
-                stt++;
+  <table class="tb" id="tbl">
+    <colgroup><col class="stt"><col><col class="dvt"><col class="sl"><col class="dg"><col class="ckc"><col class="tt"></colgroup>
+    <thead>
+      <tr><th>STT</th><th>Tên Hàng Hóa / Dịch Vụ</th><th>ĐVT</th><th>SL</th><th>Đơn Giá</th><th>CK<br>(%)</th><th>Thành Tiền</th></tr>
+    </thead>
+    <tbody id="tb"></tbody>
+  </table>
 
-                const tr1 = document.createElement('tr');
-                tr1.className = 'item-row-1';
-                tr1.innerHTML = `
-                    <td class="cell-tt">${stt}</td>
-                    <td class="cell-name">${product.tenHang}</td>
-                    <td class="cell-sub-total">${product.thanhTien.toLocaleString('vi-VN')}đ</td>
-                `;
-                tableBody.appendChild(tr1);
+  <table class="sum">
+    <tr><td class="l">Cộng tiền hàng:</td><td class="v" id="tong">0</td></tr>
+    <tr><td class="l">Chiết khấu:</td><td class="v"><input id="ck" value="0" oninput="ckManual=true;calc()"></td></tr>
+    <tr><td class="l">Dư nợ cũ:</td><td class="v"><input id="no" value="0" oninput="calc()"></td></tr>
+    <tr class="big"><td class="l"><b>TIỀN THANH TOÁN:</b></td><td class="v" id="tt">0</td></tr>
+  </table>
+  <div class="chu">Bằng chữ: <span id="bangchu">Không đồng</span></div>
 
-                const tr2 = document.createElement('tr');
-                tr2.className = 'item-row-2';
-                tr2.innerHTML = `
-                    <td></td>
-                    <td class="cell-sub-sl" colspan="2">${product.soLuong.toFixed(1)} x ${product.donGia.toLocaleString('vi-VN')}</td>
-                `;
-                tableBody.appendChild(tr2);
+  <div class="kt">
+    <div class="hdr">NHÂN VIÊN KỸ THUẬT – TEAM PHI LONG: KIỂM TRA &amp; GIẢI PHÁP ĐỀ XUẤT</div>
+    <div class="ln"></div><div class="ln"></div>
+  </div>
 
-                tongTien += product.thanhTien;
-            });
-            
-            if (stt > 0) {
-                let chiTietChietKhau = chietKhau ? (parseInt(chietKhau) || 0) : 0;
-                let noCu             = (noCuParam && noCuParam !== 'null')
-                                       ? (parseInt(decodeURIComponent(noCuParam)) || 0) : 0;
+  <div class="sign">
+    <div><div class="t">NGƯỜI THU TIỀN</div><div class="s">(ký, ghi rõ họ tên)</div><div class="sp"></div></div>
+    <div><div class="t">KHÁCH HÀNG</div><div class="s">(ký, ghi rõ họ tên)</div><div class="sp"></div></div>
+  </div>
 
-                // Số phải thu của RIÊNG phiếu này (ưu tiên số app gửi sang qua &thanhtoan=)
-                let phaiThuPhieu     = thanhToan ? (parseInt(thanhToan) || 0) : (tongTien - chiTietChietKhau);
-                let dieuChinh        = phaiThuPhieu - (tongTien - chiTietChietKhau);
+  <div class="ft">
+    Bảo hành phụ tùng mới 06 tháng hoặc 6.000 km · Phụ thu 25% với vật tư khách mang đến · Phát sinh sẽ báo trước khi thực hiện<br>
+    PHI LONG – GIẢI PHÁP TOÀN DIỆN VỀ Ô TÔ · Quý khách vui lòng giữ phiếu để nhận xe và bảo hành
+  </div>
 
-                // TỔNG THANH TOÁN = Tổng tiền − Chiết khấu + Nợ cũ
-                let chiTietThanhToan = phaiThuPhieu + noCu;
+</div>
 
-                const khachTraSo     = (khachTrao && khachTrao !== 'null')
-                                       ? (parseInt(decodeURIComponent(khachTrao)) || 0) : 0;
-                let conLai           = chiTietThanhToan - khachTraSo;
+<script>
+const ROWS = 8;
+const fmt = n => (n||0).toLocaleString('vi-VN');
+const num = s => parseFloat(String(s||'').replace(/[^\d.-]/g,'')) || 0;
 
-                const rawGhiChu     = ghiChu || noiDungChietKhau;
-                let noiDungChiTiet  = (rawGhiChu && rawGhiChu !== 'null')
-                                      ? decodeURIComponent(rawGhiChu).trim() : "";
-                let noiDungThuc     = noiDungChiTiet.replace(/^Ghi\s*chú\s*:\s*/i, '').trim();
+function rowHTML(i){
+  return `<tr>
+    <td class="c">${i}</td>
+    <td><input class="ten"></td>
+    <td><input class="c dvt"></td>
+    <td><input class="c sl" oninput="calc()"></td>
+    <td><input class="r dg" oninput="calc()"></td>
+    <td><input class="c ckp" oninput="calc()"></td>
+    <td class="r tt">&nbsp;</td>
+  </tr>`;
+}
+function build(){
+  let h=''; for(let i=1;i<=ROWS;i++) h+=rowHTML(i);
+  document.getElementById('tb').innerHTML=h;
+}
+function addRow(){
+  const tb=document.getElementById('tb');
+  tb.insertAdjacentHTML('beforeend', rowHTML(tb.rows.length+1));
+}
+let ckManual=false;
+function calc(){
+  let tong=0, ckDong=0;
+  document.querySelectorAll('#tb tr').forEach(tr=>{
+    const sl=num(tr.querySelector('.sl').value), dg=num(tr.querySelector('.dg').value);
+    let p=num(tr.querySelector('.ckp').value); if(p<0)p=0; if(p>100)p=100;
+    const goc=sl*dg, giam=Math.round(goc*p/100), t=goc-giam;
+    tong+=goc; ckDong+=giam;
+    tr.querySelector('.tt').innerHTML = goc ? fmt(t) : '&nbsp;';
+  });
+  if(!ckManual) document.getElementById('ck').value=fmt(ckDong);
+  const ck=num(document.getElementById('ck').value), no=num(document.getElementById('no').value);
+  const tt=tong-ck+no;
+  document.getElementById('tong').textContent=fmt(tong);
+  document.getElementById('tt').textContent=fmt(tt);
+  document.getElementById('bangchu').textContent=docSo(tt);
+}
 
-                const addRow = (label, value, cls, style) => {
-                    const tr = document.createElement('tr');
-                    tr.className = cls || 'summary-row';
-                    if (style) tr.setAttribute('style', style);
-                    tr.innerHTML = `<td colspan="2">${label}</td><td style="text-align:right;white-space:nowrap">${value}</td>`;
-                    tableBody.appendChild(tr);
-                };
+/* --- đọc số thành chữ --- */
+const D=['không','một','hai','ba','bốn','năm','sáu','bảy','tám','chín'];
+function doc3(n,full){
+  let t=Math.floor(n/100), c=Math.floor(n%100/10), d=n%10, s='';
+  if(t>0||full){ s+=D[t]+' trăm'; if(c===0&&d>0) s+=' linh'; }
+  if(c>1){ s+=' '+D[c]+' mươi'; if(d===1) s+=' mốt'; else if(d===5) s+=' lăm'; else if(d>0) s+=' '+D[d]; }
+  else if(c===1){ s+=' mười'; if(d===5) s+=' lăm'; else if(d>0) s+=' '+D[d]; }
+  else if(d>0&&(t>0||full)) s+=' '+D[d];
+  else if(d>0) s+=D[d];
+  return s.trim();
+}
+function docSo(n){
+  n=Math.round(n); if(n===0) return 'Không đồng';
+  const neg = n<0; n=Math.abs(n);
+  const dv=['',' nghìn',' triệu',' tỷ']; let g=[],i=0,s='';
+  while(n>0){ g.push(n%1000); n=Math.floor(n/1000); }
+  for(i=g.length-1;i>=0;i--){ if(g[i]>0||i===0) s+=' '+doc3(g[i], i<g.length-1)+dv[i]; }
+  s=s.trim(); s=s.charAt(0).toUpperCase()+s.slice(1);
+  return (neg?'Âm ':'')+s+' đồng';
+}
 
-                // 1. Tổng tiền
-                const trTongTien = document.createElement('tr');
-                trTongTien.className = 'summary-row first-summary';
-                trTongTien.innerHTML = `<td colspan="2">Tổng tiền</td><td style="text-align:right;white-space:nowrap">${tongTien.toLocaleString('vi-VN')}đ</td>`;
-                tableBody.appendChild(trTongTien);
-
-                // 2. Chiết khấu (ẩn khi = 0)
-                if (chiTietChietKhau > 0) {
-                    addRow('Chiết khấu', '-' + chiTietChietKhau.toLocaleString('vi-VN') + 'đ');
-                }
-
-                // 3. Điều chỉnh / làm tròn (chỉ hiện khi số app gửi lệch với Tổng tiền − CK)
-                if (dieuChinh !== 0) {
-                    addRow('Điều chỉnh / làm tròn',
-                           (dieuChinh > 0 ? '+' : '-') + Math.abs(dieuChinh).toLocaleString('vi-VN') + 'đ');
-                }
-
-                // 4. Nợ cũ (ẩn khi = 0)
-                if (noCu !== 0) {
-                    addRow('Nợ cũ', (noCu > 0 ? '+' : '-') + Math.abs(noCu).toLocaleString('vi-VN') + 'đ',
-                           'summary-row', 'color:#e53935');
-                }
-
-                // 5. TỔNG THANH TOÁN
-                addRow('TỔNG THANH TOÁN', chiTietThanhToan.toLocaleString('vi-VN') + 'đ', 'summary-row grand-total');
-
-                // 6. Khách trả
-                if (khachTraSo > 0) {
-                    addRow('Khách trả', khachTraSo.toLocaleString('vi-VN') + 'đ');
-                }
-
-                // 7. Còn nợ = Tổng thanh toán − Khách trả
-                if (conLai !== 0) {
-                    addRow('Còn nợ', conLai.toLocaleString('vi-VN') + 'đ',
-                           'summary-row', 'color:#e53935;font-weight:bold');
-                }
-
-                if (noiDungThuc !== "") {
-                    const trND = document.createElement('tr');
-                    trND.className = 'discount-reason';
-                    trND.innerHTML = `<td colspan="3">${noiDungChiTiet}</td>`;
-                    tableBody.appendChild(trND);
-                }
-            }
-        }
-    </script>
+/* --- nhận dữ liệu từ app qua tham số URL --- */
+/* VD: ?sophieu=PL2610&kh=Anh Hà&sdt=0975...&bs=43A-673.27&xe=KIA K5&km=85000
+       &cvdv=Đỗ Bình Phước&ktv=Phạm Khánh Duy
+       &items=Công thợ|lần|1|300000|0;Bi tỳ curoa|Cái|2|4600800|7   &no=0
+   (mỗi dòng: TÊN|ĐVT|SL|ĐƠN GIÁ|CK%) */
+(function init(){
+  build();
+  const p=new URLSearchParams(location.search);
+  const set=(id,k)=>{const v=p.get(k); if(v!==null){const e=document.getElementById(id); if(e) ('value' in e)?e.value=v:e.textContent=v;}};
+  ['kh','sdt','bs','xe','km','nhan','giao','cvdv','ktv','ycau','no'].forEach(k=>set(k,k));
+  if(p.get('ck')!==null){ ckManual=true; set('ck','ck'); }
+  if(p.get('sophieu')) document.getElementById('sophieu').textContent=p.get('sophieu');
+  const d=new Date();
+  document.getElementById('ngay').textContent = p.get('ngay') ||
+    String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+  const items=p.get('items');
+  if(items){
+    const arr=items.split(';').filter(Boolean);
+    while(document.getElementById('tb').rows.length < Math.max(ROWS,arr.length)) addRow();
+    arr.forEach((it,i)=>{
+      const [ten,dvt,sl,dg,ckp]=it.split('|');
+      const tr=document.getElementById('tb').rows[i];
+      tr.querySelector('.ten').value=ten||''; tr.querySelector('.dvt').value=dvt||'';
+      tr.querySelector('.sl').value=sl||''; tr.querySelector('.dg').value=dg?fmt(num(dg)):'';
+      tr.querySelector('.ckp').value=(ckp&&num(ckp))?ckp:'';
+    });
+  }
+  calc();
+})();
+</script>
 </body>
 </html>
