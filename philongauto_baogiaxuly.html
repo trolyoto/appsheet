@@ -156,6 +156,10 @@
   .discount-input::-webkit-inner-spin-button,
   .discount-input::-webkit-outer-spin-button { opacity: 1; }
   .discount-print-value { display: none; }
+.sum-input { width: 96px; padding: 2px 4px; border: 1px solid #b8bfd4; border-radius: 2px; background: #fffef2; color: var(--blue); text-align: right; font: inherit; font-weight: 700; }
+.sum-pct { width: 46px; padding: 1px 3px; border: 1px solid #b8bfd4; border-radius: 2px; background: #fffef2; color: var(--blue); text-align: center; font: inherit; font-weight: 700; }
+.sum-input:focus, .sum-pct:focus { outline: 1.5px solid var(--blue); background: #fff; }
+.sum-print { display: none; }
   .discount-toolbar {
     display: flex; align-items: center; justify-content: flex-end; gap: 6px;
     padding: 5px 7px; background: #f5f6fa; border-bottom: 1px solid var(--border);
@@ -265,6 +269,8 @@
   @media print {
     .discount-toolbar { display: none !important; }
     .discount-input { display: none !important; }
+.sum-input, .sum-pct { display: none !important; }
+.sum-print { display: inline !important; }
     .discount-print-value { display: inline !important; }
   }
 </style>
@@ -402,9 +408,9 @@ CN) theo chính sách của hãng.</p>
     <div class="sum-box">
       <div class="sum-row"><div class="sum-label">Tổng Cộng</div><div class="sum-value" id="el-tongcong"></div></div>
       <div class="sum-row"><div class="sum-label">Tổng chiết khấu</div><div class="sum-value" id="el-ck"></div></div>
-      <div class="sum-row"><div class="sum-label">Nợ cũ</div><div class="sum-value" id="el-nocu"></div></div>
-      <div class="sum-row"><div class="sum-label">Đã thanh toán</div><div class="sum-value" id="el-datt"></div></div>
-      <div class="sum-row"><div class="sum-label">Thuế VAT</div><div class="sum-value" id="el-vat"></div></div>
+      <div class="sum-row"><div class="sum-label">Nợ cũ</div><div class="sum-value"><input class="sum-input" id="in-nocu" type="text" inputmode="numeric" placeholder="0"><span class="sum-print" id="el-nocu"></span></div></div>
+      <div class="sum-row"><div class="sum-label">Đã thanh toán</div><div class="sum-value"><input class="sum-input" id="in-datt" type="text" inputmode="numeric" placeholder="0"><span class="sum-print" id="el-datt"></span></div></div>
+      <div class="sum-row"><div class="sum-label">Thuế VAT <input class="sum-pct" id="in-vat" type="number" min="0" max="100" step="0.1" placeholder="0"><span class="sum-print" id="el-vatpct"></span> %</div><div class="sum-value" id="el-vat"></div></div>
       <div class="sum-row grand"><div class="sum-label">Thanh toán</div><div class="sum-value" id="el-thanhtoan"></div></div>
     </div>
   </div>
@@ -595,10 +601,10 @@ function docSoTienBangChu(n) {
     });
   })();
 
-  set('el-tongcong','tongcong'); set('el-ck','ck'); set('el-nocu','nocu');
-  set('el-datt','datt'); set('el-vat','vat'); set('el-thanhtoan','thanhtoan');
+  set('el-tongcong','tongcong');
+  /* el-ck / el-nocu / el-datt / el-vat / el-thanhtoan: xu ly o khoi TONG TIEN ben duoi */
   (function() {
-    var el = document.getElementById('el-nocu');
+    var el = null;
     var value = parseNumber(el ? el.textContent : '');
     if (el && value !== null) el.textContent = formatMoney(value);
   })();
@@ -624,7 +630,7 @@ function docSoTienBangChu(n) {
   updateTableSummary();
 
   (function() {
-    var el = document.getElementById('el-sotienchu'); if (!el) return;
+    var el = null; if (!el) return;
     if (p.has('sotienchu') && p.get('sotienchu').trim()) { el.textContent = p.get('sotienchu'); return; }
     var raw = (p.get('thanhtoan')||'').trim();
     if (!raw || raw === '-') { el.textContent = ''; return; }
@@ -633,6 +639,78 @@ function docSoTienBangChu(n) {
   })();
 
   set('el-ngayky','ngayky'); set('el-ktv','ktv'); set('el-cvdv','cvdv');
+
+/* ===== TONG TIEN - FIX 28/10/2026 ===== */
+function parseNumber(value) {
+var s0 = String(value == null ? '' : value).trim();
+if (!s0 || s0 === '-') return null;
+var s = s0.replace(/\s/g, '').replace(/[^\d.,-]/g, '');
+if (!s || s === '-') return null;
+var hasC = s.indexOf(',') >= 0, hasD = s.indexOf('.') >= 0;
+if (hasC && hasD) {
+s = s.lastIndexOf(',') > s.lastIndexOf('.') ? s.replace(/\./g, '').replace(/,/g, '.') : s.replace(/,/g, '');
+} else if (hasC) {
+s = /^-?\d{1,3}(,\d{3})+$/.test(s) ? s.replace(/,/g, '') : s.replace(/,/g, '.');
+} else if (hasD && /^-?\d{1,3}(\.\d{3})+$/.test(s)) {
+s = s.replace(/\./g, '');
+}
+var n = parseFloat(s);
+return isNaN(n) ? null : n;
+}
+var inNocu = document.getElementById('in-nocu');
+var inDatt = document.getElementById('in-datt');
+var inVat = document.getElementById('in-vat');
+var vatFixed = null;
+function updateTableSummary() {
+var net = 0, gross = 0;
+tbody.querySelectorAll('tr').forEach(function (tr) {
+var cell = tr.querySelector('.col-total');
+if (!cell) return;
+var v = parseNumber(cell.textContent);
+if (v !== null) net += v;
+var slc = tr.querySelector('.col-sl'), prc = tr.querySelector('.col-price');
+var qty = slc ? parseNumber(slc.textContent) : null;
+var price = prc ? parseNumber(prc.textContent) : null;
+gross += (qty !== null && price !== null) ? qty * price : (v || 0);
+});
+var ck = gross - net;
+if (!(ck > 0.5)) ck = 0;
+document.getElementById('el-tongcong').textContent = formatMoney(net);
+document.getElementById('el-ck').textContent = formatMoney(ck);
+updatePaymentTotal(net);
+}
+function updatePaymentTotal(net) {
+if (typeof net !== 'number') net = parseNumber(document.getElementById('el-tongcong').textContent) || 0;
+var noCu = (inNocu ? parseNumber(inNocu.value) : parseNumber(p.get('nocu'))) || 0;
+var daTT = (inDatt ? parseNumber(inDatt.value) : parseNumber(p.get('datt'))) || 0;
+var pct = inVat ? parsePercent(inVat.value) : null;
+var vatAmt = (vatFixed == null) ? (pct === null ? 0 : net * pct / 100) : vatFixed;
+var thanhToan = net + vatAmt + noCu - daTT;
+var eN = document.getElementById('el-nocu'); if (eN) eN.textContent = formatMoney(noCu);
+var eD = document.getElementById('el-datt'); if (eD) eD.textContent = formatMoney(daTT);
+var eP = document.getElementById('el-vatpct'); if (eP) eP.textContent = (vatFixed != null || pct === null) ? '' : pct;
+var eV = document.getElementById('el-vat'); if (eV) eV.textContent = formatMoney(vatAmt);
+document.getElementById('el-thanhtoan').textContent = formatMoney(thanhToan);
+var eC = document.getElementById('el-sotienchu');
+if (eC) {
+if (p.has('sotienchu') && (p.get('sotienchu') || '').trim()) { eC.textContent = p.get('sotienchu'); }
+else { var r = Math.round(thanhToan); eC.textContent = r < 0 ? ('\u00c2m ' + docSoTienBangChu(-r).toLowerCase()) : docSoTienBangChu(r); }
+}
+}
+(function initSumInputs() {
+var v = parseNumber(p.get('nocu'));
+if (inNocu && v) inNocu.value = formatMoney(v);
+v = parseNumber(p.get('datt'));
+if (inDatt && v) inDatt.value = formatMoney(v);
+var rv = (p.get('vat') || '').trim(), nv = parseNumber(rv);
+if (nv) { if (nv <= 100) { if (inVat) inVat.value = nv; } else { vatFixed = nv; } }
+[inNocu, inDatt, inVat].forEach(function (el) {
+if (!el) return;
+el.addEventListener('input', function () { if (el === inVat) vatFixed = null; updateTableSummary(); });
+el.addEventListener('blur', function () { if (el !== inVat) { var n = parseNumber(el.value); el.value = (n === null || n === 0) ? '' : formatMoney(n); } });
+});
+})();
+updateTableSummary();
 })();
 </script>
 </body>
