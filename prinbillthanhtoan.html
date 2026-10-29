@@ -359,14 +359,15 @@
     else { vatTien=vn; }
   }
   var sauVat = sauGiam + vatTien;
-  var noCu   = parseNum(g('nocu'));
+  /* nocu = cot Con no cua KHACH_HANG = du no TRUOC do, DA bao gom cac phieu thu coc da lap.
+     Vi vay KHONG duoc tru tien coc them lan nua (se tru trung).
+     Trinh bay: tach lam 2 dong -> No cu thuan = nocu + coc, roi dong "Da coc" tru ra. */
+  var coNoCu  = (g('nocu')!=='');
+  var noCuRaw = parseNum(g('nocu'));
   var tienCoc = Math.abs(parseNum(g('coc')));
-  /* app chua gui &coc= : suy ra tien coc da thu tu chenh lech thanhtoan - khachtrao - conno */
-  if(tienCoc===0 && g('thanhtoan')!=='' && g('conno')!==''){
-    var _tt=parseNum(g('thanhtoan')), _suy=_tt - parseNum(g('khachtrao')) - parseNum(g('conno'));
-    if(_suy>0 && _suy<=_tt) tienCoc=_suy;
-  }
-  var tongTT = sauVat + noCu - tienCoc;
+  var noCu, tongTT;
+  if(coNoCu){ noCu = noCuRaw + tienCoc; tongTT = sauVat + noCuRaw; }
+  else      { noCu = 0;                 tongTT = sauVat - tienCoc; }
   var khachTra = parseNum(g('khachtrao'));
   var conNo  = tongTT - khachTra;
 
@@ -394,7 +395,7 @@
   }
 
   /* ---- tự cập nhật bản mới (chống cache) rồi mới in ---- */
-  var PAGE_VER='29/10/2026 13:45 v8';
+  var PAGE_VER='29/10/2026 v9 - fix coc trung no cu';
   var verEl=document.getElementById('verTag'); if(verEl) verEl.textContent='Bản '+PAGE_VER;
 
   function doPrint(){ if(P.get('noautoprint')!=='true') setTimeout(function(){ window.print(); }, 700); }
