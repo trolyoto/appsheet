@@ -75,7 +75,8 @@
 
   .money .bc{text-align:left;font-style:italic;font-weight:normal;font-size:9.5pt;
              white-space:normal;line-height:1.25;color:#1F4E79}
-  .warn{margin-top:6px;font-size:10pt;color:#C00000;font-weight:bold}
+  .bangchu{margin-top:6px;font-size:10.5pt;font-style:italic;color:#1F4E79;line-height:1.3}
+.warn{margin-top:6px;font-size:10pt;color:#C00000;font-weight:bold}
 
   .sign{margin-top:8px;width:100%;border:1px solid #0070C0}
   .sign td{border:1px solid #0070C0;width:50%;text-align:center;padding:5px 4px 0;
@@ -172,9 +173,11 @@
       </table>
     </div>
     <div class="bt-right">
-      <table class="money"><tbody id="moneyBody"></tbody><tfoot><tr><td class="bc" colspan="2" id="f_bangchu"></td></tr></tfoot></table>
+      <table class="money"><tbody id="moneyBody"></tbody></table>
     </div>
   </div>
+
+  <div class="bangchu" id="f_bangchu"></div>
 
   <div class="warn noprint" id="f_warn" style="display:none"></div>
 
@@ -384,7 +387,7 @@
   }
 
   /* ---- tự cập nhật bản mới (chống cache) rồi mới in ---- */
-  var PAGE_VER='29/10/2026 11:50 v4';
+  var PAGE_VER='29/10/2026 14:05 v5';
   var verEl=document.getElementById('verTag'); if(verEl) verEl.textContent='Bản '+PAGE_VER;
 
   function doPrint(){ if(P.get('noautoprint')!=='true') setTimeout(function(){ window.print(); }, 700); }
