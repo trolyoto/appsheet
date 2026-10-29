@@ -301,24 +301,21 @@
       var eff  = p.gocDon>0 ? (p.dg>0?p.dg:0) : base*(1-(p.ck||0)/100);
       if(eff>base) eff=base;
       var ckRaw = base>0 ? (1-eff/base)*100 : 0;
-      var ckPct = Math.round(ckRaw*100)/100;   /* giữ nguyên % thật, tối đa 2 số lẻ */
-      /* Tiền:
-         - App gửi sẵn giá bán thật (có _c_ giá gốc) -> GIỮ NGUYÊN tiền của app
-         - App chỉ gửi CK%                           -> tính theo đúng % app gửi
-         Làm tròn ở mức THÀNH TIỀN cả dòng. */
-      var tt = p.gocDon>0 ? Math.round(eff*p.sl)
-                          : Math.round(base*p.sl*(1-ckRaw/100));
+      /* CK làm tròn về số nguyên: phần lẻ > 0,5 mới lên (21,5 -> 21 ; 21,6 -> 22) */
+      var ckPct = (ckRaw - Math.floor(ckRaw)) > 0.5 ? Math.ceil(ckRaw) : Math.floor(ckRaw);
+      /* Tiền tính lại theo đúng % đã làm tròn: ĐƠN GIÁ x (100 - CK%), làm tròn cả dòng */
+      var tt = Math.round(base*p.sl*(1-ckPct/100));
       tongGiaTri += base*p.sl;
       ckDong     += base*p.sl - tt;
       var tenHtml = p.ten + (p.note? '<br><s>'+p.note+'</s>' : '');
-      var dgHtml  = (ckPct>0 && base>0) ? '<s>'+fmt(base)+'</s>' : fmt(base);
+      var dgHtml  = (ckPct>0 && base>0) ? '<span class="hl">'+fmt(base)+'</span>' : fmt(base);
       rowsHtml+='<tr>'
         +'<td class="c-stt">'+stt+'</td>'
         +'<td class="c-ten">'+tenHtml+'</td>'
         +'<td class="c-dvt">'+(p.dvt||'')+'</td>'
         +'<td class="c-sl">'+fmtSL(p.sl)+'</td>'
         +'<td class="c-dg">'+dgHtml+'</td>'
-        +'<td class="c-ck">'+(ckPct>0?fmtSL(ckPct):'')+'</td>'
+        +'<td class="c-ck">'+(ckPct>0?ckPct+'%':'')+'</td>'
         +'<td class="c-tt">'+fmt(tt)+'</td></tr>';
     });
   }
@@ -370,7 +367,7 @@
   }
 
   /* ---- tự cập nhật bản mới (chống cache) rồi mới in ---- */
-  var PAGE_VER='29/10/2026 15:56';
+  var PAGE_VER='29/10/2026 16:34';
   var verEl=document.getElementById('verTag'); if(verEl) verEl.textContent='Bản '+PAGE_VER;
 
   function doPrint(){ if(P.get('noautoprint')!=='true') setTimeout(function(){ window.print(); }, 700); }
