@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Phiếu Dịch Vụ / Biên Nhận - Phi Long Auto</title>
+<title>Phiếu Dịch Vụ - Phi Long Auto</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:'Times New Roman',Times,serif;background:#f0f0f0;padding:12px;color:#000}
@@ -108,7 +108,7 @@
     </div>
   </div>
 
-  <div class="title" id="docTitle">PHIẾU DỊCH VỤ / BIÊN NHẬN</div>
+  <div class="title" id="docTitle">PHIẾU DỊCH VỤ</div>
 
   <table class="info">
     <colgroup><col style="width:14%"><col style="width:32%"><col style="width:14%"><col style="width:40%"></colgroup>
@@ -384,7 +384,7 @@
   }
 
   /* ---- tự cập nhật bản mới (chống cache) rồi mới in ---- */
-  var PAGE_VER='29/10/2026 11:03 v2';
+  var PAGE_VER='29/10/2026 11:03 v3';
   var verEl=document.getElementById('verTag'); if(verEl) verEl.textContent='Bản '+PAGE_VER;
 
   function doPrint(){ if(P.get('noautoprint')!=='true') setTimeout(function(){ window.print(); }, 700); }
