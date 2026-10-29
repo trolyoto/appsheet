@@ -81,6 +81,9 @@
 
   @media print{
     body{background:#fff;padding:0}
+    .items thead{display:table-header-group}
+    .items tr{page-break-inside:avoid}
+    .bottom,.sign{page-break-inside:avoid}
     .toolbar,.noprint{display:none!important}
     .sheet{width:auto;min-height:auto;margin:0;padding:6mm 7mm;box-shadow:none}
     @page{size:A4;margin:6mm}
@@ -290,8 +293,8 @@
         +'<td class="c-tt">'+fmt(tt)+'</td></tr>';
     });
   }
-  for(var i=stt;i<8;i++){
-    rowsHtml+='<tr><td class="c-stt">'+(i+1)+'</td><td class="c-ten">&nbsp;</td><td class="c-dvt"></td>'
+  if(stt===0){
+    rowsHtml='<tr><td class="c-stt">1</td><td class="c-ten">&nbsp;</td><td class="c-dvt"></td>'
       +'<td class="c-sl"></td><td class="c-dg"></td><td class="c-ck"></td><td class="c-tt"></td></tr>';
   }
   tbody.innerHTML=rowsHtml;
@@ -318,11 +321,14 @@
   var m='';
   function mrow(lb,val,cls){ m+='<tr class="'+(cls||'')+'"><td class="ml">'+lb+'</td><td class="mv">'+fmt(val)+'</td></tr>'; }
   mrow('Tổng giá trị:', tongGiaTri);
-  if(ckTong!==0){ mrow('Giảm giá tổng:', -ckTong); mrow('Tổng tiền sau giảm:', sauGiam); }
-  if(vatTien!==0){ mrow(vatLabel, vatTien); mrow('Tổng tiền sau VAT:', sauVat,'strong'); }
-  if(noCu!==0){ mrow('Dư nợ cũ:', noCu); }
+  mrow('Giảm giá tổng:', -ckTong);
+  mrow('Tổng tiền sau giảm:', sauGiam);
+  mrow(vatLabel, vatTien);
+  mrow('Tổng tiền sau VAT:', sauVat, 'strong');
+  mrow('Dư nợ cũ:', noCu);
   mrow('Tổng tiền Thanh toán:', tongTT, 'pay');
-  if(khachTra!==0 || g('khachtrao')!==''){ mrow('Khách trả:', khachTra); mrow('Còn nợ:', conNo, 'debt'); }
+  mrow('Khách trả:', khachTra);
+  mrow('Còn nợ:', conNo, 'debt');
   document.getElementById('moneyBody').innerHTML=m;
 
   document.getElementById('f_bangchu').textContent='Bằng chữ: '+docSo(tongTT);
