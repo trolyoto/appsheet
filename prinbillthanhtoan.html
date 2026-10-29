@@ -276,24 +276,39 @@
       row=row.trim(); if(!row) return;
       var c=row.split('_a_').map(function(x){return x.trim();});
       if(c.length<3) return;
-      var ten=c[0], dg=parseNum(c[1]), sl=parseNum(c[2]);
+      var raw=c[0], dg=parseNum(c[1]), sl=parseNum(c[2]);
       var dvt=c.length>3?c[3]:'', ck=c.length>4?parseNum(c[4]):0;
-      var key=ten+'|'+dg+'|'+dvt+'|'+ck;
+      /* _c_... : app gửi kèm GIÁ GỐC (số) khi hàng được giảm, hoặc GHI CHÚ (chữ) */
+      var gocDon=0, note='', mm=raw.match(/_c_([^_]*)/);
+      if(mm){
+        var inner=(mm[1]||'').trim();
+        if(inner!=='' && /^[\d.,]+$/.test(inner) && parseNum(inner)>0) gocDon=parseNum(inner);
+        else note=inner;
+      }
+      var ten=raw.replace(/_c_[^_]*/g,'').trim();
+      var key=raw+'|'+dg+'|'+dvt+'|'+ck;
       if(map.has(key)){ map.get(key).sl+=sl; }
-      else{ map.set(key,{ten:ten,dg:dg,sl:sl,dvt:dvt,ck:ck}); }
+      else{ map.set(key,{ten:ten,note:note,gocDon:gocDon,dg:dg,sl:sl,dvt:dvt,ck:ck}); }
     });
     map.forEach(function(p){
       stt++;
-      var goc=p.dg*p.sl, giam=goc*(p.ck||0)/100, tt=goc-giam;
-      tongGiaTri+=goc; ckDong+=giam;
-      var ten=p.ten.replace(/_c_([^_]*)/g,'<br><s>$1</s>');
+      /* base = đơn giá gốc, eff = đơn giá thực thu sau giảm */
+      var base = p.gocDon>0 ? p.gocDon : p.dg;
+      var eff  = p.gocDon>0 ? (p.dg>0?p.dg:0) : base*(1-(p.ck||0)/100);
+      if(eff>base) eff=base;
+      var ckPct = base>0 ? Math.round((1-eff/base)*10000)/100 : 0;
+      var tt = eff*p.sl;
+      tongGiaTri += base*p.sl;
+      ckDong     += (base-eff)*p.sl;
+      var tenHtml = p.ten + (p.note? '<br><s>'+p.note+'</s>' : '');
+      var dgHtml  = (ckPct>0 && base>0) ? '<s>'+fmt(base)+'</s>' : fmt(base);
       rowsHtml+='<tr>'
         +'<td class="c-stt">'+stt+'</td>'
-        +'<td class="c-ten">'+ten+'</td>'
+        +'<td class="c-ten">'+tenHtml+'</td>'
         +'<td class="c-dvt">'+(p.dvt||'')+'</td>'
         +'<td class="c-sl">'+fmtSL(p.sl)+'</td>'
-        +'<td class="c-dg">'+fmt(p.dg)+'</td>'
-        +'<td class="c-ck">'+(p.ck?fmtSL(p.ck):'')+'</td>'
+        +'<td class="c-dg">'+dgHtml+'</td>'
+        +'<td class="c-ck">'+(ckPct>0?fmtSL(ckPct):'')+'</td>'
         +'<td class="c-tt">'+fmt(tt)+'</td></tr>';
     });
   }
