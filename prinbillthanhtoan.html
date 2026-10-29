@@ -44,6 +44,7 @@
   .c-ck{width:8%;text-align:center}
   .c-tt{width:18%;text-align:right}
   .items s{color:#555;font-size:9.5pt}
+  .items .hl{background:#FFF6B0;padding:0 3px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .ghichu{font-size:10.5pt;font-style:italic;padding:4px 2px}
 
   /* ===== Khối dưới ===== */
@@ -299,11 +300,13 @@
       var ckRaw = base>0 ? (1-eff/base)*100 : 0;
       /* làm tròn về số nguyên: phần lẻ > 0,5 mới lên; 21,5% -> 21% ; 21,6% -> 22% */
       var ckPct = (ckRaw - Math.floor(ckRaw)) > 0.5 ? Math.ceil(ckRaw) : Math.floor(ckRaw);
+      /* tiền tính lại theo đúng % đã làm tròn (chuẩn kế toán): ĐG x (100 - CK%) */
+      eff = Math.round(base*(1-ckPct/100));
       var tt = eff*p.sl;
       tongGiaTri += base*p.sl;
       ckDong     += (base-eff)*p.sl;
       var tenHtml = p.ten + (p.note? '<br><s>'+p.note+'</s>' : '');
-      var dgHtml  = (ckRaw>0 && base>0) ? '<s>'+fmt(base)+'</s>' : fmt(base);
+      var dgHtml  = (ckPct>0 && base>0) ? '<span class="hl">'+fmt(base)+'</span>' : fmt(base);
       rowsHtml+='<tr>'
         +'<td class="c-stt">'+stt+'</td>'
         +'<td class="c-ten">'+tenHtml+'</td>'
