@@ -111,26 +111,8 @@
   <div class="title" id="docTitle">PHIẾU DỊCH VỤ</div>
 
   <table class="info">
-    <tr>
-      <td class="lb">Số phiếu:</td><td class="vl" id="f_sophieu">&nbsp;</td>
-      <td class="lb">Ngày lập:</td><td class="vl norm" id="f_ngay">&nbsp;</td>
-    </tr>
-    <tr>
-      <td class="lb">Khách hàng:</td><td class="vl" id="f_kh">&nbsp;</td>
-      <td class="lb">Điện thoại:</td><td class="vl norm" id="f_sdt">&nbsp;</td>
-    </tr>
-    <tr>
-      <td class="lb">Biển số xe:</td><td class="vl" id="f_bienso">&nbsp;</td>
-      <td class="lb">Hãng / dòng xe:</td><td class="vl norm" id="f_hangxe">&nbsp;</td>
-    </tr>
-    <tr>
-      <td class="lb">Số km:</td><td class="vl norm" id="f_sokm">&nbsp;</td>
-      <td class="lb">Dự kiến giao xe:</td><td class="vl norm" id="f_giaoxe">&nbsp;</td>
-    </tr>
-    <tr>
-      <td class="lb">Thu ngân:</td><td class="vl norm" id="f_thungan">&nbsp;</td>
-      <td class="lb">Số VIN:</td><td class="vl norm" id="f_vin">&nbsp;</td>
-    </tr>
+    <colgroup><col style="width:14%"><col style="width:32%"><col style="width:14%"><col style="width:40%"></colgroup>
+    <tbody id="infoBody"></tbody>
   </table>
 
   <table class="items">
@@ -257,9 +239,6 @@
   if(g('email'))   set('email',   g('email'));
   if(g('tenshop')) document.getElementById('docTitle').setAttribute('data-shop', g('tenshop'));
 
-  /* Số phiếu = SỐ ĐƠN (app gửi qua sodon/madon/iddh); nếu chưa có thì lấy sophieu */
-  set('f_sophieu', g('sodon') || g('madon') || g('iddh') || g('id_dh') || g('sophieu'));
-  set('f_ngay',    g('thoigian'));
   /* Tách số điện thoại nếu app gộp vào tên khách: "Anh Cường - 0376229601" */
   var khachRaw = g('ban') || g('khachhang');
   var sdtKh    = g('sdtkhach') || g('dienthoaikh');
@@ -269,14 +248,30 @@
     var tenKh = mSdt[1].replace(/[\s\-–—,\/]+$/,'').trim();
     if(tenKh!=='') khachRaw = tenKh;
   }
-  set('f_kh',  khachRaw);
-  set('f_sdt', sdtKh);
-  set('f_bienso',  g('bienso'));
-  set('f_hangxe',  g('hangxe'));
-  set('f_sokm',    g('sokm'));
-  set('f_giaoxe',  g('giaoxe'));
-  set('f_thungan', g('thungan'));
-  set('f_vin',     g('vin'));
+
+  /* ---- thông tin đầu phiếu: đủ trường, chỉ in trường có dữ liệu ---- */
+  var infoFields = [
+    ['Số phiếu:',        g('sodon') || g('madon') || g('iddh') || g('id_dh') || g('sophieu'), true],
+    ['Ngày lập:',        g('thoigian')],
+    ['Khách hàng:',      khachRaw, true],
+    ['Điện thoại:',      sdtKh],
+    ['Biển số xe:',      g('bienso') || g('biensoxe'), true],
+    ['Hãng / dòng xe:',  g('hangxe') || g('dongxe')],
+    ['Số km:',           g('sokm')],
+    ['Dự kiến giao xe:', g('giaoxe') || g('dukiengiao')],
+    ['Thu ngân:',        g('thungan')],
+    ['Số VIN:',          g('vin') || g('sovin')]
+  ].filter(function(f){ return f[1]!=='' && f[1]!==undefined; });
+
+  var infoHtml='', col=0;
+  infoFields.forEach(function(f){
+    if(col===0) infoHtml+='<tr>';
+    infoHtml+='<td class="lb">'+f[0]+'</td><td class="vl'+(f[2]?'':' norm')+'">'+f[1]+'</td>';
+    col++;
+    if(col===2){ infoHtml+='</tr>'; col=0; }
+  });
+  if(col===1) infoHtml+='<td class="lb"></td><td class="vl norm"></td></tr>';
+  document.getElementById('infoBody').innerHTML=infoHtml;
 
   /* ---- bảng hàng hoá ---- */
   var data=g('data'), tbody=document.getElementById('tableBody');
