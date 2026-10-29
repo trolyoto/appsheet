@@ -65,7 +65,7 @@
   .adv .qr p{font-size:10pt;font-weight:bold;color:#1F4E79;line-height:1.3;margin-top:3px}
 
   /* Khối tiền (khung chuẩn: có kẻ ô xanh) */
-  .money{width:100%;border:1px solid #0070C0}
+  .money{width:100%;height:100%;border:1px solid #0070C0}
   .money td{border:1px solid #0070C0;padding:3px 5px;font-size:10.5pt}
   .money .ml{text-align:right;white-space:nowrap}
   .money .mv{text-align:right;width:45%;font-weight:bold;white-space:nowrap}
@@ -257,7 +257,8 @@
   if(g('email'))   set('email',   g('email'));
   if(g('tenshop')) document.getElementById('docTitle').setAttribute('data-shop', g('tenshop'));
 
-  set('f_sophieu', g('sophieu'));
+  /* Số phiếu = SỐ ĐƠN (app gửi qua sodon/madon/iddh); nếu chưa có thì lấy sophieu */
+  set('f_sophieu', g('sodon') || g('madon') || g('iddh') || g('id_dh') || g('sophieu'));
   set('f_ngay',    g('thoigian'));
   /* Tách số điện thoại nếu app gộp vào tên khách: "Anh Cường - 0376229601" */
   var khachRaw = g('ban') || g('khachhang');
@@ -357,11 +358,10 @@
   var m='';
   function mrow(lb,val,cls){ m+='<tr class="'+(cls||'')+'"><td class="ml">'+lb+'</td><td class="mv">'+fmt(val)+'</td></tr>'; }
   mrow('Tổng giá trị:', tongGiaTri);
-  mrow('Giảm giá tổng:', -ckTong);
-  mrow('Tổng tiền sau giảm:', sauGiam);
-  mrow(vatLabel, vatTien);
-  if(vatTien!==0) mrow('Tổng tiền sau VAT:', sauVat, 'strong');
-  mrow('Dư nợ cũ:', noCu);
+  /* chỉ hiện các dòng trung gian khi thực sự có phát sinh */
+  if(ckTong!==0){ mrow('Giảm giá tổng:', -ckTong); mrow('Tổng tiền sau giảm:', sauGiam); }
+  if(vatTien!==0){ mrow(vatLabel, vatTien); mrow('Tổng tiền sau VAT:', sauVat, 'strong'); }
+  if(noCu!==0){ mrow('Dư nợ cũ:', noCu); }
   mrow('Tổng tiền Thanh toán:', tongTT, 'pay');
   mrow('Khách trả:', khachTra);
   mrow('Còn nợ:', conNo, 'debt');
