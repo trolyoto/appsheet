@@ -73,7 +73,8 @@
   .money .pay td{background:#FFFF00;font-weight:bold}
   .money .debt td{color:#C00000;font-weight:bold}
 
-  .words{margin-top:7px;font-size:10.5pt;font-style:italic}
+  .money .bc{text-align:left;font-style:italic;font-weight:normal;font-size:9.5pt;
+             white-space:normal;line-height:1.25;color:#1F4E79}
   .warn{margin-top:6px;font-size:10pt;color:#C00000;font-weight:bold}
 
   .sign{margin-top:8px;width:100%;border:1px solid #0070C0}
@@ -171,11 +172,10 @@
       </table>
     </div>
     <div class="bt-right">
-      <table class="money"><tbody id="moneyBody"></tbody></table>
+      <table class="money"><tbody id="moneyBody"></tbody><tfoot><tr><td class="bc" colspan="2" id="f_bangchu"></td></tr></tfoot></table>
     </div>
   </div>
 
-  <div class="words" id="f_bangchu"></div>
   <div class="warn noprint" id="f_warn" style="display:none"></div>
 
   <table class="sign">
