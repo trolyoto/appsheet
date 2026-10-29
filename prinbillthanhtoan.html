@@ -262,9 +262,26 @@
 
   set('f_sophieu', g('sophieu') || g('sodon') || g('madon') || g('iddh'));
   set('f_ngay',    g('thoigian'));
-  set('f_kh',      g('ban') || g('khachhang'));
-  set('f_sdt',     g('sdtkhach') || g('dienthoaikh'));
-  set('f_bienso',  g('bienso') || g('biensoxe'));
+  /* Điện thoại khách: app chưa gửi riêng -> lấy số nằm trong tên khách "Anh Cường - 0376229601" */
+  var khachRaw = g('ban') || g('khachhang');
+  var sdtKh = g('sdtkhach') || g('dienthoaikh');
+  if(sdtKh===''){
+    var mS = khachRaw.match(/((?:\+?84|0)\d{8,10})\s*$/);
+    if(mS) sdtKh = mS[1];
+  }
+  /* Biển số xe: app chưa gửi riêng -> lấy từ addInfo của mã QR chuyển khoản (chính là [bien_so]) */
+  var bienSo = g('bienso') || g('biensoxe');
+  if(bienSo===''){
+    var qr = g('qrcode');
+    var mB = qr.match(/addInfo=([^&]*)/);
+    if(mB){
+      var bs = decodeURIComponent(mB[1].replace(/\+/g,' ')).replace(/\s*thanh\s*toan\s*$/i,'').trim();
+      if(/^[0-9]{2}[A-Z]{1,2}[0-9.\-]{4,8}$/i.test(bs.replace(/\s/g,''))) bienSo = bs;
+    }
+  }
+  set('f_kh',      khachRaw);
+  set('f_sdt',     sdtKh);
+  set('f_bienso',  bienSo);
   set('f_hangxe',  g('hangxe') || g('dongxe'));
   set('f_sokm',    g('sokm'));
   set('f_giaoxe',  g('giaoxe') || g('dukiengiao'));
@@ -367,7 +384,7 @@
   }
 
   /* ---- tự cập nhật bản mới (chống cache) rồi mới in ---- */
-  var PAGE_VER='29/10/2026 16:34';
+  var PAGE_VER='29/10/2026 17:29';
   var verEl=document.getElementById('verTag'); if(verEl) verEl.textContent='Bản '+PAGE_VER;
 
   function doPrint(){ if(P.get('noautoprint')!=='true') setTimeout(function(){ window.print(); }, 700); }
