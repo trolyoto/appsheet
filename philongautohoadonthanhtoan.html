@@ -169,44 +169,6 @@
             white-space: nowrap;
         }
         
-        /* Ghi chu giam gia ngay duoi ten hang */
-        .cell-ck-note {
-            display: block;
-            margin-top: 2px;
-            font-size: 11px;
-            font-weight: 400;
-            color: #c62828;
-        }
-
-        .summary-sub {
-            background: #fcfcfc;
-            font-weight: 500;
-            color: #444;
-        }
-
-        .summary-final td {
-            font-size: 15px;
-            font-weight: 800;
-            color: #000;
-            background: #efefef;
-            padding: 5px 4px;
-        }
-
-        .canh-bao-lech td {
-            font-size: 12px;
-            font-weight: 600;
-            color: #c62828;
-            padding: 4px;
-            text-align: left;
-        }
-
-        .page-ver {
-            text-align: center;
-            font-size: 10px;
-            color: #bbb;
-            margin-top: 6px;
-        }
-
         .summary-row {
             background: #f7f7f7;
             font-weight: bold;
@@ -298,12 +260,8 @@
         /* ===== PRINT ===== */
         @media print {
             @page { margin: 0mm; padding: 0; size: auto; }
-            html, body {
-                margin: 0 !important; padding: 0 !important; background: white !important;
-                -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
-            }
-            .print-button-container, .print-status, .page-ver { display: none !important; }
-            .header-logo { max-height: 90px !important; }
+            html, body { margin: 0 !important; padding: 0 !important; background: white !important; }
+            .print-button-container, .print-status { display: none !important; }
             .invoice {
                 box-shadow: none !important; margin: 0 !important;
                 padding: 10px 15px 15px 15px !important;
@@ -412,21 +370,30 @@
             <p id="footerText">Cảm ơn quý khách và hẹn gặp lại!</p>
             <p>---===---</p>
         </div>
-
-        <div class="page-ver" id="pageVer"></div>
     </div>
 
     <script>
-        const PAGE_VER = 'v2.1 - 29/10/2026';
-
+        function printInvoice() {
+            document.getElementById('printStatus').style.display = 'block';
+            setTimeout(() => {
+                window.print();
+                setTimeout(() => {
+                    document.getElementById('printStatus').style.display = 'none';
+                }, 2000);
+            }, 500);
+        }
+        
+        function autoPrint() {
+            setTimeout(() => {
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('noautoprint') !== 'true') printInvoice();
+            }, 1000);
+        }
+        
+        window.addEventListener('load', autoPrint);
+        
         const urlParams = new URLSearchParams(window.location.search);
-
-        // Giai ma an toan: tham so tu AppSheet co the chua ky tu % khong hop le
-        const dec = (s) => {
-            if (s === null || s === undefined) return '';
-            try { return decodeURIComponent(s); } catch (e) { return String(s); }
-        };
-
+        
         const tenShop          = urlParams.get('tenshop');
         const diaChi           = urlParams.get('diachi');
         const soPhieu          = urlParams.get('sophieu');
@@ -439,10 +406,7 @@
         const chietKhau        = urlParams.get('chietkhau');
         const thanhToan        = urlParams.get('thanhtoan');
         const khachTrao        = urlParams.get('khachtrao');
-        const vatParam         = urlParams.get('vat');
-        const vatPhanTram      = urlParams.get('vatpercent');
-        const noCuParam        = urlParams.get('nocu');
-        const cocParam         = urlParams.get('coc');
+        const conNo            = urlParams.get('conno');
         const noiDungChietKhau = urlParams.get('noidungchietkhau');
         const ghiChu           = urlParams.get('ghichu');
         const qrcodeUrl        = urlParams.get('qrcode');
@@ -450,141 +414,59 @@
         const qrcodeText       = urlParams.get('qrcodetext');
         const showQrcode       = urlParams.get('showqrcode');
         const loaiPhieu        = urlParams.get('loaiphieu');
-
-        document.getElementById('pageVer').textContent = 'Ban ' + PAGE_VER;
-
+        
         // ===== LOGO =====
-        const logoImg     = document.getElementById('logoImg');
-        const logoWrapEl  = document.getElementById('logoWrap');
-        const tenShopEl   = document.getElementById('tenShop');
-        const diaChiEl    = document.getElementById('diaChi');
-        const dienThoaiEl = document.getElementById('dienThoai');
-        const logoUrl     = urlParams.get('logo');
-        let   logoSanSang = Promise.resolve();
-
-        function hienTextHeader() {
-            logoWrapEl.style.display = 'none';
-            document.querySelector('.header').classList.remove('has-logo');
-            tenShopEl.style.display   = '';
-            diaChiEl.style.display    = '';
-            dienThoaiEl.style.display = '';
-        }
-
-        // Nhung logo thanh du lieu noi trang (data URI): khi IN khong phai tai lai anh tu internet
-        function nhungLogo() {
-            return new Promise((resolve) => {
-                let xong = false;
-                const done = () => { if (!xong) { xong = true; resolve(); } };
-                setTimeout(done, 4000);
-                try {
-                    const im = new Image();
-                    im.crossOrigin = 'anonymous';
-                    im.onload = () => {
-                        try {
-                            const c = document.createElement('canvas');
-                            c.width  = im.naturalWidth;
-                            c.height = im.naturalHeight;
-                            c.getContext('2d').drawImage(im, 0, 0);
-                            const dataUri = c.toDataURL('image/png');
-                            if (dataUri && dataUri.length > 100) {
-                                logoImg.src = dataUri;
-                                if (logoImg.decode) {
-                                    logoImg.decode().catch(() => {}).then(done);
-                                    return;
-                                }
-                            }
-                        } catch (e) { /* anh chan CORS: giu nguyen link goc */ }
-                        done();
-                    };
-                    im.onerror = done;
-                    im.src = logoImg.src;
-                } catch (e) { done(); }
-            });
-        }
-
-        if (logoUrl && logoUrl.trim() !== '' && logoUrl !== 'null') {
-            logoImg.src = dec(logoUrl);
-            logoWrapEl.style.display = 'block';
-            document.querySelector('.header').classList.add('has-logo');
+        const logoUrl = urlParams.get('logo');
+        if (logoUrl) {
+            const logoImg     = document.getElementById('logoImg');
+            const tenShopEl   = document.getElementById('tenShop');
+            const diaChiEl    = document.getElementById('diaChi');
+            const dienThoaiEl = document.getElementById('dienThoai');
+            logoImg.src = decodeURIComponent(logoUrl);
+            document.getElementById('logoWrap').style.display = 'block';
+            const headerEl = document.querySelector('.header');
+            headerEl.classList.add('has-logo');
             tenShopEl.style.display   = 'none';
             diaChiEl.style.display    = 'none';
             dienThoaiEl.style.display = 'none';
-
-            logoSanSang = new Promise((resolve) => {
-                let xong = false;
-                const done = (ok) => {
-                    if (xong) return;
-                    xong = true;
-                    if (!ok) hienTextHeader();
-                    resolve();
-                };
-                if (logoImg.complete && logoImg.naturalWidth > 0) {
-                    nhungLogo().then(() => done(true));
-                } else {
-                    logoImg.addEventListener('load',  () => nhungLogo().then(() => done(true)));
-                    logoImg.addEventListener('error', () => done(false));
-                }
-                setTimeout(() => done(logoImg.naturalWidth > 0), 8000);
-            });
         }
+        if (tenShop)    document.getElementById('tenShop').textContent    = decodeURIComponent(tenShop);
+        if (diaChi)     document.getElementById('diaChi').textContent     = decodeURIComponent(diaChi);
+        if (soPhieu)    document.getElementById('soPhieu').textContent    = decodeURIComponent(soPhieu);
+        if (thoiGian)   document.getElementById('thoiGian').textContent   = decodeURIComponent(thoiGian);
+        if (ban)        document.getElementById('ban').textContent        = decodeURIComponent(ban);
+        if (thuNgan)    document.getElementById('thuNgan').textContent    = decodeURIComponent(thuNgan);
+        if (dienThoai)  document.getElementById('dienThoai').textContent  = `ĐT: ${decodeURIComponent(dienThoai)}`;
+        if (footerText) document.getElementById('footerText').textContent = decodeURIComponent(footerText);
 
-        function printInvoice() {
-            document.getElementById('printStatus').style.display = 'block';
-            Promise.resolve(logoSanSang).then(() => {
-                setTimeout(() => {
-                    window.print();
-                    setTimeout(() => {
-                        document.getElementById('printStatus').style.display = 'none';
-                    }, 2000);
-                }, 300);
-            });
-        }
-
-        // Chi bung hop thoai In SAU khi logo da tai xong (tranh ban in mat logo)
-        function autoPrint() {
-            if (urlParams.get('noautoprint') === 'true') return;
-            Promise.resolve(logoSanSang).then(() => setTimeout(printInvoice, 400));
-        }
-
-        window.addEventListener('load', autoPrint);
-
-        if (tenShop)    document.getElementById('tenShop').textContent    = dec(tenShop);
-        if (diaChi)     document.getElementById('diaChi').textContent     = dec(diaChi);
-        if (soPhieu)    document.getElementById('soPhieu').textContent    = dec(soPhieu);
-        if (thoiGian)   document.getElementById('thoiGian').textContent   = dec(thoiGian);
-        if (ban)        document.getElementById('ban').textContent        = dec(ban);
-        if (thuNgan)    document.getElementById('thuNgan').textContent    = dec(thuNgan);
-        if (dienThoai)  document.getElementById('dienThoai').textContent  = 'ĐT: ' + dec(dienThoai);
-        if (footerText) document.getElementById('footerText').textContent = dec(footerText);
-
-        // ===== LOAI PHIEU =====
+        // ===== LOẠI PHIẾU =====
         if (loaiPhieu && loaiPhieu.trim() !== '') {
             const el = document.getElementById('loaiPhieu');
-            el.textContent = dec(loaiPhieu).trim();
+            el.textContent = decodeURIComponent(loaiPhieu).trim();
             el.style.display = 'block';
         }
-
+        
         // ===== QR Code =====
         const qrcodeSection    = document.getElementById('qrcodeSection');
         const qrcodeImage      = document.getElementById('qrcodeImage');
         const qrcodeTextEl     = document.getElementById('qrcodeText');
         const shouldShowQrcode = showQrcode !== 'false';
-
+        
         if (shouldShowQrcode) {
             if (qrcodeUrl) {
-                qrcodeImage.src = dec(qrcodeUrl);
+                qrcodeImage.src = decodeURIComponent(qrcodeUrl);
             } else if (qrcodeContent) {
-                const content = dec(qrcodeContent);
-                qrcodeImage.src = 'https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=' + encodeURIComponent(content) + '&choe=UTF-8';
+                const content = decodeURIComponent(qrcodeContent);
+                qrcodeImage.src = `https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=${encodeURIComponent(content)}&choe=UTF-8`;
             } else {
                 qrcodeSection.style.display = 'none';
             }
-            qrcodeTextEl.textContent = qrcodeText ? dec(qrcodeText) : "Quét mã QR để thanh toán";
+            qrcodeTextEl.textContent = qrcodeText ? decodeURIComponent(qrcodeText) : "Quét mã QR để thanh toán";
         } else {
             qrcodeSection.style.display = 'none';
         }
-
-        // ===== HAM TIEN ICH SO =====
+        
+        // ===== HÀM TIỆN ÍCH SỐ =====
         const parseNum = (s) => {
             s = String(s).trim();
             if (s.includes('.') && s.includes(',')) {
@@ -615,167 +497,108 @@
             return parseFloat(s);
         };
         const fmtNum  = (n) => {
-            const am = n < 0;
-            const x = Math.abs(n);
-            const parts = x.toString().split('.');
+            const parts = n.toString().split('.');
             parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-            const s = parts.length > 1 ? parts.join(',') : parts[0];
-            return am ? '-' + s : s;
+            return parts.length > 1 ? parts.join(',') : parts[0];
         };
-        const fmtTien = (n) => fmtNum(Math.round((n + Number.EPSILON) * 100) / 100);
+        const fmtTien = (n) => fmtNum(n);
         const fmtSL   = (n) => n % 1 === 0 ? n.toFixed(0) : String(n);
 
-        // Lay so tu tham so URL (rong / null -> gia tri mac dinh)
-        const soTuParam = (p, macDinh) => {
-            if (p === null || p === undefined) return macDinh;
-            const s = dec(p).trim();
-            if (s === '' || s.toLowerCase() === 'null') return macDinh;
-            const n = parseNum(s);
-            return isNaN(n) ? macDinh : n;
-        };
-
-        // ===== Render bang hang hoa =====
+        // ===== Render bảng hàng hóa =====
         if (data) {
             const tableBody = document.getElementById('tableBody');
             tableBody.innerHTML = '';
-
+            
             const rows = data.split('_b_');
             const productMap = new Map();
-            let tongGiaTri   = 0;   // Tong gia tri = tien hang theo GIA GOC (truoc giam)
-            let giamTheoDong = 0;   // Giam gia ghi ngay tren tung dong (_c_gia goc)
-
+            let tongTien = 0;
+            
             rows.forEach((row) => {
                 const trimmedRow = row.trim();
                 if (trimmedRow) {
                     const cols = trimmedRow.split('_a_').map(c => c.trim());
                     if (cols.length >= 3) {
-                        // cols[0] = ten hang, co the kem "_c_<gia goc>" khi dong nay duoc giam gia
-                        const mGoc      = cols[0].match(/_c_([^_]*)/);
-                        const tenHang   = cols[0].replace(/_c_[^_]*/g, '').trim();
-                        const donGia    = parseNum(cols[1]) || 0;   // don gia SAU giam
+                        const tenHang   = cols[0].replace(/_c_([^_]*)/g, '<br><s>$1</s>');
+                        const donGia    = parseNum(cols[1]) || 0;
                         const soLuong   = parseNum(cols[2]) || 0;
-                        const gocTho    = mGoc ? (parseNum(mGoc[1]) || 0) : 0;
-                        const giaGoc    = gocTho > donGia ? gocTho : donGia;
-                        const productKey = cols[0] + '_' + donGia;
+                        const productKey = `${cols[0]}_${donGia}`;
                         if (productMap.has(productKey)) {
                             const p = productMap.get(productKey);
                             p.soLuong   += soLuong;
                             p.thanhTien  = p.soLuong * p.donGia;
-                            p.tienGoc    = p.soLuong * p.giaGoc;
                         } else {
-                            productMap.set(productKey, {
-                                tenHang: tenHang, soLuong: soLuong, donGia: donGia, giaGoc: giaGoc,
-                                thanhTien: soLuong * donGia,
-                                tienGoc:   soLuong * giaGoc
-                            });
+                            productMap.set(productKey, { tenHang, soLuong, donGia, thanhTien: soLuong * donGia });
                         }
                     }
                 }
             });
-
+            
             let stt = 0;
             productMap.forEach((product) => {
                 stt++;
 
-                const ckDong   = product.tienGoc - product.thanhTien;
-                const ghiChuCK = ckDong > 0
-                    ? '<span class="cell-ck-note">Giảm giá: -' + fmtTien(ckDong) + 'đ (còn ' + fmtTien(product.donGia) + 'đ)</span>'
-                    : '';
-
                 const tr1 = document.createElement('tr');
                 tr1.className = 'item-row-1';
-                tr1.innerHTML =
-                    '<td class="cell-tt">' + stt + '</td>' +
-                    '<td class="cell-name">' + product.tenHang + ghiChuCK + '</td>' +
-                    '<td class="cell-dongia">' + fmtTien(product.giaGoc) + 'đ</td>' +
-                    '<td class="cell-sl">' + fmtSL(product.soLuong) + '</td>' +
-                    '<td class="cell-sub-total">' + fmtTien(product.tienGoc) + 'đ</td>';
+                tr1.innerHTML = `
+                    <td class="cell-tt">${stt}</td>
+                    <td class="cell-name">${product.tenHang}</td>
+                    <td class="cell-dongia">${fmtTien(product.donGia)}đ</td>
+                    <td class="cell-sl">${fmtSL(product.soLuong)}</td>
+                    <td class="cell-sub-total">${fmtTien(product.thanhTien)}đ</td>
+                `;
                 tableBody.appendChild(tr1);
 
-                tongGiaTri   += product.tienGoc;
-                giamTheoDong += ckDong;
+                tongTien += product.thanhTien;
             });
-
+            
             if (stt > 0) {
-                // ---- KHOI TIEN CHUAN KE TOAN ----
-                // Tong gia tri -> Giam gia tong -> Tong tien sau giam -> Du no cu -> Tong thanh toan
-                // -> Khach tra -> Con lai   (2 dong VAT chi hien khi don thuc su co VAT)
-                const ckParam = soTuParam(chietKhau, 0);
-                const ttParam = soTuParam(thanhToan, null);   // app gui: tien hang sau giam
-                const coc     = soTuParam(cocParam, 0);
-                const coNoCu  = noCuParam !== null && dec(noCuParam).trim() !== '' && dec(noCuParam).trim().toLowerCase() !== 'null';
-                const noCuRaw = soTuParam(noCuParam, 0);      // cot Con no cua KH (da gom phieu thu coc)
+                let chiTietChietKhau = chietKhau ? (parseNum(chietKhau) || 0) : 0;
+                let chiTietThanhToan = thanhToan ? (parseNum(thanhToan) || 0) : (tongTien - chiTietChietKhau);
+                const rawGhiChu     = ghiChu || noiDungChietKhau;
+                let noiDungChiTiet  = (rawGhiChu && rawGhiChu !== 'null')
+                                      ? decodeURIComponent(rawGhiChu).trim() : "";
+                let noiDungThuc     = noiDungChiTiet.replace(/^Ghi\s*chú\s*:\s*/i, '').trim();
 
-                let giamGiaTong = giamTheoDong + ckParam;
-                let tongSauGiam = (ttParam !== null) ? ttParam : (tongGiaTri - giamGiaTong);
+                const trTongTien = document.createElement('tr');
+                trTongTien.className = 'summary-row first-summary';
+                trTongTien.innerHTML = `<td colspan="4">Tổng tiền</td><td style="text-align:right;white-space:nowrap">${fmtTien(tongTien)}đ</td>`;
+                tableBody.appendChild(trTongTien);
+                
+                if (chiTietChietKhau >= 0) {
+                    const trCK = document.createElement('tr');
+                    trCK.className = 'summary-row';
+                    trCK.innerHTML = `<td colspan="4">Chiết khấu</td><td style="text-align:right;white-space:nowrap">-${fmtTien(chiTietChietKhau)}đ</td>`;
+                    tableBody.appendChild(trCK);
+                }
+                
+                const trTT = document.createElement('tr');
+                trTT.className = 'summary-row';
+                trTT.innerHTML = `<td colspan="4">Phải thu khách</td><td style="text-align:right;white-space:nowrap">${fmtTien(chiTietThanhToan)}đ</td>`;
+                tableBody.appendChild(trTT);
 
-                // Bao dam phieu luon khop: Tong gia tri - Giam gia tong = Tong tien sau giam
-                let lech = 0;
-                const giamSuyRa = tongGiaTri - tongSauGiam;
-                if (Math.abs(giamSuyRa - giamGiaTong) > 1) {
-                    if (giamSuyRa >= 0) giamGiaTong = giamSuyRa;
-                    else lech = tongSauGiam - (tongGiaTri - giamGiaTong);
+                if (khachTrao && khachTrao !== 'null') {
+                    const kt = parseNum(decodeURIComponent(khachTrao)) || 0;
+                    if (kt > 0) {
+                        const trKT = document.createElement('tr');
+                        trKT.className = 'summary-row';
+                        trKT.innerHTML = `<td colspan="4">Khách trả</td><td style="text-align:right;white-space:nowrap">${fmtTien(kt)}đ</td>`;
+                        tableBody.appendChild(trKT);
+                    }
                 }
 
-                let vat = soTuParam(vatParam, 0);
-                if (!vat && vatPhanTram) {
-                    const pct = soTuParam(vatPhanTram, 0);
-                    if (pct > 0) vat = Math.round(tongSauGiam * pct / 100);
-                }
-                const tongSauVAT = tongSauGiam + vat;
-
-                // No cu THUAN = nocu + coc (cong nguoc tien coc de khong tru coc 2 lan)
-                const noCuThuan     = coNoCu ? (noCuRaw + coc) : 0;
-                const tongThanhToan = coNoCu ? (tongSauVAT + noCuRaw) : (tongSauVAT - coc);
-
-                const khachTra = soTuParam(khachTrao, 0);
-                const conLai   = tongThanhToan - khachTra;
-
-                const themDong = (nhan, giaTri, cls, mau) => {
-                    const tr = document.createElement('tr');
-                    tr.className = 'summary-row' + (cls ? ' ' + cls : '');
-                    if (mau) tr.style.color = mau;
-                    tr.innerHTML = '<td colspan="4">' + nhan + '</td>' +
-                                   '<td style="text-align:right;white-space:nowrap">' + giaTri + '</td>';
-                    tableBody.appendChild(tr);
-                    return tr;
-                };
-
-                themDong('Tổng giá trị',              fmtTien(tongGiaTri) + 'đ', 'first-summary');
-                themDong('Giảm giá tổng',             (giamGiaTong > 0 ? '-' : '') + fmtTien(giamGiaTong) + 'đ', 'summary-sub');
-                themDong('Tổng tiền sau giảm',        fmtTien(tongSauGiam) + 'đ', 'summary-sub');
-                if (vat !== 0) {
-                    themDong('Thuế VAT',                        fmtTien(vat) + 'đ', 'summary-sub');
-                    themDong('Tổng tiền sau VAT',          fmtTien(tongSauVAT) + 'đ', 'summary-sub');
-                }
-                themDong('Dư nợ cũ',                  fmtTien(noCuThuan) + 'đ', 'summary-sub');
-                if (coc !== 0) {
-                    themDong('Đã cọc',                '-' + fmtTien(Math.abs(coc)) + 'đ', 'summary-sub');
-                }
-                themDong('Tổng thanh toán',                fmtTien(tongThanhToan) + 'đ', 'summary-final');
-                themDong('Khách trả',                      fmtTien(khachTra) + 'đ', 'summary-sub');
-
-                if (conLai < 0) {
-                    themDong('Tiền thừa trả khách', fmtTien(Math.abs(conLai)) + 'đ', null, '#1b5e20');
-                } else {
-                    themDong('Còn lại', fmtTien(conLai) + 'đ', null, conLai > 0 ? '#e53935' : null);
+                if (conNo && conNo !== 'null') {
+                    const cn = parseNum(decodeURIComponent(conNo)) || 0;
+                    const trCN = document.createElement('tr');
+                    trCN.className = 'summary-row';
+                    trCN.style.color = '#e53935';
+                    trCN.innerHTML = `<td colspan="4">Còn nợ</td><td style="text-align:right;white-space:nowrap">${fmtTien(cn)}đ</td>`;
+                    tableBody.appendChild(trCN);
                 }
 
-                if (lech !== 0) {
-                    const trLech = document.createElement('tr');
-                    trLech.className = 'canh-bao-lech';
-                    trLech.innerHTML = '<td colspan="5">⚠ Số liệu app gửi lệch ' + fmtTien(lech) +
-                                       'đ so với bảng hàng hoá - vui lòng kiểm tra lại đơn hàng.</td>';
-                    tableBody.appendChild(trLech);
-                }
-
-                const rawGhiChu      = ghiChu || noiDungChietKhau;
-                const noiDungChiTiet = (rawGhiChu && rawGhiChu !== 'null') ? dec(rawGhiChu).trim() : '';
-                const noiDungThuc    = noiDungChiTiet.replace(/^Ghi\s*chú\s*:\s*/i, '').trim();
-                if (noiDungThuc !== '') {
+                if (noiDungThuc !== "") {
                     const trND = document.createElement('tr');
                     trND.className = 'discount-reason';
-                    trND.innerHTML = '<td colspan="5">' + noiDungChiTiet + '</td>';
+                    trND.innerHTML = `<td colspan="5">${noiDungChiTiet}</td>`;
                     tableBody.appendChild(trND);
                 }
             }
