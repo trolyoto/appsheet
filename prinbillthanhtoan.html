@@ -96,7 +96,7 @@
 </style>
 </head>
 <body>
-<div class="toolbar noprint"><button onclick="window.print()">🖨 In phiếu</button></div>
+<div class="toolbar noprint"><button onclick="window.print()">🖨 In phiếu</button><div id="verTag" style="font-size:10px;color:#888;text-align:center;margin-top:3px"></div></div>
 
 <div class="sheet">
   <div class="hd">
@@ -372,9 +372,32 @@
     w.textContent='⚠ Kiểm tra: số tiền phiếu app gửi là '+fmt(parseNum(appTT))+'đ, trang tính ra '+fmt(sauVat)+'đ (chênh '+fmt(parseNum(appTT)-sauVat)+'đ). Dòng cảnh báo này không in ra.';
   }
 
-  /* ---- tự in ---- */
+  /* ---- tự cập nhật bản mới (chống cache) rồi mới in ---- */
+  var PAGE_VER='29/10/2026 14:42';
+  var verEl=document.getElementById('verTag'); if(verEl) verEl.textContent='Bản '+PAGE_VER;
+
+  function doPrint(){ if(P.get('noautoprint')!=='true') setTimeout(function(){ window.print(); }, 700); }
+
   window.addEventListener('load', function(){
-    if(P.get('noautoprint')!=='true') setTimeout(function(){ window.print(); }, 700);
+    var done=false;
+    var t=setTimeout(function(){ if(!done){ done=true; doPrint(); } }, 2500); /* mạng chậm thì cứ in */
+    fetch(location.pathname+'?_v='+Date.now(), {cache:'no-store'})
+      .then(function(r){ return r.text(); })
+      .then(function(txt){
+        var m=txt.match(/PAGE_VER='([^']+)'/);
+        if(m && m[1] && m[1]!==PAGE_VER){
+          var k='plg_rl_'+m[1];
+          var daTai=false; try{ daTai=sessionStorage.getItem(k)==='1'; }catch(e){}
+          if(!daTai){
+            try{ sessionStorage.setItem(k,'1'); }catch(e){}
+            clearTimeout(t); done=true;
+            location.replace(location.href+(location.search?'&':'?')+'_r='+Date.now());
+            return;
+          }
+        }
+        if(!done){ done=true; clearTimeout(t); doPrint(); }
+      })
+      .catch(function(){ if(!done){ done=true; clearTimeout(t); doPrint(); } });
   });
 })();
 </script>
