@@ -296,19 +296,21 @@
       var base = p.gocDon>0 ? p.gocDon : p.dg;
       var eff  = p.gocDon>0 ? (p.dg>0?p.dg:0) : base*(1-(p.ck||0)/100);
       if(eff>base) eff=base;
-      var ckPct = base>0 ? Math.round((1-eff/base)*10000)/100 : 0;
+      var ckRaw = base>0 ? (1-eff/base)*100 : 0;
+      /* làm tròn về số nguyên: phần lẻ > 0,5 mới lên; 21,5% -> 21% ; 21,6% -> 22% */
+      var ckPct = (ckRaw - Math.floor(ckRaw)) > 0.5 ? Math.ceil(ckRaw) : Math.floor(ckRaw);
       var tt = eff*p.sl;
       tongGiaTri += base*p.sl;
       ckDong     += (base-eff)*p.sl;
       var tenHtml = p.ten + (p.note? '<br><s>'+p.note+'</s>' : '');
-      var dgHtml  = (ckPct>0 && base>0) ? '<s>'+fmt(base)+'</s>' : fmt(base);
+      var dgHtml  = (ckRaw>0 && base>0) ? '<s>'+fmt(base)+'</s>' : fmt(base);
       rowsHtml+='<tr>'
         +'<td class="c-stt">'+stt+'</td>'
         +'<td class="c-ten">'+tenHtml+'</td>'
         +'<td class="c-dvt">'+(p.dvt||'')+'</td>'
         +'<td class="c-sl">'+fmtSL(p.sl)+'</td>'
         +'<td class="c-dg">'+dgHtml+'</td>'
-        +'<td class="c-ck">'+(ckPct>0?fmtSL(ckPct):'')+'</td>'
+        +'<td class="c-ck">'+(ckPct>0?ckPct+'%':'')+'</td>'
         +'<td class="c-tt">'+fmt(tt)+'</td></tr>';
     });
   }
