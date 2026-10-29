@@ -362,7 +362,8 @@
   var noCu   = parseNum(g('nocu'));
   var tongTT = sauVat + noCu;
   var khachTra = parseNum(g('khachtrao'));
-  var conNo  = tongTT - khachTra;
+  var tienCoc  = parseNum(g('coc'));
+  var conNo  = tongTT - khachTra - tienCoc;
 
   var m='';
   function mrow(lb,val,cls){ m+='<tr class="'+(cls||'')+'"><td class="ml">'+lb+'</td><td class="mv">'+fmt(val)+'</td></tr>'; }
@@ -371,12 +372,13 @@
   if(ckTong!==0){ mrow('Giảm giá tổng:', -ckTong); mrow('Tổng tiền sau giảm:', sauGiam); }
   if(vatTien!==0){ mrow(vatLabel, vatTien); mrow('Tổng tiền sau VAT:', sauVat, 'strong'); }
   mrow('Dư nợ cũ:', noCu);
-  mrow('Tổng tiền Thanh toán:', tongTT, 'pay');
+  mrow('Tổng tiền:', tongTT, 'pay');
   mrow('Khách trả:', khachTra);
-  mrow('Còn nợ:', conNo, 'debt');
+  mrow('Đã cọc:', tienCoc);
+  mrow('Tổng Thanh toán:', conNo, 'debt');
   document.getElementById('moneyBody').innerHTML=m;
 
-  document.getElementById('f_bangchu').textContent='Bằng chữ: '+docSo(tongTT);
+  document.getElementById('f_bangchu').textContent='Bằng chữ: '+docSo(conNo);
 
   /* ---- tra soát: số app gửi vs số trang tự tính (chỉ hiện trên màn hình) ---- */
   var appTT=g('thanhtoan');
@@ -387,7 +389,7 @@
   }
 
   /* ---- tự cập nhật bản mới (chống cache) rồi mới in ---- */
-  var PAGE_VER='29/10/2026 14:05 v5';
+  var PAGE_VER='29/10/2026 20:40 v6';
   var verEl=document.getElementById('verTag'); if(verEl) verEl.textContent='Bản '+PAGE_VER;
 
   function doPrint(){ if(P.get('noautoprint')!=='true') setTimeout(function(){ window.print(); }, 700); }
