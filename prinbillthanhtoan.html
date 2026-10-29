@@ -300,11 +300,14 @@
       var ckRaw = base>0 ? (1-eff/base)*100 : 0;
       /* làm tròn về số nguyên: phần lẻ > 0,5 mới lên; 21,5% -> 21% ; 21,6% -> 22% */
       var ckPct = (ckRaw - Math.floor(ckRaw)) > 0.5 ? Math.ceil(ckRaw) : Math.floor(ckRaw);
-      /* tiền tính lại theo đúng % đã làm tròn (chuẩn kế toán): ĐG x (100 - CK%) */
-      eff = Math.round(base*(1-ckPct/100));
-      var tt = eff*p.sl;
+      /* Tiền:
+         - App gửi sẵn giá bán thật (có _c_ giá gốc)  -> GIỮ NGUYÊN tiền của app, % chỉ để xem
+         - App chỉ gửi CK%                            -> tính lại theo % đã làm tròn
+         Làm tròn ở mức THÀNH TIỀN cả dòng, không làm tròn từng đơn vị. */
+      var tt = p.gocDon>0 ? Math.round(eff*p.sl)
+                          : Math.round(base*p.sl*(1-ckPct/100));
       tongGiaTri += base*p.sl;
-      ckDong     += (base-eff)*p.sl;
+      ckDong     += base*p.sl - tt;
       var tenHtml = p.ten + (p.note? '<br><s>'+p.note+'</s>' : '');
       var dgHtml  = (ckPct>0 && base>0) ? '<span class="hl">'+fmt(base)+'</span>' : fmt(base);
       rowsHtml+='<tr>'
