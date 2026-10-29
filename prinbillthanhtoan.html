@@ -259,8 +259,17 @@
 
   set('f_sophieu', g('sophieu'));
   set('f_ngay',    g('thoigian'));
-  set('f_kh',      g('ban') || g('khachhang'));
-  set('f_sdt',     g('sdtkhach') || g('dienthoaikh'));
+  /* Tách số điện thoại nếu app gộp vào tên khách: "Anh Cường - 0376229601" */
+  var khachRaw = g('ban') || g('khachhang');
+  var sdtKh    = g('sdtkhach') || g('dienthoaikh');
+  var mSdt = khachRaw.match(/^(.*?)[\s\-–—,\/]*((?:\+?84|0)\d{8,10})\s*$/);
+  if(mSdt){
+    if(sdtKh==='') sdtKh = mSdt[2];
+    var tenKh = mSdt[1].replace(/[\s\-–—,\/]+$/,'').trim();
+    if(tenKh!=='') khachRaw = tenKh;
+  }
+  set('f_kh',  khachRaw);
+  set('f_sdt', sdtKh);
   set('f_bienso',  g('bienso'));
   set('f_hangxe',  g('hangxe'));
   set('f_sokm',    g('sokm'));
@@ -351,7 +360,7 @@
   mrow('Giảm giá tổng:', -ckTong);
   mrow('Tổng tiền sau giảm:', sauGiam);
   mrow(vatLabel, vatTien);
-  mrow('Tổng tiền sau VAT:', sauVat, 'strong');
+  if(vatTien!==0) mrow('Tổng tiền sau VAT:', sauVat, 'strong');
   mrow('Dư nợ cũ:', noCu);
   mrow('Tổng tiền Thanh toán:', tongTT, 'pay');
   mrow('Khách trả:', khachTra);
