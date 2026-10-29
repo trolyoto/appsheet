@@ -518,16 +518,19 @@
                 if (trimmedRow) {
                     const cols = trimmedRow.split('_a_').map(c => c.trim());
                     if (cols.length >= 3) {
-                        const tenHang   = cols[0].replace(/_c_([^_]*)/g, '<br><s>$1</s>');
+                        const tenHang   = cols[0].replace(/_c_[^_]*/g, '').trim();
+                        const mGoc      = cols[0].match(/_c_([^_]*)/);
                         const donGia    = parseNum(cols[1]) || 0;
                         const soLuong   = parseNum(cols[2]) || 0;
                         const productKey = `${cols[0]}_${donGia}`;
                         if (productMap.has(productKey)) {
                             const p = productMap.get(productKey);
                             p.soLuong   += soLuong;
-                            p.thanhTien  = p.soLuong * p.donGia;
+                            p.thanhTien  = p.soLuong * p.giaGoc;
                         } else {
-                            productMap.set(productKey, { tenHang, soLuong, donGia, thanhTien: soLuong * donGia });
+                            const gGoc   = mGoc ? (parseNum(mGoc[1]) || 0) : 0;
+                            const giaGoc = gGoc > donGia ? gGoc : donGia;
+                            productMap.set(productKey, { tenHang, soLuong, donGia, giaGoc, thanhTien: soLuong * giaGoc });
                         }
                     }
                 }
@@ -542,7 +545,7 @@
                 tr1.innerHTML = `
                     <td class="cell-tt">${stt}</td>
                     <td class="cell-name">${product.tenHang}</td>
-                    <td class="cell-dongia">${fmtTien(product.donGia)}đ</td>
+                    <td class="cell-dongia">${fmtTien(product.giaGoc)}đ</td>
                     <td class="cell-sl">${fmtSL(product.soLuong)}</td>
                     <td class="cell-sub-total">${fmtTien(product.thanhTien)}đ</td>
                 `;
@@ -553,6 +556,10 @@
             
             if (stt > 0) {
                 let chiTietChietKhau = chietKhau ? (parseNum(chietKhau) || 0) : 0;
+                const ttApp = (thanhToan && thanhToan !== 'null') ? (parseNum(thanhToan) || 0) : null;
+                if (ttApp !== null && Math.abs((tongTien - ttApp) - chiTietChietKhau) > 1 && (tongTien - ttApp) >= 0) {
+                    chiTietChietKhau = tongTien - ttApp;
+                }
                 let chiTietThanhToan = thanhToan ? (parseNum(thanhToan) || 0) : (tongTien - chiTietChietKhau);
                 const rawGhiChu     = ghiChu || noiDungChietKhau;
                 let noiDungChiTiet  = (rawGhiChu && rawGhiChu !== 'null')
