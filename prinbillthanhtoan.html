@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Phiếu Dịch Vụ - Phi Long Auto</title>
+<title>Phiếu Dịch Vụ / Biên Nhận - Phi Long Auto</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:'Times New Roman',Times,serif;background:#f0f0f0;padding:12px;color:#000}
@@ -108,7 +108,7 @@
     </div>
   </div>
 
-  <div class="title" id="docTitle">PHIẾU DỊCH VỤ</div>
+  <div class="title" id="docTitle">PHIẾU DỊCH VỤ / BIÊN NHẬN</div>
 
   <table class="info">
     <colgroup><col style="width:14%"><col style="width:32%"><col style="width:14%"><col style="width:40%"></colgroup>
@@ -254,7 +254,7 @@
     var el=document.getElementById(id); if(!el) return;
     el.innerHTML = (val!=='' && val!==undefined) ? val : (fallback!==undefined?fallback:'&nbsp;');
   }
-  if(g('loaiphieu')) document.getElementById('docTitle').textContent = g('loaiphieu').toUpperCase();
+/* tieu de rieng cho phieu nay: khong nhan loaiphieu tu app */
   if(g('website')) set('webSite', g('website'));
   if(g('hotline')) set('hotline', g('hotline'));
   if(g('email'))   set('email',   g('email'));
