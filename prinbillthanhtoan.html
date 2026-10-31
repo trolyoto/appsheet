@@ -320,22 +320,31 @@
       var base = p.gocDon>0 ? p.gocDon : p.dg;
       var eff  = p.gocDon>0 ? (p.dg>0?p.dg:0) : base*(1-(p.ck||0)/100);
       if(eff>base) eff=base;
-      var ckRaw = base>0 ? (1-eff/base)*100 : 0;
-      /* CK làm tròn về số nguyên: phần lẻ > 0,5 mới lên (21,5 -> 21 ; 21,6 -> 22) */
-      var ckPct = (ckRaw - Math.floor(ckRaw)) > 0.5 ? Math.ceil(ckRaw) : Math.floor(ckRaw);
-      /* Tiền tính lại theo đúng % đã làm tròn: ĐƠN GIÁ x (100 - CK%), làm tròn cả dòng */
-      var tt = Math.round(base*p.sl*(1-ckPct/100));
+      /* NGUYEN TAC KE TOAN: so tien thuc thu la goc.
+         THANH TIEN = SL x DON GIA BAN THAT. Phan tram CK chi de trinh bay,
+         TUYET DOI khong duoc lam tron % roi tinh lai tien tu % do. */
+      var tt = Math.round(eff*p.sl);
       tongGiaTri += base*p.sl;
       ckDong     += base*p.sl - tt;
-      var tenHtml = p.ten + (p.note? '<br><s>'+p.note+'</s>' : '');
-      var dgHtml  = (ckPct>0 && base>0) ? '<span class="hl">'+fmt(base)+'</span>' : fmt(base);
+      var giam  = (base-eff) >= 0.5;
+      var ckRaw = (giam && base>0) ? (1-eff/base)*100 : 0;
+      var ckInt = Math.round(ckRaw);
+      /* CK "chan" = % tron so VA nhan ra dung so tien -> in theo cot CK nhu cu.
+         CK le -> in thang DON GIA BAN THAT, cot CK de trong, gia goc gach ngang duoi ten hang. */
+      var ckChan = giam && ckInt>0 && Math.abs(ckRaw-ckInt)<0.005
+                   && Math.abs(Math.round(base*p.sl*(1-ckInt/100))-tt)<1;
+      var noteTxt = p.note || '';
+      if(giam && !ckChan) noteTxt = (noteTxt? noteTxt+' · ' : '') + 'Giá gốc: ' + fmt(base);
+      var tenHtml = p.ten + (noteTxt? '<br><s>'+noteTxt+'</s>' : '');
+      var dgShow  = ckChan ? base : eff;
+      var dgHtml  = (giam && base>0) ? '<span class="hl">'+fmt(dgShow)+'</span>' : fmt(dgShow);
       rowsHtml+='<tr>'
         +'<td class="c-stt">'+stt+'</td>'
         +'<td class="c-ten">'+tenHtml+'</td>'
         +'<td class="c-dvt">'+(p.dvt||'')+'</td>'
         +'<td class="c-sl">'+fmtSL(p.sl)+'</td>'
         +'<td class="c-dg">'+dgHtml+'</td>'
-        +'<td class="c-ck">'+(ckPct>0?ckPct+'%':'')+'</td>'
+        +'<td class="c-ck">'+(ckChan?ckInt+'%':'')+'</td>'
         +'<td class="c-tt">'+fmt(tt)+'</td></tr>';
     });
   }
@@ -395,7 +404,7 @@
   }
 
   /* ---- tự cập nhật bản mới (chống cache) rồi mới in ---- */
-  var PAGE_VER='29/10/2026 v9 - fix coc trung no cu';
+  var PAGE_VER='31/10/2026 v10 - tien theo gia ban that, CK chi de trinh bay';
   var verEl=document.getElementById('verTag'); if(verEl) verEl.textContent='Bản '+PAGE_VER;
 
   function doPrint(){ if(P.get('noautoprint')!=='true') setTimeout(function(){ window.print(); }, 700); }
