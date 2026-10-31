@@ -156,6 +156,20 @@
             white-space: nowrap;
         }
 
+        tr.item-row-1 td.cell-dongia .gia-goc {
+            display: block;
+            text-decoration: line-through;
+            color: #999;
+            font-size: 0.82em;
+            font-weight: 400;
+        }
+
+        tr.item-row-1 td.cell-dongia .gia-thuc {
+            display: block;
+            font-weight: 600;
+            color: #222;
+        }
+
         tr.item-row-1 td.cell-sl {
             text-align: center;
             color: #555;
@@ -512,6 +526,7 @@
             const rows = data.split('_b_');
             const productMap = new Map();
             let tongTien = 0;
+            let ckTheoDong = 0;   // chiet khau suy ra tu _c_ (gia goc) tung dong
             
             rows.forEach((row) => {
                 const trimmedRow = row.trim();
@@ -545,13 +560,16 @@
                 tr1.innerHTML = `
                     <td class="cell-tt">${stt}</td>
                     <td class="cell-name">${product.tenHang}</td>
-                    <td class="cell-dongia">${fmtTien(product.giaGoc)}đ</td>
+                    <td class="cell-dongia">${(product.giaGoc > product.donGia)
+                        ? `<span class="gia-goc">${fmtTien(product.giaGoc)}đ</span><span class="gia-thuc">${fmtTien(product.donGia)}đ</span>`
+                        : `${fmtTien(product.giaGoc)}đ`}</td>
                     <td class="cell-sl">${fmtSL(product.soLuong)}</td>
                     <td class="cell-sub-total">${fmtTien(product.thanhTien)}đ</td>
                 `;
                 tableBody.appendChild(tr1);
 
-                tongTien += product.thanhTien;
+                tongTien   += product.thanhTien;
+                ckTheoDong += (product.giaGoc - product.donGia) * product.soLuong;
             });
             
             if (stt > 0) {
@@ -559,6 +577,8 @@
                 const ttApp = (thanhToan && thanhToan !== 'null') ? (parseNum(thanhToan) || 0) : null;
                 if (ttApp !== null && Math.abs((tongTien - ttApp) - chiTietChietKhau) > 1 && (tongTien - ttApp) >= 0) {
                     chiTietChietKhau = tongTien - ttApp;
+                } else if (ttApp === null && ckTheoDong > chiTietChietKhau) {
+                    chiTietChietKhau = ckTheoDong;
                 }
                 let chiTietThanhToan = thanhToan ? (parseNum(thanhToan) || 0) : (tongTien - chiTietChietKhau);
                 const rawGhiChu     = ghiChu || noiDungChietKhau;
