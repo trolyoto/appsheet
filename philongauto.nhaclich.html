@@ -49,7 +49,7 @@ img{display:block}
 .rule{position:absolute;left:6.597mm;right:6.832mm;height:.17mm;background:var(--gold)}
 .fd,.sv{position:absolute;left:6.597mm;right:6.832mm;display:flex;align-items:baseline;
         transform:translateY(-50%)}
-.fd{font-size:3.181mm;font-weight:700;letter-spacing:-.005em}
+.fd{font-size:2.945mm;font-weight:700;letter-spacing:-.005em}
 .fl{white-space:nowrap}
 .dot{flex:1;margin-left:1.3mm;border-bottom:.2mm dotted #959CB2;min-width:0}
 .dot i{font-style:normal;font-weight:700;padding:0 0 0 1.1mm;display:inline-block;
@@ -201,7 +201,7 @@ var KHAC=[];   /* Tracy chốt: dòng DV khác LUÔN để trống cho viết ta
 
 /* ---------- 5. Dựng 2 mặt thẻ ---------- */
 var LOGO='plg_logo.png', WORDMARK='plg_wordmark.png', QR='plg_qr.png';
-var YF=[25.504,30.781,36.059,41.336,46.614];     /* tâm 5 dòng điền (mm)    */
+var YF=[25.052,29.450,33.848,38.246,42.644,47.042];     /* tâm 5 dòng điền (mm)    */
 var YS=[58.842,63.459,68.077,72.695,77.313,81.931,86.548]; /* tâm 6 dòng dịch vụ   */
 function dongDien(y,nhan,gt){
   return '<div class="fd" style="top:'+y+'mm"><span class="fl">'+nhan+'</span>'+
@@ -218,10 +218,11 @@ H+='<div class="card">'+
    '<img class="wm" src="'+WORDMARK+'" alt="Phi Long">'+
    '<div class="rule" style="top:22.853mm"></div>'+
    dongDien(YF[0],'Biển số xe:',P.bienso)+
-   dongDien(YF[1],'Kiểm tra lốp tại km:',KQ.kmLop)+
-   dongDien(YF[2],'Hoặc ngày:',KQ.hanNgay)+
-   dongDien(YF[3],'Thay dầu (Nhớt) tại km:',KQ.kmDau)+
-   dongDien(YF[4],'Lịch hẹn lần sau:',KQ.hen)+
+   dongDien(YF[1],'Km hiện tại:',P.km!==null&&P.km>0?dinhDang(P.km):'')+
+   dongDien(YF[2],'Kiểm tra lốp tại km:',KQ.kmLop)+
+   dongDien(YF[3],'Hoặc ngày:',KQ.hanNgay)+
+   dongDien(YF[4],'Thay dầu (Nhớt) tại km:',KQ.kmDau)+
+   dongDien(YF[5],'Lịch hẹn lần sau:',KQ.hen)+
    '<div class="rule" style="top:49.241mm"></div>'+
    '<div class="title">CÁC DỊCH VỤ ĐỀ XUẤT</div>';
 for(var i=0;i<O_TICK.length;i++) H+=dongDV(YS[i],TICK[i],esc(O_TICK[i].ten));
