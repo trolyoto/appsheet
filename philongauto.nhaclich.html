@@ -118,12 +118,12 @@ var ZALO_OA = 'https://zalo.me/s/4166041222749405453/';
 
 /* CHU KỲ THAY NHỚT THEO LOẠI DẦU BÁN TRÊN PHIẾU (Tracy chốt 09/11/2026)
    Thay dầu tại km = KM HIỆN TẠI + số km của loại dầu đã bán.
-   Không tìm thấy dầu trên phiếu -> dùng mốc 5.000 tròn theo chuẩn hãng.   */
+   CHỈ TÍNH KHI PHIẾU CÓ BÁN NHỚT. Không có nhớt -> dòng này ĐỂ TRỐNG.     */
 var CHU_KY_NHOT = [
-  {tu:['unipal'],            km:9000},
-  {tu:['q9000','quartz 9000'],km:9000},
-  {tu:['q7000','quartz 7000'],km:7000},
-  {tu:['q5000','quartz 5000'],km:5000}
+  {ten:'UNIL OPAL', tu:['unil opal','unilopal','unil-opal','unil'], km:9000},
+  {ten:'Q9000',     tu:['q9000','quartz 9000','q 9000'],            km:9000},
+  {ten:'Q7000',     tu:['q7000','quartz 7000','q 7000'],            km:7000},
+  {ten:'Q5000',     tu:['q5000','quartz 5000','q 5000'],            km:5000}
 ];
 function chuKyNhot(dong){
   for(var i=0;i<CHU_KY_NHOT.length;i++){
@@ -220,8 +220,8 @@ if(P.km!==null && P.km>0){
   KQ.cap=maCap(mDau); KQ.tenCap=TEN_CAP[KQ.cap];
   /* Riêng dòng THAY DẦU chạy theo loại nhớt đã bán */
   var nhot=chuKyNhot(DONG);
-  KQ.loaiNhot = nhot ? nhot.tu[0].toUpperCase() : '';
-  KQ.kmDau = dinhDang(nhot ? P.km + nhot.km : mDau);
+  KQ.loaiNhot = nhot ? nhot.ten : '';
+  KQ.kmDau = nhot ? dinhDang(P.km + nhot.km) : '';   /* không thay nhớt -> để trống */
   KQ.kmLop = dinhDang(mLop);
 }
 
@@ -234,6 +234,9 @@ if(henTg <= HOM_NAY){
 }else{
   KQ.hen=inNgay(henTg);
 }
+/* Tracy chốt: 2 dòng "Thay dầu" và "Lịch hẹn lần sau" CHỈ hiện khi phiếu có
+   bán nhớt. Không thay nhớt -> để trống cho KTV ghi tay.                   */
+if(!KQ.loaiNhot){ KQ.hen=''; }
 
 var TICK=O_TICK.map(function(o){return o.cap.indexOf(KQ.cap)!==-1;});
 var KHAC=[];   /* Tracy chốt: dòng DV khác LUÔN để trống cho viết tay */
