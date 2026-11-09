@@ -125,7 +125,8 @@ var O_TICK = [
  {ten:'Cân bằng động',                cap:['tb','tbl','lon']},   /* A từ Cấp trung bình   */
  {ten:'Kiểm tra thước lái (độ chụm)', cap:['nho','tb','tbl','lon']}, /* Góc đặt bánh xe   */
  {ten:'Kiểm tra lốp',                 cap:['nho','tb','tbl','lon']}, /* Kiểm tra an toàn  */
- {ten:'Láng đĩa',                     cap:['tb','tbl','lon']}    /* Phanh: A từ cấp TB    */
+ {ten:'Láng đĩa',                     cap:['tb','tbl','lon']},   /* Phanh: A từ cấp TB    */
+ {ten:'Kiểm tra an toàn xe (3 tháng)',cap:['nho','tb','tbl','lon']} /* bắt buộc mọi cấp   */
 ];
 /* Hạng mục THAY THẾ (R) của từng cấp, đưa xuống dòng "DV khác".
    Dầu động cơ đã có dòng "Thay dầu (Nhớt) tại km" nên không lặp lại ở đây. */
@@ -196,12 +197,12 @@ if(P.km!==null && P.km>0){
   KQ.hen=KQ.hanNgay; KQ.cap='nho'; KQ.tenCap=TEN_CAP.nho;
 }
 var TICK=O_TICK.map(function(o){return o.cap.indexOf(KQ.cap)!==-1;});
-var KHAC=DV_KHAC_THEO_CAP[KQ.cap]||[];
+var KHAC=[];   /* Tracy chốt: dòng DV khác LUÔN để trống cho viết tay */
 
 /* ---------- 5. Dựng 2 mặt thẻ ---------- */
 var LOGO='plg_logo.png', WORDMARK='plg_wordmark.png', QR='plg_qr.png';
 var YF=[25.504,30.781,36.059,41.336,46.614];     /* tâm 5 dòng điền (mm)    */
-var YS=[58.842,63.436,68.030,72.742,77.336,81.931]; /* tâm 6 dòng dịch vụ   */
+var YS=[58.842,63.459,68.077,72.695,77.313,81.931,86.548]; /* tâm 6 dòng dịch vụ   */
 function dongDien(y,nhan,gt){
   return '<div class="fd" style="top:'+y+'mm"><span class="fl">'+nhan+'</span>'+
          '<span class="dot"><i>'+esc(gt)+'</i></span></div>';
@@ -224,16 +225,8 @@ H+='<div class="card">'+
    '<div class="rule" style="top:49.241mm"></div>'+
    '<div class="title">CÁC DỊCH VỤ ĐỀ XUẤT</div>';
 for(var i=0;i<O_TICK.length;i++) H+=dongDV(YS[i],TICK[i],esc(O_TICK[i].ten));
-var dvKhac=KHAC.join(', ');
-if(dvKhac.length>42){
-  var g=[],i=0;
-  while(i<KHAC.length && (g.join(', ')+', '+KHAC[i]).length<=34){ g.push(KHAC[i]); i++; }
-  if(!g.length) g=[KHAC[0]], i=1;
-  dvKhac=g.join(', ')+' +'+(KHAC.length-i);
-}
-H+=dongDV(YS[5],KHAC.length>0,'DV khác:',dvKhac);
-H+='<div class="khuyen">Khuyến nghị: <b>Kiểm tra an toàn xe mỗi 3 tháng</b></div>'+
-   '<img class="qr" src="'+QR+'" alt="Zalo OA Phi Long">'+
+H+=dongDV(YS[6],false,'DV khác:','');
+H+='<img class="qr" src="'+QR+'" alt="Zalo OA Phi Long">'+
    '<div class="divider"></div>'+
    '<div class="cta">ĐẶT LỊCH NGAY</div>'+
    '<div class="ic"><svg viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.2.4 2.4.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.4 0 .8-.2 1l-2.3 2.2z"/></svg></div>'+
