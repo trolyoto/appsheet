@@ -110,8 +110,9 @@ img{display:block}
 var CAU_HINH = {
   CHU_KY_KM      : 5000,   /* DM_CAP_BD: chu kỳ bảo dưỡng theo km            */
   CHU_KY_THANG   : 3,      /* DM_CAP_BD: chu kỳ bảo dưỡng theo tháng         */
+  NHAC_TRUOC_NGAY: 7,      /* DM_CAP_BD: số ngày báo TỚI HẠN trước hạn       */
   KM_DAO_LOP     : 10000,  /* Đảo lốp / Cân bằng động: A từ Cấp trung bình   */
-  KM_TB_NGAY     : 40      /* DM_CAP_BD: km trung bình/ngày khi chưa có sử   */
+  KM_TB_NGAY     : 0       /* KHÔNG dùng: quy đổi km->ngày không phải chuẩn hãng */
 };
 var ZALO_OA = 'https://zalo.me/s/4166041222749405453/';
 
@@ -181,21 +182,35 @@ function maCap(moc){var n=moc/CAU_HINH.CHU_KY_KM;
 var TEN_CAP={nho:'Cấp nhỏ',tb:'Cấp trung bình',tbl:'Cấp trung bình lớn',lon:'Cấp lớn'};
 
 /* ---------- 4. Mốc km & ngày hẹn ---------- */
-var KQ={kmLop:'',kmDau:'',hanNgay:'',hen:'',cap:'nho',tenCap:''};
-KQ.hanNgay = inNgay(themThang(P.ngay, CAU_HINH.CHU_KY_THANG));
+var KQ={kmLop:'',kmDau:'',hanNgay:'',hen:'',cap:'nho',tenCap:'',canh:''};
+var HOM_NAY=new Date(); HOM_NAY.setHours(0,0,0,0);
+
+/* --- Mốc thời gian: chuẩn hãng = ngày làm dịch vụ + 3 tháng --- */
+var hanTg = themThang(P.ngay, CAU_HINH.CHU_KY_THANG);
+KQ.hanNgay = inNgay(hanTg);
+
+/* --- Ngày hẹn = trước hạn 7 ngày, để khách tới TRƯỚC khi quá hạn --- */
+var henTg = new Date(hanTg.getTime());
+henTg.setDate(henTg.getDate() - CAU_HINH.NHAC_TRUOC_NGAY);
+
+/* --- Mốc km theo cấp bảo dưỡng --- */
 if(P.km!==null && P.km>0){
   var mDau=mocKeTiep(P.km,CAU_HINH.CHU_KY_KM);
   var mLop=mocKeTiep(P.km,CAU_HINH.KM_DAO_LOP);
   KQ.kmDau=dinhDang(mDau); KQ.kmLop=dinhDang(mLop);
   KQ.cap=maCap(mDau); KQ.tenCap=TEN_CAP[KQ.cap];
-  var ngayKm=new Date(P.ngay.getTime());
-  ngayKm.setDate(ngayKm.getDate()+Math.max(1,Math.round((mDau-P.km)/CAU_HINH.KM_TB_NGAY)));
-  var hanTg=themThang(P.ngay,CAU_HINH.CHU_KY_THANG);
-  KQ.hen=inNgay(ngayKm<=hanTg?ngayKm:hanTg);
-}else{
-  /* không có km -> không biết cấp, lấy mức thấp nhất (Cấp nhỏ) cho an toàn */
-  KQ.hen=KQ.hanNgay; KQ.cap='nho'; KQ.tenCap=TEN_CAP.nho;
 }
+
+/* --- CHẶN AN TOÀN: không bao giờ in ngày hẹn đã qua cho khách --- */
+if(henTg <= HOM_NAY){
+  KQ.hen=''; KQ.hanNgay='';
+  KQ.canh='Đơn lập ngày '+inNgay(P.ngay)+', hạn 3 tháng là '+inNgay(hanTg)+
+          ' — ngày hẹn (trước hạn '+CAU_HINH.NHAC_TRUOC_NGAY+' ngày) đã tới hoặc đã qua. '+
+          'Thẻ BỎ TRỐNG 2 dòng ngày để không in ngày sai cho khách; hẹn lại trực tiếp.';
+}else{
+  KQ.hen=inNgay(henTg);
+}
+
 var TICK=O_TICK.map(function(o){return o.cap.indexOf(KQ.cap)!==-1;});
 var KHAC=[];   /* Tracy chốt: dòng DV khác LUÔN để trống cho viết tay */
 
@@ -245,6 +260,7 @@ if(!P.bienso){
 }else{
   document.getElementById('the').innerHTML=H;
   var cb=[];
+  if(KQ.canh) cb.push(KQ.canh);
   if(P.km===null||P.km<=0) cb.push('Đơn KHÔNG có số km (odo) → 2 dòng km để trống, chỉ nhắc theo thời gian. Cần nhập km khi tạo đơn.');
   if(!DONG.length) cb.push('Link không có chuỗi &data= → không tick được dịch vụ nào.');
   if(cb.length) document.getElementById('canhbao').innerHTML=
