@@ -113,20 +113,25 @@ var CAU_HINH = {
 var ZALO_OA = 'https://zalo.me/s/4166041222749405453/';
 
 /* 6 ô trên mẫu in — KHÔNG đổi thứ tự, không đổi chữ.
-   tu  = từ khoá nhận dạng trong tên dịch vụ (viết thường, bỏ dấu)
-   nhom= tick khi nhóm hàng khớp;  tru = từ khoá loại trừ                    */
+   Ô được tick theo CẤP BẢO DƯỠNG CỦA MỐC KM KẾ TIẾP (ma trận Michelin Car
+   Service, file "Maintenance pakage.xlsx"), KHÔNG phải theo việc đã làm hôm nay.
+   nho = Cấp nhỏ (5K,15K,25K...) · tb = Cấp trung bình (10K,30K,50K...)
+   tbl = Cấp trung bình lớn (20K,60K,100K...) · lon = Cấp lớn (40K,80K,120K...) */
 var O_TICK = [
- {ten:'Đảo lốp',                       tu:['dao lop','dao vo','xoay lop','hoan vi lop','rotation']},
- {ten:'Cân bằng động',                 tu:['balancing','can mam','bam chi','can bang dong','can bang']},
- {ten:'Kiểm tra thước lái (độ chụm)',  tu:['alignment','thuoc lai','goc lai','do chum','goc dat banh']},
- {ten:'Kiểm tra lốp',                 tu:['kiem tra lop','thay lop','lop moi'], nhom:['LX'],
-  /* chuỗi của nút In bill KHÔNG có nhóm hàng -> nhận lốp qua SIZE trong tên:
-     205/55R16 · 1200R20 · 31X10.5R15. Không dùng chữ "lốp" trơn vì
-     "Ra Vô Lốp", "Kiểm Tra Lốp", "Vá Vỏ" đều có chữ đó.                      */
-                                       reg:/\d{3}\s*\/\s*\d{2}\s*r\s*\d{2}|(^|[^\d])\d{3,4}\s*r\s*\d{2}([^\d]|$)/,
-                                       tru:['vo cu','chan van','ruot','yem','va vo','va lop','dao lop','can bang','lat mat','ra vo lop','bom lop']},
- {ten:'Láng đĩa',                      tu:['lang dia','vot dia','tien dia','lang dĩa']}
+ {ten:'Đảo lốp',                      cap:['tb','tbl','lon']},   /* A từ Cấp trung bình   */
+ {ten:'Cân bằng động',                cap:['tb','tbl','lon']},   /* A từ Cấp trung bình   */
+ {ten:'Kiểm tra thước lái (độ chụm)', cap:['nho','tb','tbl','lon']}, /* Góc đặt bánh xe   */
+ {ten:'Kiểm tra lốp',                 cap:['nho','tb','tbl','lon']}, /* Kiểm tra an toàn  */
+ {ten:'Láng đĩa',                     cap:['tb','tbl','lon']}    /* Phanh: A từ cấp TB    */
 ];
+/* Hạng mục THAY THẾ (R) của từng cấp, đưa xuống dòng "DV khác".
+   Dầu động cơ đã có dòng "Thay dầu (Nhớt) tại km" nên không lặp lại ở đây. */
+var DV_KHAC_THEO_CAP = {
+ nho : [],
+ tb  : ['Lọc dầu động cơ','Gạt mưa'],
+ tbl : ['Lọc dầu + lọc gió','Ắc quy'],
+ lon : ['Lọc dầu + lọc gió','Dầu phanh']
+};
 /* ===================== hết phần cấu hình ===================== */
 
 function qs(k){var m=new RegExp('[?&]'+k+'=([^&]*)').exec(location.search);
@@ -164,46 +169,31 @@ function docDong(d){
 }
 var DONG = (P.data?P.data.split('_b_'):[]).map(docDong).filter(Boolean);
 
-/* ---------- 3. Tự tick 6 ô ---------- */
-function khop(o,r){
-  var t=boDau(r.ten);
-  if(o.tru && o.tru.some(function(k){return t.indexOf(boDau(k))!==-1;})) return false;
-  if(o.tu.some(function(k){return t.indexOf(boDau(k))!==-1;})) return true;
-  if(o.reg && o.reg.test(t)) return true;
-  if(o.nhom && r.nhom && o.nhom.indexOf(r.nhom)!==-1) return true;
-  return false;
-}
-var TICK=O_TICK.map(function(o){return DONG.some(function(r){return khop(o,r);});});
-var KHAC=[];
-DONG.forEach(function(r){
-  var daBat=O_TICK.some(function(o){return khop(o,r);});
-  if(daBat) return;
-  var t=boDau(r.ten);
-  /* chỉ gom DỊCH VỤ vào "DV khác", bỏ qua phụ tùng/hàng hoá */
-  var laDV=/^#|va vo|va lop|ve sinh|kiem tra|cong tho|cong thay|thay |lat mat|ra vo|bao duong|suc |lang |vot /.test(t);
-  if(!laDV) return;
-  var ten=r.ten.replace(/^#\s*[A-Za-z\s]+-\s*/,'').trim();
-  if(KHAC.indexOf(ten)===-1) KHAC.push(ten);
-});
+/* ---------- 3. Mốc km, cấp bảo dưỡng kế tiếp ---------- */
+function mocKeTiep(km,buoc){return (Math.floor(km/buoc)+1)*buoc;}
+function maCap(moc){var n=moc/CAU_HINH.CHU_KY_KM;
+  if(n%8===0)return 'lon'; if(n%4===0)return 'tbl';
+  if(n%2===0)return 'tb';  return 'nho';}
+var TEN_CAP={nho:'Cấp nhỏ',tb:'Cấp trung bình',tbl:'Cấp trung bình lớn',lon:'Cấp lớn'};
 
 /* ---------- 4. Mốc km & ngày hẹn ---------- */
-function mocKeTiep(km,buoc){return (Math.floor(km/buoc)+1)*buoc;}
-function capBaoDuong(moc){var n=moc/CAU_HINH.CHU_KY_KM;
-  if(n%8===0)return 'Cấp lớn'; if(n%4===0)return 'Cấp trung bình lớn';
-  if(n%2===0)return 'Cấp trung bình'; return 'Cấp nhỏ';}
-var KQ={kmLop:'',kmDau:'',hanNgay:'',hen:'',cap:''};
+var KQ={kmLop:'',kmDau:'',hanNgay:'',hen:'',cap:'nho',tenCap:''};
 KQ.hanNgay = inNgay(themThang(P.ngay, CAU_HINH.CHU_KY_THANG));
 if(P.km!==null && P.km>0){
   var mDau=mocKeTiep(P.km,CAU_HINH.CHU_KY_KM);
   var mLop=mocKeTiep(P.km,CAU_HINH.KM_DAO_LOP);
-  KQ.kmDau=dinhDang(mDau); KQ.kmLop=dinhDang(mLop); KQ.cap=capBaoDuong(mDau);
+  KQ.kmDau=dinhDang(mDau); KQ.kmLop=dinhDang(mLop);
+  KQ.cap=maCap(mDau); KQ.tenCap=TEN_CAP[KQ.cap];
   var ngayKm=new Date(P.ngay.getTime());
   ngayKm.setDate(ngayKm.getDate()+Math.max(1,Math.round((mDau-P.km)/CAU_HINH.KM_TB_NGAY)));
   var hanTg=themThang(P.ngay,CAU_HINH.CHU_KY_THANG);
   KQ.hen=inNgay(ngayKm<=hanTg?ngayKm:hanTg);
 }else{
-  KQ.hen=KQ.hanNgay;   /* không có km -> chỉ nhắc theo thời gian */
+  /* không có km -> không biết cấp, lấy mức thấp nhất (Cấp nhỏ) cho an toàn */
+  KQ.hen=KQ.hanNgay; KQ.cap='nho'; KQ.tenCap=TEN_CAP.nho;
 }
+var TICK=O_TICK.map(function(o){return o.cap.indexOf(KQ.cap)!==-1;});
+var KHAC=DV_KHAC_THEO_CAP[KQ.cap]||[];
 
 /* ---------- 5. Dựng 2 mặt thẻ ---------- */
 var LOGO='plg_logo.png', WORDMARK='plg_wordmark.png', QR='plg_qr.png';
@@ -232,7 +222,7 @@ H+='<div class="card">'+
    '<div class="title">CÁC DỊCH VỤ ĐỀ XUẤT</div>';
 for(var i=0;i<O_TICK.length;i++) H+=dongDV(YS[i],TICK[i],esc(O_TICK[i].ten));
 var dvKhac=KHAC.join(', ');
-if(dvKhac.length>42) dvKhac=KHAC.slice(0,1).join(', ')+' +'+(KHAC.length-1)+' DV';
+if(dvKhac.length>42) dvKhac=KHAC[0]+' +'+(KHAC.length-1);
 H+=dongDV(YS[5],KHAC.length>0,'DV khác:',dvKhac);
 H+='<img class="qr" src="'+QR+'" alt="Zalo OA Phi Long">'+
    '<div class="divider"></div>'+
