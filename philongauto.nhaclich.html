@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phi Long Auto — Nhắc lịch bảo dưỡng</title>
+<style>
+/* =========================================================================
+   PHI LONG AUTO — PHIẾU NHẮC LỊCH ONLINE
+   File: philongauto.nhaclich.html   ·   repo trolyoto/appsheet
+   Bản: v1 (09/11/2026)
+   ========================================================================= */
+:root{
+  --xanh:#16359E; --xanh-dam:#0E2470; --xanh-nhat:#EDF1FB;
+  --cam:#F7A81B; --cam-nhat:#FEF4E0;
+  --la:#00A651; --la-nhat:#E6F6ED;
+  --do:#C62828; --do-nhat:#FDECEC;
+  --nen:#F4F6FA; --trang:#FFFFFF;
+  --chu:#15202B; --chu-mo:#5A6775; --vien:#DFE4EC;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--nen); color:var(--chu);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  font-size:16px; line-height:1.5;
+  -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px 40px}
+
+/* ---------- Header thương hiệu ---------- */
+.top{background:var(--xanh);color:#fff;padding:18px 16px 16px}
+.top-in{max-width:528px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.wordmark{line-height:1.05;min-width:0}
+.wordmark .w1{font-size:24px;font-weight:800;letter-spacing:.4px}
+.wordmark .w2{display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap}
+.wordmark .w2 span{font-size:9.5px;font-weight:700;letter-spacing:.4px}
+.wordmark .w2 em{
+  font-style:normal;background:var(--cam);color:var(--xanh-dam);
+  font-size:10px;font-weight:800;padding:1px 5px;border-radius:3px;letter-spacing:.5px}
+.top .hotline{margin-left:auto;text-align:right;flex:none}
+.top .hotline b{display:block;font-size:15px;letter-spacing:.2px;white-space:nowrap}
+.top .hotline small{font-size:10px;opacity:.8;letter-spacing:.6px}
+
+/* ---------- Thẻ xe ---------- */
+.xe{background:var(--trang);border-radius:14px;margin-top:-10px;
+    box-shadow:0 2px 10px rgba(16,40,100,.10);padding:16px;position:relative;z-index:2}
+.xe .bien{font-size:30px;font-weight:800;color:var(--xanh);letter-spacing:1px;line-height:1.15}
+.xe .ten{font-size:14px;color:var(--chu-mo);margin-top:2px}
+.xe .luoi{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.xe .o{background:var(--xanh-nhat);border-radius:10px;padding:10px 12px}
+.xe .o dt{font-size:11px;color:var(--chu-mo);font-weight:600;letter-spacing:.3px;margin:0}
+.xe .o dd{margin:3px 0 0;font-size:16px;font-weight:700;color:var(--xanh-dam)}
+
+/* ---------- Băng trạng thái ---------- */
+.bang{border-radius:12px;padding:13px 14px;margin-top:14px;display:flex;gap:10px;align-items:flex-start}
+.bang.do{background:var(--do-nhat);border:1px solid #F3C3C3}
+.bang.cam{background:var(--cam-nhat);border:1px solid #F3DCAE}
+.bang.la{background:var(--la-nhat);border:1px solid #BDE5CD}
+.bang b{display:block;font-size:15px}
+.bang.do b{color:var(--do)} .bang.cam b{color:#8A6200} .bang.la b{color:#0B6B3A}
+.bang p{margin:3px 0 0;font-size:13px;color:var(--chu-mo)}
+.bang svg{flex:none;margin-top:2px}
+
+/* ---------- Tiêu đề khối ---------- */
+h2{font-size:13px;font-weight:700;letter-spacing:.8px;color:var(--chu-mo);
+   text-transform:uppercase;margin:24px 0 10px}
+
+/* ---------- Danh sách dịch vụ ---------- */
+.dv{background:var(--trang);border:1px solid var(--vien);border-radius:12px;
+    padding:13px 14px;margin-bottom:10px}
+.dv .hang1{display:flex;align-items:center;gap:10px}
+.dv .ten{font-size:16px;font-weight:700;flex:1 1 auto;min-width:0}
+.nhan{flex:none;font-size:11px;font-weight:800;letter-spacing:.4px;
+      padding:4px 9px;border-radius:999px;white-space:nowrap}
+.nhan.den{background:var(--do);color:#fff}
+.nhan.sap{background:var(--cam);color:var(--xanh-dam)}
+.nhan.con{background:var(--la-nhat);color:#0B6B3A}
+.nhan.chua{background:#ECEFF3;color:var(--chu-mo)}
+.dv .lan{font-size:13px;color:var(--chu-mo);margin-top:5px}
+.dv .han{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}
+.dv .han div{background:var(--nen);border-radius:8px;padding:6px 10px;font-size:13px}
+.dv .han b{font-weight:700;color:var(--xanh-dam)}
+.dv .han .gap b{color:var(--do)}
+
+/* ---------- Lịch sử ---------- */
+.ls{background:var(--trang);border:1px solid var(--vien);border-radius:12px;overflow:hidden}
+.ls table{width:100%;border-collapse:collapse;font-size:13px}
+.ls th{background:var(--xanh);color:#fff;text-align:left;padding:9px 10px;
+       font-size:11px;letter-spacing:.4px;font-weight:700}
+.ls td{padding:9px 10px;border-top:1px solid var(--vien);vertical-align:top}
+.ls td.p{text-align:right;white-space:nowrap}
+
+/* ---------- Nút ---------- */
+.nut{display:flex;flex-direction:column;gap:10px;margin-top:22px}
+.nut a{display:flex;align-items:center;justify-content:center;gap:9px;
+   min-height:52px;border-radius:12px;text-decoration:none;font-size:16px;font-weight:700}
+.nut a.chinh{background:var(--xanh);color:#fff}
+.nut a.phu{background:var(--trang);color:var(--xanh);border:2px solid var(--xanh)}
+.nut a.nhe{background:transparent;color:var(--chu-mo);font-weight:600;
+   font-size:14px;min-height:40px;text-decoration:underline}
+
+.ghi{margin-top:22px;font-size:12px;color:var(--chu-mo);line-height:1.6}
+.ghi .tam{background:var(--cam-nhat);border-left:3px solid var(--cam);
+   border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:10px;color:#6B5212}
+.trong{background:var(--trang);border:1px dashed var(--vien);border-radius:12px;
+   padding:20px 16px;font-size:14px;color:var(--chu-mo)}
+.trong code{display:block;background:var(--nen);padding:10px;border-radius:8px;
+   margin-top:10px;font-size:11px;word-break:break-all;color:var(--chu)}
+@media print{body{background:#fff}.nut{display:none}}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="top-in">
+    <div class="wordmark">
+      <div class="w1">PHI LONG</div>
+      <div class="w2"><span>TYRE PLUS + CAR SERVICE</span><em>AUTO.COM</em></div>
+    </div>
+    <div class="hotline">
+      <small>ĐẶT LỊCH</small>
+      <b>0975 76 77 78</b>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <main id="noidung"></main>
+</div>
+
+<script>
+/* =========================================================================
+   1. MỐC NHẮC LỊCH  —  ⚠️ SỐ TẠM, CHỜ TRACY CHỐT
+   Sửa đúng 1 chỗ này là cả trang đổi theo. Không cần đụng chỗ nào khác.
+     km   = số km giữa 2 lần làm
+     thang= số tháng giữa 2 lần làm
+     tu   = từ khoá nhận ra dịch vụ trong tên sản phẩm (viết thường, không dấu)
+     nhom = mã nhóm hàng trong app (DVL/DVNL/LX/BD/SC/PK) — để đối chiếu thêm
+   ========================================================================= */
+var MOC = [
+  {ten:'Thay dầu (nhớt) động cơ', km:5000,  thang:6,  nhom:['BD'],
+   tu:['thay nhot','nhot dong co','dau nhot','thay dau','castrol','motul','shell helix','total quartz','liqui moly']},
+  {ten:'Đảo lốp',                 km:10000, thang:6,  nhom:['DVL'],
+   tu:['dao lop','xoay lop','hoan vi lop']},
+  {ten:'Cân bằng động',           km:10000, thang:6,  nhom:['DVL'],
+   tu:['can bang dong','can bang','balance']},
+  {ten:'Kiểm tra thước lái (độ chụm)', km:20000, thang:12, nhom:['DVNL','SC'],
+   tu:['thuoc lai','do chum','can chinh goc lai','can chinh thuoc lai','alignment']},
+  {ten:'Thay lốp',                km:50000, thang:60, nhom:['LX'], nhomChac:true,
+   tu:['thay lop','lap lop','lop moi']},
+  {ten:'Láng đĩa / kiểm tra phanh', km:20000, thang:12, nhom:['SC','BD'],
+   tu:['lang dia','bo thang','ma phanh','heo thang','phanh']}
+];
+var CANH_BAO_KM   = 1000;  /* còn dưới ngần này km  => SẮP ĐẾN HẠN */
+var CANH_BAO_NGAY = 30;    /* còn dưới ngần này ngày => SẮP ĐẾN HẠN */
+var ZALO_OA = 'https://zalo.me/s/4166041222749405453/';
+var HOTLINE = '0975767778';
+var WEBSITE = 'https://philongauto.com';
+
+/* ========================= 2. Tiện ích ========================= */
+function qs(k){
+  var m = new RegExp('[?&]'+k+'=([^&]*)').exec(location.search);
+  return m ? decodeURIComponent(m[1].replace(/\+/g,' ')) : '';
+}
+function boDau(s){
+  return (s||'').toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/đ/g,'d').replace(/\s+/g,' ').trim();
+}
+function soNguyen(v){
+  var n = parseInt(String(v||'').replace(/[^\d-]/g,''),10);
+  return isNaN(n) ? null : n;
+}
+function dinhDang(n){
+  if(n===null||n===undefined||isNaN(n)) return '—';
+  return Math.round(n).toLocaleString('vi-VN');
+}
+/* Nhận dd/MM/yyyy, dd-MM-yyyy hoặc yyyy-MM-dd */
+function docNgay(s){
+  s = String(s||'').trim(); if(!s) return null;
+  var m = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/.exec(s);
+  if(m) return new Date(+m[3], +m[2]-1, +m[1]);
+  m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(s);
+  if(m) return new Date(+m[1], +m[2]-1, +m[3]);
+  return null;
+}
+function inNgay(d){
+  if(!(d instanceof Date)||isNaN(d)) return '—';
+  var p=function(x){return (x<10?'0':'')+x;};
+  return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear();
+}
+function themThang(d,n){
+  var x = new Date(d.getTime());
+  var ngay = x.getDate();
+  x.setMonth(x.getMonth()+n);
+  if(x.getDate() < ngay) x.setDate(0);   /* 31/01 + 1 tháng => 28/02 */
+  return x;
+}
+function soNgay(a,b){ return Math.round((a-b)/86400000); }
+function esc(s){
+  return String(s===null||s===undefined?'':s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+/* ========================= 3. Đọc tham số ========================= */
+var P = {
+  bienso: qs('bienso'),
+  kh    : qs('kh'),
+  sdt   : qs('sdt'),
+  xe    : qs('xe'),
+  size  : qs('size'),
+  cn    : qs('cn'),
+  km    : soNguyen(qs('km')),
+  ngay  : docNgay(qs('ngay')),
+  data  : qs('data')
+};
+var HOM_NAY = new Date(); HOM_NAY.setHours(0,0,0,0);
+
+/* data: các dòng nối bằng _b_ ; các cột nối bằng _a_
+   ten_sp _a_ nhom_hang _a_ ngay(dd/MM/yyyy) _a_ km   */
+function docLichSu(chuoi){
+  if(!chuoi) return [];
+  return chuoi.split('_b_').map(function(dong){
+    var c = dong.split('_a_');
+    return {
+      ten  : (c[0]||'').trim(),
+      nhom : (c[1]||'').trim().toUpperCase(),
+      ngay : docNgay(c[2]),
+      km   : soNguyen(c[3])
+    };
+  }).filter(function(r){ return r.ten; });
+}
+var LS = docLichSu(P.data);
+/* mới nhất lên trước */
+LS.sort(function(a,b){
+  var x = a.ngay ? a.ngay.getTime() : 0, y = b.ngay ? b.ngay.getTime() : 0;
+  return y - x;
+});
+
+/* ========================= 4. Khớp lịch sử với từng mốc ========================= */
+function lanGanNhat(moc){
+  for(var i=0;i<LS.length;i++){
+    var r = LS[i], t = boDau(r.ten);
+    var khopTu = moc.tu.some(function(k){ return t.indexOf(boDau(k)) !== -1; });
+    if(khopTu) return r;
+  }
+  /* Chỉ rơi về khớp theo nhóm hàng với mốc có nhóm đặc trưng (vd Thay lốp = LX).
+     Các mốc khác KHÔNG khớp theo nhóm — nhóm BD/SC gom quá nhiều mặt hàng,
+     khớp bừa sẽ nhắc sai hạn (vd lấy phiếu bố thắng làm lần cân thước lái). */
+  if(moc.nhomChac){
+    for(var j=0;j<LS.length;j++){
+      if(moc.nhom.indexOf(LS[j].nhom) !== -1) return LS[j];
+    }
+  }
+  return null;
+}
+
+function tinh(moc){
+  var r = lanGanNhat(moc);
+  var kqua = {ten:moc.ten, moc:moc, lan:r, trangThai:'chua'};
+
+  /* Không tìm được lần làm gần nhất thì KHÔNG suy đoán từ ngày vào xưởng —
+     thà báo "chưa có dữ liệu" còn hơn nhắc sai hạn. */
+  if(!r) return kqua;
+
+  var kmGoc   = r.km !== null ? r.km   : null;
+  var ngayGoc = r.ngay        ? r.ngay : null;
+  if(kmGoc === null && !ngayGoc) return kqua;   /* không đủ dữ liệu */
+
+  if(kmGoc !== null && P.km !== null){
+    kqua.hanKm   = kmGoc + moc.km;
+    kqua.conKm   = kqua.hanKm - P.km;
+  }
+  if(ngayGoc){
+    kqua.hanNgay = themThang(ngayGoc, moc.thang);
+    kqua.conNgay = soNgay(kqua.hanNgay, HOM_NAY);
+  }
+
+  /* CẢ HAI — cái nào đến trước thì nhắc */
+  var denHan =  (kqua.conKm   !== undefined && kqua.conKm   <= 0) ||
+                (kqua.conNgay !== undefined && kqua.conNgay <= 0);
+  var sapDen =  (kqua.conKm   !== undefined && kqua.conKm   <= CANH_BAO_KM) ||
+                (kqua.conNgay !== undefined && kqua.conNgay <= CANH_BAO_NGAY);
+
+  kqua.trangThai = denHan ? 'den' : (sapDen ? 'sap' : 'con');
+  return kqua;
+}
+
+var KQ = MOC.map(tinh);
+var thuTu = {den:0, sap:1, con:2, chua:3};
+KQ.sort(function(a,b){ return thuTu[a.trangThai] - thuTu[b.trangThai]; });
+
+var soDen = KQ.filter(function(k){return k.trangThai==='den';}).length;
+var soSap = KQ.filter(function(k){return k.trangThai==='sap';}).length;
+
+/* ========================= 5. Dựng trang ========================= */
+var H = [];
+
+if(!P.bienso){
+  H.push(
+   '<div class="trong"><b>Chưa có dữ liệu xe.</b><br>'+
+   'Trang này nhận dữ liệu từ app PhiLong Auto qua link. Mẫu link:'+
+   '<code>'+esc(location.pathname.split('/').pop())+
+   '?bienso=51K-123.45&kh=Anh%20To%C3%A0n&sdt=0976345379&xe=Toyota%20Innova%202019'+
+   '&size=205/65R16&cn=CN3&km=42000&ngay=08/11/2026'+
+   '&data=%C4%90%E1%BA%A3o%20l%E1%BB%91p_a_DVL_a_08/11/2026_a_42000</code></div>'
+  );
+}else{
+
+  /* --- thẻ xe --- */
+  H.push('<section class="xe">');
+  H.push('<div class="bien">'+esc(P.bienso)+'</div>');
+  var ten = [P.kh, P.xe].filter(Boolean).join(' · ');
+  if(ten) H.push('<div class="ten">'+esc(ten)+'</div>');
+  H.push('<dl class="luoi">');
+  H.push('<div class="o"><dt>SỐ KM LẦN CUỐI</dt><dd>'+(P.km!==null?dinhDang(P.km)+' km':'—')+'</dd></div>');
+  H.push('<div class="o"><dt>NGÀY VÀO XƯỞNG</dt><dd>'+inNgay(P.ngay)+'</dd></div>');
+  if(P.size) H.push('<div class="o"><dt>SIZE LỐP</dt><dd>'+esc(P.size)+'</dd></div>');
+  if(P.cn)   H.push('<div class="o"><dt>CHI NHÁNH</dt><dd>'+esc(P.cn)+'</dd></div>');
+  H.push('</dl></section>');
+
+  /* --- băng trạng thái --- */
+  var icon = {
+    do :'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C62828" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6"/><path d="M12 16.5v.5"/></svg>',
+    cam:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8A6200" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>',
+    la :'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B6B3A" stroke-width="2.5" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'
+  };
+  if(soDen > 0){
+    H.push('<div class="bang do">'+icon.do+'<div><b>'+soDen+' hạng mục đã đến hạn</b>'+
+           '<p>Xe của anh/chị nên vào xưởng sớm để bảo đảm an toàn khi chạy đường dài.</p></div></div>');
+  }else if(soSap > 0){
+    H.push('<div class="bang cam">'+icon.cam+'<div><b>'+soSap+' hạng mục sắp đến hạn</b>'+
+           '<p>Đặt lịch trước để khỏi phải chờ, Phi Long giữ chỗ theo giờ anh/chị chọn.</p></div></div>');
+  }else{
+    H.push('<div class="bang la">'+icon.la+'<div><b>Xe đang trong hạn</b>'+
+           '<p>Chưa có hạng mục nào tới kỳ. Phi Long sẽ nhắc lại khi gần đến hạn.</p></div></div>');
+  }
+
+  /* --- danh sách dịch vụ --- */
+  H.push('<h2>Các dịch vụ đề xuất</h2>');
+  var nhanChu = {den:'ĐẾN HẠN', sap:'SẮP ĐẾN HẠN', con:'CÒN HẠN', chua:'CHƯA CÓ DỮ LIỆU'};
+  KQ.forEach(function(k){
+    H.push('<article class="dv">');
+    H.push('<div class="hang1"><div class="ten">'+esc(k.ten)+'</div>'+
+           '<span class="nhan '+k.trangThai+'">'+nhanChu[k.trangThai]+'</span></div>');
+
+    if(k.lan){
+      var mo = [];
+      if(k.lan.ngay) mo.push(inNgay(k.lan.ngay));
+      if(k.lan.km !== null) mo.push(dinhDang(k.lan.km)+' km');
+      H.push('<div class="lan">Lần gần nhất: '+esc(k.lan.ten)+
+             (mo.length ? ' — '+mo.join(' · ') : '')+'</div>');
+    }else{
+      H.push('<div class="lan">Chưa ghi nhận lần làm nào tại Phi Long — nên kiểm tra khi vào xưởng.</div>');
+    }
+
+    if(k.trangThai !== 'chua'){
+      H.push('<div class="han">');
+      if(k.conKm !== undefined){
+        var gapKm = k.conKm <= CANH_BAO_KM ? ' gap' : '';
+        H.push('<div class="'+gapKm.trim()+'">Theo km: <b>'+
+          (k.conKm > 0 ? 'còn '+dinhDang(k.conKm)+' km' : 'quá '+dinhDang(-k.conKm)+' km')+
+          '</b> <span style="color:var(--chu-mo)">(mốc '+dinhDang(k.hanKm)+' km)</span></div>');
+      }
+      if(k.conNgay !== undefined){
+        var gapNg = k.conNgay <= CANH_BAO_NGAY ? ' gap' : '';
+        H.push('<div class="'+gapNg.trim()+'">Theo thời gian: <b>'+
+          (k.conNgay > 0 ? 'còn '+dinhDang(k.conNgay)+' ngày' : 'quá '+dinhDang(-k.conNgay)+' ngày')+
+          '</b> <span style="color:var(--chu-mo)">('+inNgay(k.hanNgay)+')</span></div>');
+      }
+      H.push('</div>');
+    }
+    H.push('</article>');
+  });
+
+  /* --- lịch sử --- */
+  if(LS.length){
+    H.push('<h2>Dịch vụ &amp; sản phẩm đã dùng</h2><div class="ls"><table>');
+    H.push('<thead><tr><th>TÊN DỊCH VỤ / SẢN PHẨM</th><th class="p">NGÀY</th><th class="p">KM</th></tr></thead><tbody>');
+    LS.forEach(function(r){
+      H.push('<tr><td>'+esc(r.ten)+'</td><td class="p">'+inNgay(r.ngay)+
+             '</td><td class="p">'+(r.km!==null?dinhDang(r.km):'—')+'</td></tr>');
+    });
+    H.push('</tbody></table></div>');
+  }
+
+  /* --- nút --- */
+  H.push('<nav class="nut">');
+  H.push('<a class="chinh" href="'+ZALO_OA+'" target="_blank" rel="noopener">Đặt lịch qua Zalo</a>');
+  H.push('<a class="phu" href="tel:'+HOTLINE+'">Gọi 0975 76 77 78</a>');
+  H.push('<a class="nhe" href="'+WEBSITE+'" target="_blank" rel="noopener">philongauto.com</a>');
+  H.push('</nav>');
+}
+
+/* --- ghi chú --- */
+H.push('<div class="ghi">');
+H.push('<div class="tam"><b>Mốc nhắc đang là số tạm</b> — chờ Phi Long chốt bảng mốc chuẩn. '+
+       'Sửa ở biến <code>MOC</code> đầu phần script, không phải sửa chỗ nào khác.</div>');
+H.push('Nguyên tắc: tính cả theo số km lẫn theo thời gian, <b>cái nào đến trước thì nhắc trước</b>. '+
+       'Số km và ngày lấy từ hồ sơ xe trong app PhiLong Auto.');
+H.push('</div>');
+
+document.getElementById('noidung').innerHTML = H.join('');
+</script>
+</body>
+</html>
