@@ -116,6 +116,25 @@ var CAU_HINH = {
 };
 var ZALO_OA = 'https://zalo.me/s/4166041222749405453/';
 
+/* CHU KỲ THAY NHỚT THEO LOẠI DẦU BÁN TRÊN PHIẾU (Tracy chốt 09/11/2026)
+   Thay dầu tại km = KM HIỆN TẠI + số km của loại dầu đã bán.
+   Không tìm thấy dầu trên phiếu -> dùng mốc 5.000 tròn theo chuẩn hãng.   */
+var CHU_KY_NHOT = [
+  {tu:['unipal'],            km:9000},
+  {tu:['q9000','quartz 9000'],km:9000},
+  {tu:['q7000','quartz 7000'],km:7000},
+  {tu:['q5000','quartz 5000'],km:5000}
+];
+function chuKyNhot(dong){
+  for(var i=0;i<CHU_KY_NHOT.length;i++){
+    for(var j=0;j<dong.length;j++){
+      var t=boDau(dong[j].ten).replace(/\s+/g,' ');
+      if(CHU_KY_NHOT[i].tu.some(function(k){return t.indexOf(k)!==-1;})) return CHU_KY_NHOT[i];
+    }
+  }
+  return null;
+}
+
 /* 6 ô trên mẫu in — KHÔNG đổi thứ tự, không đổi chữ.
    Ô được tick theo CẤP BẢO DƯỠNG CỦA MỐC KM KẾ TIẾP (ma trận Michelin Car
    Service, file "Maintenance pakage.xlsx"), KHÔNG phải theo việc đã làm hôm nay.
@@ -197,8 +216,13 @@ henTg.setDate(henTg.getDate() - CAU_HINH.NHAC_TRUOC_NGAY);
 if(P.km!==null && P.km>0){
   var mDau=mocKeTiep(P.km,CAU_HINH.CHU_KY_KM);
   var mLop=mocKeTiep(P.km,CAU_HINH.KM_DAO_LOP);
-  KQ.kmDau=dinhDang(mDau); KQ.kmLop=dinhDang(mLop);
+  /* Cấp bảo dưỡng vẫn theo mốc 5.000 chuẩn Michelin */
   KQ.cap=maCap(mDau); KQ.tenCap=TEN_CAP[KQ.cap];
+  /* Riêng dòng THAY DẦU chạy theo loại nhớt đã bán */
+  var nhot=chuKyNhot(DONG);
+  KQ.loaiNhot = nhot ? nhot.tu[0].toUpperCase() : '';
+  KQ.kmDau = dinhDang(nhot ? P.km + nhot.km : mDau);
+  KQ.kmLop = dinhDang(mLop);
 }
 
 /* --- CHẶN AN TOÀN: không bao giờ in ngày hẹn đã qua cho khách --- */
