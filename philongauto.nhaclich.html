@@ -128,9 +128,9 @@ var O_TICK = [
    Dầu động cơ đã có dòng "Thay dầu (Nhớt) tại km" nên không lặp lại ở đây. */
 var DV_KHAC_THEO_CAP = {
  nho : [],
- tb  : ['Lọc dầu động cơ','Gạt mưa'],
- tbl : ['Lọc dầu + lọc gió','Ắc quy'],
- lon : ['Lọc dầu + lọc gió','Dầu phanh']
+ tb  : ['Lọc dầu ĐC','Gạt mưa'],
+ tbl : ['Lọc dầu ĐC','Lọc gió ĐC','Lọc gió máy lạnh','Ắc quy','Gạt mưa'],
+ lon : ['Lọc dầu ĐC','Lọc gió ĐC','Lọc gió máy lạnh','Ắc quy','Gạt mưa','Dầu phanh']
 };
 /* ===================== hết phần cấu hình ===================== */
 
@@ -222,7 +222,12 @@ H+='<div class="card">'+
    '<div class="title">CÁC DỊCH VỤ ĐỀ XUẤT</div>';
 for(var i=0;i<O_TICK.length;i++) H+=dongDV(YS[i],TICK[i],esc(O_TICK[i].ten));
 var dvKhac=KHAC.join(', ');
-if(dvKhac.length>42) dvKhac=KHAC[0]+' +'+(KHAC.length-1);
+if(dvKhac.length>42){
+  var g=[],i=0;
+  while(i<KHAC.length && (g.join(', ')+', '+KHAC[i]).length<=34){ g.push(KHAC[i]); i++; }
+  if(!g.length) g=[KHAC[0]], i=1;
+  dvKhac=g.join(', ')+' +'+(KHAC.length-i);
+}
 H+=dongDV(YS[5],KHAC.length>0,'DV khác:',dvKhac);
 H+='<img class="qr" src="'+QR+'" alt="Zalo OA Phi Long">'+
    '<div class="divider"></div>'+
