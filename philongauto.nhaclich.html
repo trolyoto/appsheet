@@ -6,11 +6,14 @@
 <title>Phi Long Auto — Thẻ nhắc lịch bảo dưỡng</title>
 <style>
 /* =========================================================================
-   PHI LONG AUTO — THẺ TREO NHẮC LỊCH (in 2 mặt)
+   PHI LONG AUTO — THẺ TREO NHẮC LỊCH (in 1 mặt)
    File: philongauto.nhaclich.html · repo trolyoto/appsheet
-   Bản: v3 (09/11/2026)
+   Bản: v4 (10/11/2026)
+   - Tracy chốt 10/11: BỎ HẲN TRANG 1 (mặt logo) -> thẻ chỉ còn 1 trang in.
+   - Tracy chốt 10/11: BỎ 2 dòng "Kiểm tra lốp tại km" và "Hoặc ngày"
+     -> còn 4 dòng điền: Biển số / Km hiện tại / Thay dầu tại km / Lịch hẹn.
    - Bố cục dựng lại ĐÚNG MẪU IN CHUẨN "the-treo-xem-truoc.png" (764x958 px)
-     quy đổi 1 px mẫu = 90/764 mm  ->  thẻ 90 x 112.9 mm, in 2 trang.
+     quy đổi 1 px mẫu = 90/764 mm  ->  thẻ 90 x 112.9 mm, in 1 trang.
    - 6 ô dịch vụ TỰ TICK theo dịch vụ đã làm trên phiếu in (chuỗi &data=).
    - Mốc km/ngày theo ma trận Michelin Car Service (Maintenance pakage.xlsx)
      + cấu hình tab DM_CAP_BD: 5.000 km hoặc 3 tháng, cái nào tới trước.
@@ -44,7 +47,6 @@ img{display:block}
 /* ---------- thẻ: 764 x 958 px mẫu = 90 x 112.9 mm ---------- */
 .card{position:relative;width:90mm;height:112.853mm;background:#fff;overflow:hidden;
       box-shadow:0 3px 14px rgba(16,40,100,.14)}
-.logo{position:absolute;top:12.251mm;left:1.767mm;width:86.584mm}
 .wm{position:absolute;top:10.366mm;right:6.832mm;width:48.063mm}
 .rule{position:absolute;left:6.597mm;right:6.832mm;height:.17mm;background:var(--gold)}
 .fd,.sv{position:absolute;left:6.597mm;right:6.832mm;display:flex;align-items:baseline;
@@ -230,7 +232,7 @@ if(henTg <= HOM_NAY){
   KQ.hen=''; KQ.hanNgay='';
   KQ.canh='Đơn lập ngày '+inNgay(P.ngay)+', hạn 3 tháng là '+inNgay(hanTg)+
           ' — ngày hẹn (trước hạn '+CAU_HINH.NHAC_TRUOC_NGAY+' ngày) đã tới hoặc đã qua. '+
-          'Thẻ BỎ TRỐNG 2 dòng ngày để không in ngày sai cho khách; hẹn lại trực tiếp.';
+          'Thẻ BỎ TRỐNG dòng lịch hẹn để không in ngày sai cho khách; hẹn lại trực tiếp.';
 }else{
   KQ.hen=inNgay(henTg);
 }
@@ -241,9 +243,9 @@ if(!KQ.loaiNhot){ KQ.hen=''; }
 var TICK=O_TICK.map(function(o){return o.cap.indexOf(KQ.cap)!==-1;});
 var KHAC=[];   /* Tracy chốt: dòng DV khác LUÔN để trống cho viết tay */
 
-/* ---------- 5. Dựng 2 mặt thẻ ---------- */
-var LOGO='plg_logo.png', WORDMARK='plg_wordmark.png', QR='plg_qr.png';
-var YF=[25.052,29.450,33.848,38.246,42.644,47.042];     /* tâm 5 dòng điền (mm)    */
+/* ---------- 5. Dựng thẻ (1 mặt) ---------- */
+var WORDMARK='plg_wordmark.png', QR='plg_qr.png';
+var YF=[29.450,33.848,38.246,42.644];                   /* tâm 4 dòng điền (mm)    */
 var YS=[58.842,63.459,68.077,72.695,77.313,81.931,86.548]; /* tâm 6 dòng dịch vụ   */
 function dongDien(y,nhan,gt){
   return '<div class="fd" style="top:'+y+'mm"><span class="fl">'+nhan+'</span>'+
@@ -255,16 +257,13 @@ function dongDV(y,on,nhan,phu){
          (phu!==undefined?'<span class="dot"><i>'+esc(phu)+'</i></span>':'')+'</div>';
 }
 var H='';
-H+='<div class="card"><img class="logo" src="'+LOGO+'" alt="Phi Long Auto"></div>';
 H+='<div class="card">'+
    '<img class="wm" src="'+WORDMARK+'" alt="Phi Long">'+
    '<div class="rule" style="top:22.853mm"></div>'+
    dongDien(YF[0],'Biển số xe:',P.bienso)+
    dongDien(YF[1],'Km hiện tại:',P.km!==null&&P.km>0?dinhDang(P.km):'')+
-   dongDien(YF[2],'Kiểm tra lốp tại km:',KQ.kmLop)+
-   dongDien(YF[3],'Hoặc ngày:',KQ.hanNgay)+
-   dongDien(YF[4],'Thay dầu (Nhớt) tại km:',KQ.kmDau)+
-   dongDien(YF[5],'Lịch hẹn lần sau:',KQ.hen)+
+   dongDien(YF[2],'Thay dầu (Nhớt) tại km:',KQ.kmDau)+
+   dongDien(YF[3],'Lịch hẹn lần sau:',KQ.hen)+
    '<div class="rule" style="top:49.241mm"></div>'+
    '<div class="title">CÁC DỊCH VỤ ĐỀ XUẤT</div>';
 for(var i=0;i<O_TICK.length;i++) H+=dongDV(YS[i],TICK[i],esc(O_TICK[i].ten));
@@ -288,7 +287,7 @@ if(!P.bienso){
   document.getElementById('the').innerHTML=H;
   var cb=[];
   if(KQ.canh) cb.push(KQ.canh);
-  if(P.km===null||P.km<=0) cb.push('Đơn KHÔNG có số km (odo) → 2 dòng km để trống, chỉ nhắc theo thời gian. Cần nhập km khi tạo đơn.');
+  if(P.km===null||P.km<=0) cb.push('Đơn KHÔNG có số km (odo) → các dòng km để trống, chỉ nhắc theo thời gian. Cần nhập km khi tạo đơn.');
   if(!DONG.length) cb.push('Link không có chuỗi &data= → không tick được dịch vụ nào.');
   if(cb.length) document.getElementById('canhbao').innerHTML=
     '<div class="canh">⚠ '+cb.join('<br>⚠ ')+'</div>';
