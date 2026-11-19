@@ -618,7 +618,8 @@
                 if (coNoCu && noCu !== 0) {
                     var trNC = document.createElement('tr');
                     trNC.className = 'summary-row';
-                    trNC.innerHTML = '<td colspan="4">Dư nợ cũ</td><td style="text-align:right;white-space:nowrap">' + fmtTien(noCu) + 'đ</td>';
+                    var nhanNoCu = (noCu < 0) ? 'Đã cọc / Trả trước' : 'Dư nợ cũ';
+                    trNC.innerHTML = '<td colspan="4">' + nhanNoCu + '</td><td style="text-align:right;white-space:nowrap">' + fmtTien(noCu) + 'đ</td>';
                     tableBody.appendChild(trNC);
 
                     tongThanhToan = chiTietThanhToan + noCu;
