@@ -421,6 +421,7 @@
         const thanhToan        = urlParams.get('thanhtoan');
         const khachTrao        = urlParams.get('khachtrao');
         const conNo            = urlParams.get('conno');
+        const noCuParam        = urlParams.get('nocu');
         const noiDungChietKhau = urlParams.get('noidungchietkhau');
         const ghiChu           = urlParams.get('ghichu');
         const qrcodeUrl        = urlParams.get('qrcode');
@@ -606,23 +607,55 @@
                 trTT.innerHTML = `<td colspan="4">Phải thu khách</td><td style="text-align:right;white-space:nowrap">${fmtTien(chiTietThanhToan)}đ</td>`;
                 tableBody.appendChild(trTT);
 
+                /* 19/11/2026 - THEM DU NO CU truoc do.
+                   Chi hien khi link co &nocu= va khac 0; link khong co &nocu=
+                   thi phieu in ra y het ban truoc day, khong doi mot so nao. */
+                var coNoCu = (noCuParam !== null && noCuParam !== undefined
+                              && noCuParam !== '' && noCuParam !== 'null');
+                var noCu = coNoCu ? (parseNum(decodeURIComponent(noCuParam)) || 0) : 0;
+                var tongThanhToan = chiTietThanhToan;
+
+                if (coNoCu && noCu !== 0) {
+                    var trNC = document.createElement('tr');
+                    trNC.className = 'summary-row';
+                    trNC.innerHTML = '<td colspan="4">Dư nợ cũ</td><td style="text-align:right;white-space:nowrap">' + fmtTien(noCu) + 'đ</td>';
+                    tableBody.appendChild(trNC);
+
+                    tongThanhToan = chiTietThanhToan + noCu;
+                    var trTTT = document.createElement('tr');
+                    trTTT.className = 'summary-row';
+                    trTTT.style.fontWeight = '700';
+                    trTTT.innerHTML = '<td colspan="4" style="font-weight:700">TỔNG THANH TOÁN</td><td style="text-align:right;white-space:nowrap;font-weight:700">' + fmtTien(tongThanhToan) + 'đ</td>';
+                    tableBody.appendChild(trTTT);
+                }
+
+                var kt = 0;
                 if (khachTrao && khachTrao !== 'null') {
-                    const kt = parseNum(decodeURIComponent(khachTrao)) || 0;
+                    kt = parseNum(decodeURIComponent(khachTrao)) || 0;
                     if (kt > 0) {
-                        const trKT = document.createElement('tr');
+                        var trKT = document.createElement('tr');
                         trKT.className = 'summary-row';
-                        trKT.innerHTML = `<td colspan="4">Khách trả</td><td style="text-align:right;white-space:nowrap">${fmtTien(kt)}đ</td>`;
+                        trKT.innerHTML = '<td colspan="4">Khách trả</td><td style="text-align:right;white-space:nowrap">' + fmtTien(kt) + 'đ</td>';
                         tableBody.appendChild(trKT);
                     }
                 }
 
-                if (conNo && conNo !== 'null') {
-                    const cn = parseNum(decodeURIComponent(conNo)) || 0;
-                    const trCN = document.createElement('tr');
-                    trCN.className = 'summary-row';
-                    trCN.style.color = '#e53935';
-                    trCN.innerHTML = `<td colspan="4">Còn nợ</td><td style="text-align:right;white-space:nowrap">${fmtTien(cn)}đ</td>`;
-                    tableBody.appendChild(trCN);
+                if (coNoCu && noCu !== 0) {
+                    /* Co no cu thi tinh lai con no, khong dung &conno= cua app
+                       vi conno chi la con no cua rieng phieu nay. */
+                    var con = tongThanhToan - kt;
+                    var trCN1 = document.createElement('tr');
+                    trCN1.className = 'summary-row';
+                    trCN1.style.color = '#e53935';
+                    trCN1.innerHTML = '<td colspan="4">Còn nợ</td><td style="text-align:right;white-space:nowrap;color:#e53935">' + fmtTien(con) + 'đ</td>';
+                    tableBody.appendChild(trCN1);
+                } else if (conNo && conNo !== 'null') {
+                    var cn = parseNum(decodeURIComponent(conNo)) || 0;
+                    var trCN2 = document.createElement('tr');
+                    trCN2.className = 'summary-row';
+                    trCN2.style.color = '#e53935';
+                    trCN2.innerHTML = '<td colspan="4">Còn nợ</td><td style="text-align:right;white-space:nowrap">' + fmtTien(cn) + 'đ</td>';
+                    tableBody.appendChild(trCN2);
                 }
 
                 if (noiDungThuc !== "") {
