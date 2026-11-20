@@ -1387,11 +1387,20 @@ table.sum td.v input{text-align:right;border-bottom-style:dashed}
       s.textContent = i.value || "";
       var td = i.closest("td");
       var inTable = !!td;                       /* trong bảng: ô đã có viền, bỏ gạch chân */
+      /* FIX 20/11/2026: ô chữ phải hiện ĐỦ (tự xuống dòng), chỉ ô số mới giữ 1 dòng */
+      var oNum = td && (td.classList.contains("qty") || td.classList.contains("price") ||
+                        td.classList.contains("vat") || td.classList.contains("ck") ||
+                        td.classList.contains("dvt"));
+      var oShort = oNum || i.classList.contains("d-m") || i.classList.contains("d-y") ||
+                   i.classList.contains("i-bh") || !!i.closest(".dt") || !!i.closest(".dtrow");
+      var flowCss = oShort
+        ? "white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+        : "white-space:normal;word-break:break-word;overflow-wrap:anywhere;overflow:visible;";
       s.setAttribute("style",
         "display:block;width:100%;min-width:0;box-sizing:border-box;" +
         "padding:" + (inTable ? "0 3px" : "1px 3px") + ";" +
         "font-size:inherit;line-height:1.32;color:#101418;" +
-        "white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" +
+        flowCss +
         (inTable ? "" : "border-bottom:1px solid #cfd4da;"));
       if (td && (td.classList.contains("qty") || td.classList.contains("price") ||
                  td.classList.contains("vat") || td.classList.contains("ck")))
@@ -2767,5 +2776,74 @@ table.sum td.v input{text-align:right;border-bottom-style:dashed}
 })();
 </script>
 
+
+<style id="pl-fullprint-css">
+@media print{
+  .plpv{display:block;width:100%;min-width:0;box-sizing:border-box;padding:1px 3px;
+        font-size:inherit;line-height:1.3;color:#101418;
+        white-space:normal;word-break:break-word;overflow-wrap:anywhere;
+        border-bottom:1px solid #cfd4da}
+  td .plpv{border-bottom:none;padding:0 3px}
+  .plpv.num{white-space:nowrap;text-align:right}
+  .plpv.ctr{white-space:nowrap;text-align:center}
+  .plpv.inl{display:inline-block;width:auto;white-space:nowrap}
+  .box .l,.meta .l{align-items:flex-start}
+}
+</style>
+<script>
+/* ===== IN / LƯU PDF: hiện ĐỦ chữ (ô dài tự xuống dòng) — thêm 20/11/2026 =====
+   Không xoá input: chỉ ẩn tạm và chèn span cạnh nó, in xong phục hồi nguyên trạng. */
+(function(){
+  "use strict";
+  var made = [], shown = false;
+  function show(){
+    if (shown) return;                        /* chỉ dựng 1 lần cho mỗi lần in */
+    shown = true;
+    var pgs = document.querySelectorAll("body.print-all .pg, .pg.on");
+    Array.prototype.forEach.call(pgs, function(pg){
+      Array.prototype.forEach.call(pg.querySelectorAll("input[type=text]"), function(i){
+        if (i.style.display === "none") return;
+        var cs = getComputedStyle(i), td = i.closest("td");
+        var num = td && (td.classList.contains("qty") || td.classList.contains("price") ||
+                         td.classList.contains("vat") || td.classList.contains("ck"));
+        var ctr = td && td.classList.contains("dvt");
+        var inl = i.classList.contains("d-m") || i.classList.contains("d-y") ||
+                  i.classList.contains("i-sec") || i.classList.contains("i-secnote") ||
+                  !!i.closest(".dt") || !!i.closest(".dtrow");
+        var s = document.createElement("span");
+        s.className = "plpv" + (num ? " num" : "") + (ctr ? " ctr" : "") + (inl ? " inl" : "");
+        s.textContent = i.value || "";
+        if (!i.value) s.innerHTML = "&nbsp;";
+        s.style.fontSize = cs.fontSize; s.style.fontWeight = cs.fontWeight;
+        s.style.fontFamily = cs.fontFamily; s.style.color = cs.color;
+        if (!num && !ctr) s.style.textAlign = cs.textAlign;
+        if (inl) s.style.width = Math.round(i.getBoundingClientRect().width) + "px";
+        if (i.classList.contains("i-title")){ s.style.borderBottom = "none"; s.style.padding = "0"; }
+        i.style.display = "none";
+        i.parentNode.insertBefore(s, i.nextSibling);
+        made.push([s, i]);                    /* giữ cả cặp để phục hồi đúng ô */
+      });
+    });
+  }
+  function hide(){
+    made.forEach(function(pair){
+      var s = pair[0], i = pair[1];
+      if (i) i.style.display = "";            /* luôn trả ô nhập về như cũ */
+      if (s && s.parentNode) s.parentNode.removeChild(s);
+    });
+    made = [];
+    shown = false;
+  }
+  window.addEventListener("beforeprint", show);
+  window.addEventListener("afterprint", hide);
+  /* Safari/iOS không bắn beforeprint: dùng matchMedia thay thế */
+  if (window.matchMedia){
+    var mq = window.matchMedia("print");
+    var fn = function(m){ (m.matches ? show : hide)(); };
+    if (mq.addEventListener) mq.addEventListener("change", fn);
+    else if (mq.addListener) mq.addListener(fn);
+  }
+})();
+</script>
 </body>
 </html>
